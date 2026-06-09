@@ -88,9 +88,9 @@ function ProductDetailPage() {
                   ) : null}
                 </div>
 
-                {product.variants?.length ? (
+                {product.variants && product.variants.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {product.variants.map((v) => (
+                    {product.variants.map((v: string) => (
                       <button
                         key={v}
                         type="button"
@@ -198,7 +198,7 @@ function ProductDetailPage() {
                   </Link>
                 </div>
                 <div className="mt-4 divide-y divide-border">
-                  {product.reviews.map((r) => (
+                  {product.reviews.map((r: import("@/components/review/ReviewItem").Review) => (
                     <ReviewItem key={r.id} review={r} />
                   ))}
                 </div>
@@ -212,7 +212,7 @@ function ProductDetailPage() {
 
         {/* Related */}
         <section className="mt-12">
-          <SectionTitle align="start">Produk Terkait</SectionTitle>
+          <SectionTitle>Produk Terkait</SectionTitle>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} compact />

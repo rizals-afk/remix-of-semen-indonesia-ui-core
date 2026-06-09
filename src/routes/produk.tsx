@@ -83,15 +83,16 @@ function ProductListingPage() {
                 Urutkan:
                 <select
                   value={sort}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const next = e.target.value as NonNullable<z.infer<typeof searchSchema>["sort"]>;
                     navigate({
-                      search: (prev) => ({
+                      search: (prev: z.infer<typeof searchSchema>) => ({
                         ...prev,
-                        sort: e.target.value as z.infer<typeof searchSchema>["sort"],
+                        sort: next,
                         page: 1,
                       }),
-                    })
-                  }
+                    });
+                  }}
                   className="rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                 >
                   <option value="terbaru">Terbaru</option>
@@ -120,7 +121,7 @@ function ProductListingPage() {
                   page={page}
                   totalPages={totalPages}
                   onChange={(p) =>
-                    navigate({ search: (prev) => ({ ...prev, page: p }) })
+                    navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, page: p }) })
                   }
                 />
               </div>
