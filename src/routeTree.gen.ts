@@ -13,6 +13,7 @@ import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as TentangRouteImport } from './routes/tentang'
 import { Route as SyaratRouteImport } from './routes/syarat'
 import { Route as PromoRouteImport } from './routes/promo'
+import { Route as ProdukRouteImport } from './routes/produk'
 import { Route as PrivasiRouteImport } from './routes/privasi'
 import { Route as PesanRouteImport } from './routes/pesan'
 import { Route as NotifikasiRouteImport } from './routes/notifikasi'
@@ -24,6 +25,7 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AkunRouteImport } from './routes/akun'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
+import { Route as ProdukSlugRouteImport } from './routes/produk.$slug'
 import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
 import { Route as PanduanPengembalianRouteImport } from './routes/panduan.pengembalian'
 import { Route as PanduanPembayaranRouteImport } from './routes/panduan.pembayaran'
@@ -48,6 +50,11 @@ const SyaratRoute = SyaratRouteImport.update({
 const PromoRoute = PromoRouteImport.update({
   id: '/promo',
   path: '/promo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdukRoute = ProdukRouteImport.update({
+  id: '/produk',
+  path: '/produk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivasiRoute = PrivasiRouteImport.update({
@@ -105,6 +112,11 @@ const KategoriIndexRoute = KategoriIndexRouteImport.update({
   path: '/kategori/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProdukSlugRoute = ProdukSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ProdukRoute,
+} as any)
 const PanduanPengirimanRoute = PanduanPengirimanRouteImport.update({
   id: '/panduan/pengiriman',
   path: '/panduan/pengiriman',
@@ -142,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/notifikasi': typeof NotifikasiRoute
   '/pesan': typeof PesanRoute
   '/privasi': typeof PrivasiRoute
+  '/produk': typeof ProdukRouteWithChildren
   '/promo': typeof PromoRoute
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
@@ -151,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/panduan/pembayaran': typeof PanduanPembayaranRoute
   '/panduan/pengembalian': typeof PanduanPengembalianRoute
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
+  '/produk/$slug': typeof ProdukSlugRoute
   '/kategori/': typeof KategoriIndexRoute
 }
 export interface FileRoutesByTo {
@@ -164,6 +178,7 @@ export interface FileRoutesByTo {
   '/notifikasi': typeof NotifikasiRoute
   '/pesan': typeof PesanRoute
   '/privasi': typeof PrivasiRoute
+  '/produk': typeof ProdukRouteWithChildren
   '/promo': typeof PromoRoute
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
@@ -173,6 +188,7 @@ export interface FileRoutesByTo {
   '/panduan/pembayaran': typeof PanduanPembayaranRoute
   '/panduan/pengembalian': typeof PanduanPengembalianRoute
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
+  '/produk/$slug': typeof ProdukSlugRoute
   '/kategori': typeof KategoriIndexRoute
 }
 export interface FileRoutesById {
@@ -187,6 +203,7 @@ export interface FileRoutesById {
   '/notifikasi': typeof NotifikasiRoute
   '/pesan': typeof PesanRoute
   '/privasi': typeof PrivasiRoute
+  '/produk': typeof ProdukRouteWithChildren
   '/promo': typeof PromoRoute
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
@@ -196,6 +213,7 @@ export interface FileRoutesById {
   '/panduan/pembayaran': typeof PanduanPembayaranRoute
   '/panduan/pengembalian': typeof PanduanPengembalianRoute
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
+  '/produk/$slug': typeof ProdukSlugRoute
   '/kategori/': typeof KategoriIndexRoute
 }
 export interface FileRouteTypes {
@@ -211,6 +229,7 @@ export interface FileRouteTypes {
     | '/notifikasi'
     | '/pesan'
     | '/privasi'
+    | '/produk'
     | '/promo'
     | '/syarat'
     | '/tentang'
@@ -220,6 +239,7 @@ export interface FileRouteTypes {
     | '/panduan/pembayaran'
     | '/panduan/pengembalian'
     | '/panduan/pengiriman'
+    | '/produk/$slug'
     | '/kategori/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -233,6 +253,7 @@ export interface FileRouteTypes {
     | '/notifikasi'
     | '/pesan'
     | '/privasi'
+    | '/produk'
     | '/promo'
     | '/syarat'
     | '/tentang'
@@ -242,6 +263,7 @@ export interface FileRouteTypes {
     | '/panduan/pembayaran'
     | '/panduan/pengembalian'
     | '/panduan/pengiriman'
+    | '/produk/$slug'
     | '/kategori'
   id:
     | '__root__'
@@ -255,6 +277,7 @@ export interface FileRouteTypes {
     | '/notifikasi'
     | '/pesan'
     | '/privasi'
+    | '/produk'
     | '/promo'
     | '/syarat'
     | '/tentang'
@@ -264,6 +287,7 @@ export interface FileRouteTypes {
     | '/panduan/pembayaran'
     | '/panduan/pengembalian'
     | '/panduan/pengiriman'
+    | '/produk/$slug'
     | '/kategori/'
   fileRoutesById: FileRoutesById
 }
@@ -278,6 +302,7 @@ export interface RootRouteChildren {
   NotifikasiRoute: typeof NotifikasiRoute
   PesanRoute: typeof PesanRoute
   PrivasiRoute: typeof PrivasiRoute
+  ProdukRoute: typeof ProdukRouteWithChildren
   PromoRoute: typeof PromoRoute
   SyaratRoute: typeof SyaratRoute
   TentangRoute: typeof TentangRoute
@@ -318,6 +343,13 @@ declare module '@tanstack/react-router' {
       path: '/promo'
       fullPath: '/promo'
       preLoaderRoute: typeof PromoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produk': {
+      id: '/produk'
+      path: '/produk'
+      fullPath: '/produk'
+      preLoaderRoute: typeof ProdukRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privasi': {
@@ -397,6 +429,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KategoriIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/produk/$slug': {
+      id: '/produk/$slug'
+      path: '/$slug'
+      fullPath: '/produk/$slug'
+      preLoaderRoute: typeof ProdukSlugRouteImport
+      parentRoute: typeof ProdukRoute
+    }
     '/panduan/pengiriman': {
       id: '/panduan/pengiriman'
       path: '/panduan/pengiriman'
@@ -435,6 +474,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ProdukRouteChildren {
+  ProdukSlugRoute: typeof ProdukSlugRoute
+}
+
+const ProdukRouteChildren: ProdukRouteChildren = {
+  ProdukSlugRoute: ProdukSlugRoute,
+}
+
+const ProdukRouteWithChildren =
+  ProdukRoute._addFileChildren(ProdukRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AkunRoute: AkunRoute,
@@ -446,6 +496,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotifikasiRoute: NotifikasiRoute,
   PesanRoute: PesanRoute,
   PrivasiRoute: PrivasiRoute,
+  ProdukRoute: ProdukRouteWithChildren,
   PromoRoute: PromoRoute,
   SyaratRoute: SyaratRoute,
   TentangRoute: TentangRoute,
@@ -460,3 +511,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
