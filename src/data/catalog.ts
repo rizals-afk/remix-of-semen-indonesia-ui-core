@@ -1,5 +1,7 @@
 import type { Category } from "@/components/product/CategoryTile";
 import type { Product } from "@/components/product/ProductCard";
+import type { Spec } from "@/components/product/SpecsTable";
+import type { Review } from "@/components/review/ReviewItem";
 import type { BlogPost } from "@/components/common/BlogCard";
 
 /**
@@ -34,50 +36,141 @@ export const FEATURED_PRODUCTS: Product[] = [
     discountPercent: 17,
     image: PLACEHOLDER,
     warehouse: "Gudang Gresik",
+    rating: 4.8,
   },
-  {
-    id: "bata-ringan",
-    name: "Bata Ringan",
-    price: 100000,
-    image: PLACEHOLDER,
-    warehouse: "Gudang Gresik",
-  },
-  {
-    id: "mortar-perekat",
-    name: "Mortar Perekat",
-    price: 100000,
-    image: PLACEHOLDER,
-    warehouse: "Gudang Gresik",
-  },
-  {
-    id: "atap-upvc",
-    name: "Atap UPVC",
-    price: 100000,
-    image: PLACEHOLDER,
-    warehouse: "Gudang Gresik",
-  },
-  {
-    id: "kanal-c",
-    name: "Kanal C",
-    price: 100000,
-    image: PLACEHOLDER,
-    warehouse: "Gudang Gresik",
-  },
-  {
-    id: "besi",
-    name: "Besi",
-    price: 100000,
-    image: PLACEHOLDER,
-    warehouse: "Gudang Gresik",
-  },
-  {
-    id: "semen-merdeka",
-    name: "Semen Merdeka",
-    price: 100000,
-    image: PLACEHOLDER,
-    warehouse: "Gudang Gresik",
-  },
+  { id: "bata-ringan", name: "Bata Ringan", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.7 },
+  { id: "mortar-perekat", name: "Mortar Perekat", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.6 },
+  { id: "atap-upvc", name: "Atap UPVC", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.5 },
+  { id: "kanal-c", name: "Kanal C", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.4 },
+  { id: "besi", name: "Besi", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.6 },
+  { id: "semen-merdeka", name: "Semen Merdeka", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.7 },
 ];
+
+const WAREHOUSES = [
+  "Gudang Gresik",
+  "Gudang Surabaya",
+  "Gudang Madiun",
+  "Gudang Sidoarjo",
+  "Gudang Lamongan",
+  "Gudang Mojokerto",
+  "Gudang Pasuruan",
+];
+
+/** Larger product catalog used for the search / listing page. */
+export const ALL_PRODUCTS: Product[] = [
+  ...FEATURED_PRODUCTS,
+  ...Array.from({ length: 18 }).map((_, i) => ({
+    id: `semen-gresik-${i + 1}`,
+    name: "Semen Gresik",
+    price: 55000 + i * 1500,
+    originalPrice: i % 3 === 0 ? 70000 + i * 1500 : undefined,
+    discountPercent: i % 3 === 0 ? 15 : undefined,
+    image: PLACEHOLDER,
+    warehouse: WAREHOUSES[i % WAREHOUSES.length],
+    rating: 4.5 + ((i % 5) * 0.1),
+    categorySlug: i % 2 === 0 ? "semen" : "mortar",
+  })),
+];
+
+export interface ProductDetail extends Product {
+  categorySlug: string;
+  categoryLabel: string;
+  subCategory?: string;
+  images: string[];
+  stock: number;
+  sold: number;
+  reviewCount: number;
+  variants?: string[];
+  description: string;
+  specs: Spec[];
+  reviews: Review[];
+  satisfactionPercent: number;
+  shippingFrom: string;
+  shippingDistanceKm: number;
+  shippingMethod: string;
+  shippingEta: string;
+}
+
+const REVIEW_PHOTO = "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=200&q=70";
+
+export const PRODUCT_DETAILS: Record<string, ProductDetail> = {
+  "semen-gresik-pcc": {
+    id: "semen-gresik-pcc",
+    name: "Semen Gresik PCC",
+    price: 60500,
+    originalPrice: 69540,
+    discountPercent: 17,
+    image: PLACEHOLDER,
+    warehouse: "Gudang Surabaya Barat",
+    rating: 4.8,
+    categorySlug: "semen",
+    categoryLabel: "Semen",
+    subCategory: "Semen Portland",
+    images: [PLACEHOLDER, PLACEHOLDER, PLACEHOLDER],
+    stock: 2500,
+    sold: 20,
+    reviewCount: 17,
+    variants: ["40 Kg", "50 Kg"],
+    description:
+      "Semen Gresik merupakan semen berkualitas tinggi yang diproduksi dengan teknologi modern dan standar mutu nasional. Cocok digunakan untuk berbagai kebutuhan konstruksi, mulai dari pembangunan rumah, gedung, jalan, hingga proyek infrastruktur skala besar. Dikenal dengan daya rekat kuat, hasil akhir yang halus, dan ketahanan tinggi terhadap cuaca, Semen Gresik menjadi pilihan terpercaya para profesional konstruksi di Indonesia.\n\nKeunggulan:\n• Kuat dan tahan lama\n• Mudah diaplikasikan\n• Hasil bangunan lebih kokoh dan rapi\n• Sesuai untuk berbagai jenis pekerjaan konstruksi",
+    specs: [
+      { label: "Satuan", value: "Sak" },
+      { label: "Pembelian Minimal", value: "200 Sak" },
+      { label: "Kelipatan Pembelian", value: "200 Sak" },
+      { label: "Dimensi Produk", value: "40 cm x 20 cm x 10 cm" },
+      { label: "Berat", value: "50 Kg" },
+      { label: "Merk", value: "Gresik" },
+      { label: "Kategori", value: "Semen" },
+    ],
+    reviews: [
+      {
+        id: "r1",
+        author: "Budi Santoso",
+        rating: 5,
+        date: "2 hari yang lalu",
+        body: "Semennya kualitas bagus, daya rekat kuat. Dipakai untuk pengecoran teras rumah hasilnya padat dan tidak mudah retak. Pengiriman juga cepat dan karung tidak rusak.",
+        photos: [REVIEW_PHOTO, REVIEW_PHOTO],
+      },
+      {
+        id: "r2",
+        author: "Anton",
+        rating: 5,
+        date: "25-12-28 16:27",
+        body: "Semennya kualitas bagus, daya rekat kuat. Dipakai untuk pengecoran teras rumah hasilnya padat dan tidak mudah retak. Pengiriman juga cepat dan karung tidak rusak.",
+        photos: [REVIEW_PHOTO, REVIEW_PHOTO],
+      },
+      {
+        id: "r3",
+        author: "Citra",
+        rating: 4,
+        date: "1 minggu yang lalu",
+        body: "Kualitas baik, harga bersaing. Recommended.",
+      },
+    ],
+    satisfactionPercent: 98,
+    shippingFrom: "Gudang Surabaya Barat",
+    shippingDistanceKm: 3.5,
+    shippingMethod: "Armada Toko Engkel",
+    shippingEta: "Estimasi Tiba: Besok, 10.00 - 14.00",
+  },
+};
+
+/** Look up a product detail by slug, falling back to a synthesised one. */
+export function getProductDetail(slug: string): ProductDetail {
+  if (PRODUCT_DETAILS[slug]) return PRODUCT_DETAILS[slug];
+  const base =
+    ALL_PRODUCTS.find((p) => p.id === slug) ?? PRODUCT_DETAILS["semen-gresik-pcc"];
+  return {
+    ...PRODUCT_DETAILS["semen-gresik-pcc"],
+    id: base.id,
+    name: base.name,
+    price: base.price,
+    originalPrice: base.originalPrice,
+    discountPercent: base.discountPercent,
+    warehouse: base.warehouse,
+    rating: base.rating ?? 4.8,
+  };
+}
 
 export const BLOG_POSTS: BlogPost[] = [
   {

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { MapPin, Star } from "lucide-react";
 import { formatRupiah } from "@/lib/format";
 
