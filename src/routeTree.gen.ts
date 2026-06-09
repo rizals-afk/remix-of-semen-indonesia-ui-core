@@ -24,6 +24,10 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AkunRouteImport } from './routes/akun'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
+import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
+import { Route as PanduanPengembalianRouteImport } from './routes/panduan.pengembalian'
+import { Route as PanduanPembayaranRouteImport } from './routes/panduan.pembayaran'
+import { Route as PanduanBelanjaRouteImport } from './routes/panduan.belanja'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 
 const WishlistRoute = WishlistRouteImport.update({
@@ -101,6 +105,26 @@ const KategoriIndexRoute = KategoriIndexRouteImport.update({
   path: '/kategori/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PanduanPengirimanRoute = PanduanPengirimanRouteImport.update({
+  id: '/panduan/pengiriman',
+  path: '/panduan/pengiriman',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanPengembalianRoute = PanduanPengembalianRouteImport.update({
+  id: '/panduan/pengembalian',
+  path: '/panduan/pengembalian',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanPembayaranRoute = PanduanPembayaranRouteImport.update({
+  id: '/panduan/pembayaran',
+  path: '/panduan/pembayaran',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanBelanjaRoute = PanduanBelanjaRouteImport.update({
+  id: '/panduan/belanja',
+  path: '/panduan/belanja',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KategoriSlugRoute = KategoriSlugRouteImport.update({
   id: '/kategori/$slug',
   path: '/kategori/$slug',
@@ -123,6 +147,10 @@ export interface FileRoutesByFullPath {
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/panduan/belanja': typeof PanduanBelanjaRoute
+  '/panduan/pembayaran': typeof PanduanPembayaranRoute
+  '/panduan/pengembalian': typeof PanduanPengembalianRoute
+  '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/kategori/': typeof KategoriIndexRoute
 }
 export interface FileRoutesByTo {
@@ -141,6 +169,10 @@ export interface FileRoutesByTo {
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/panduan/belanja': typeof PanduanBelanjaRoute
+  '/panduan/pembayaran': typeof PanduanPembayaranRoute
+  '/panduan/pengembalian': typeof PanduanPengembalianRoute
+  '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/kategori': typeof KategoriIndexRoute
 }
 export interface FileRoutesById {
@@ -160,6 +192,10 @@ export interface FileRoutesById {
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/kategori/$slug': typeof KategoriSlugRoute
+  '/panduan/belanja': typeof PanduanBelanjaRoute
+  '/panduan/pembayaran': typeof PanduanPembayaranRoute
+  '/panduan/pengembalian': typeof PanduanPengembalianRoute
+  '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/kategori/': typeof KategoriIndexRoute
 }
 export interface FileRouteTypes {
@@ -180,6 +216,10 @@ export interface FileRouteTypes {
     | '/tentang'
     | '/wishlist'
     | '/kategori/$slug'
+    | '/panduan/belanja'
+    | '/panduan/pembayaran'
+    | '/panduan/pengembalian'
+    | '/panduan/pengiriman'
     | '/kategori/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -198,6 +238,10 @@ export interface FileRouteTypes {
     | '/tentang'
     | '/wishlist'
     | '/kategori/$slug'
+    | '/panduan/belanja'
+    | '/panduan/pembayaran'
+    | '/panduan/pengembalian'
+    | '/panduan/pengiriman'
     | '/kategori'
   id:
     | '__root__'
@@ -216,6 +260,10 @@ export interface FileRouteTypes {
     | '/tentang'
     | '/wishlist'
     | '/kategori/$slug'
+    | '/panduan/belanja'
+    | '/panduan/pembayaran'
+    | '/panduan/pengembalian'
+    | '/panduan/pengiriman'
     | '/kategori/'
   fileRoutesById: FileRoutesById
 }
@@ -235,6 +283,10 @@ export interface RootRouteChildren {
   TentangRoute: typeof TentangRoute
   WishlistRoute: typeof WishlistRoute
   KategoriSlugRoute: typeof KategoriSlugRoute
+  PanduanBelanjaRoute: typeof PanduanBelanjaRoute
+  PanduanPembayaranRoute: typeof PanduanPembayaranRoute
+  PanduanPengembalianRoute: typeof PanduanPengembalianRoute
+  PanduanPengirimanRoute: typeof PanduanPengirimanRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
 }
 
@@ -345,6 +397,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KategoriIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/panduan/pengiriman': {
+      id: '/panduan/pengiriman'
+      path: '/panduan/pengiriman'
+      fullPath: '/panduan/pengiriman'
+      preLoaderRoute: typeof PanduanPengirimanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/pengembalian': {
+      id: '/panduan/pengembalian'
+      path: '/panduan/pengembalian'
+      fullPath: '/panduan/pengembalian'
+      preLoaderRoute: typeof PanduanPengembalianRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/pembayaran': {
+      id: '/panduan/pembayaran'
+      path: '/panduan/pembayaran'
+      fullPath: '/panduan/pembayaran'
+      preLoaderRoute: typeof PanduanPembayaranRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/belanja': {
+      id: '/panduan/belanja'
+      path: '/panduan/belanja'
+      fullPath: '/panduan/belanja'
+      preLoaderRoute: typeof PanduanBelanjaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kategori/$slug': {
       id: '/kategori/$slug'
       path: '/kategori/$slug'
@@ -371,6 +451,10 @@ const rootRouteChildren: RootRouteChildren = {
   TentangRoute: TentangRoute,
   WishlistRoute: WishlistRoute,
   KategoriSlugRoute: KategoriSlugRoute,
+  PanduanBelanjaRoute: PanduanBelanjaRoute,
+  PanduanPembayaranRoute: PanduanPembayaranRoute,
+  PanduanPengembalianRoute: PanduanPengembalianRoute,
+  PanduanPengirimanRoute: PanduanPengirimanRoute,
   KategoriIndexRoute: KategoriIndexRoute,
 }
 export const routeTree = rootRouteImport
