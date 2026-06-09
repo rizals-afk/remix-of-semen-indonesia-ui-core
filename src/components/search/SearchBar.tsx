@@ -1,4 +1,6 @@
+import { useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
+import { useState } from "react";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -7,23 +9,29 @@ interface SearchBarProps {
 }
 
 /**
- * Site-wide search input with a primary-colored submit button.
+ * Site-wide search input. Submitting navigates to /produk?q=...
  * Mirrors the search bar shown in every header across the uploaded screens.
  */
 export function SearchBar({
   placeholder = "Cari kebutuhan material Anda",
-  defaultValue,
+  defaultValue = "",
   className = "",
 }: SearchBarProps) {
+  const navigate = useNavigate();
+  const [q, setQ] = useState(defaultValue);
   return (
     <form
       role="search"
-      onSubmit={(e) => e.preventDefault()}
+      onSubmit={(e) => {
+        e.preventDefault();
+        navigate({ to: "/produk", search: { q } });
+      }}
       className={`flex w-full items-stretch overflow-hidden rounded-md border border-border bg-background ${className}`}
     >
       <input
         type="search"
-        defaultValue={defaultValue}
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
         placeholder={placeholder}
         className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
       />

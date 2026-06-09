@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { MapPin, Star } from "lucide-react";
 import { formatRupiah } from "@/lib/format";
 
@@ -24,9 +25,13 @@ interface ProductCardProps {
  * - Compact variant matches "Produk Terkait" and listing-grid cards.
  */
 export function ProductCard({ product, compact = false }: ProductCardProps) {
-  const { name, price, originalPrice, discountPercent, image, warehouse, rating } = product;
+  const { id, name, price, originalPrice, discountPercent, image, warehouse, rating } = product;
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
+    <Link
+      to="/produk/$slug"
+      params={{ slug: id }}
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md"
+    >
       <div className="aspect-square overflow-hidden bg-muted">
         <img
           src={image}
@@ -38,25 +43,23 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
       <div className={`flex flex-1 flex-col gap-1.5 ${compact ? "p-3" : "p-4"}`}>
         <h3 className="line-clamp-2 text-sm font-semibold text-foreground">{name}</h3>
 
-        {discountPercent ? (
-          <div className="flex items-center gap-2">
-            <span className="rounded bg-accent-soft px-1.5 py-0.5 text-xs font-semibold text-accent">
-              DISKON {discountPercent}%
-            </span>
-          </div>
-        ) : null}
-
         <div className="flex items-baseline gap-2">
           <span className="text-base font-bold text-accent">{formatRupiah(price)}</span>
-          {originalPrice ? (
-            <span className="text-xs text-muted-foreground line-through">
-              {formatRupiah(originalPrice)}
+          {discountPercent ? (
+            <span className="inline-flex items-center gap-1 rounded bg-accent-soft px-1.5 py-0.5 text-[11px] font-semibold text-accent">
+              -{discountPercent}%
             </span>
           ) : null}
         </div>
 
+        {originalPrice ? (
+          <span className="text-xs text-muted-foreground line-through">
+            {formatRupiah(originalPrice)}
+          </span>
+        ) : null}
+
         {rating ? (
-          <div className="flex w-fit items-center gap-1 rounded bg-rating/30 px-1.5 py-0.5 text-xs font-semibold text-foreground">
+          <div className="flex w-fit items-center gap-1 rounded bg-rating/40 px-1.5 py-0.5 text-xs font-semibold text-foreground">
             <Star className="h-3 w-3 fill-rating text-rating" />
             {rating.toFixed(1)}
           </div>
@@ -67,6 +70,6 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
           <span>{warehouse}</span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
