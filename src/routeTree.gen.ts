@@ -9,38 +9,380 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as TentangRouteImport } from './routes/tentang'
+import { Route as SyaratRouteImport } from './routes/syarat'
+import { Route as PromoRouteImport } from './routes/promo'
+import { Route as PrivasiRouteImport } from './routes/privasi'
+import { Route as PesanRouteImport } from './routes/pesan'
+import { Route as NotifikasiRouteImport } from './routes/notifikasi'
+import { Route as MasukRouteImport } from './routes/masuk'
+import { Route as KeranjangRouteImport } from './routes/keranjang'
+import { Route as GudangRouteImport } from './routes/gudang'
+import { Route as DaftarRouteImport } from './routes/daftar'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AkunRouteImport } from './routes/akun'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
+import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
+import { Route as PanduanPengembalianRouteImport } from './routes/panduan.pengembalian'
+import { Route as PanduanPembayaranRouteImport } from './routes/panduan.pembayaran'
+import { Route as PanduanBelanjaRouteImport } from './routes/panduan.belanja'
+import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TentangRoute = TentangRouteImport.update({
+  id: '/tentang',
+  path: '/tentang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SyaratRoute = SyaratRouteImport.update({
+  id: '/syarat',
+  path: '/syarat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromoRoute = PromoRouteImport.update({
+  id: '/promo',
+  path: '/promo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivasiRoute = PrivasiRouteImport.update({
+  id: '/privasi',
+  path: '/privasi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PesanRoute = PesanRouteImport.update({
+  id: '/pesan',
+  path: '/pesan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotifikasiRoute = NotifikasiRouteImport.update({
+  id: '/notifikasi',
+  path: '/notifikasi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasukRoute = MasukRouteImport.update({
+  id: '/masuk',
+  path: '/masuk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeranjangRoute = KeranjangRouteImport.update({
+  id: '/keranjang',
+  path: '/keranjang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GudangRoute = GudangRouteImport.update({
+  id: '/gudang',
+  path: '/gudang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DaftarRoute = DaftarRouteImport.update({
+  id: '/daftar',
+  path: '/daftar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AkunRoute = AkunRouteImport.update({
+  id: '/akun',
+  path: '/akun',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KategoriIndexRoute = KategoriIndexRouteImport.update({
+  id: '/kategori/',
+  path: '/kategori/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanPengirimanRoute = PanduanPengirimanRouteImport.update({
+  id: '/panduan/pengiriman',
+  path: '/panduan/pengiriman',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanPengembalianRoute = PanduanPengembalianRouteImport.update({
+  id: '/panduan/pengembalian',
+  path: '/panduan/pengembalian',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanPembayaranRoute = PanduanPembayaranRouteImport.update({
+  id: '/panduan/pembayaran',
+  path: '/panduan/pembayaran',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanBelanjaRoute = PanduanBelanjaRouteImport.update({
+  id: '/panduan/belanja',
+  path: '/panduan/belanja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KategoriSlugRoute = KategoriSlugRouteImport.update({
+  id: '/kategori/$slug',
+  path: '/kategori/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/akun': typeof AkunRoute
+  '/blog': typeof BlogRoute
+  '/daftar': typeof DaftarRoute
+  '/gudang': typeof GudangRoute
+  '/keranjang': typeof KeranjangRoute
+  '/masuk': typeof MasukRoute
+  '/notifikasi': typeof NotifikasiRoute
+  '/pesan': typeof PesanRoute
+  '/privasi': typeof PrivasiRoute
+  '/promo': typeof PromoRoute
+  '/syarat': typeof SyaratRoute
+  '/tentang': typeof TentangRoute
+  '/wishlist': typeof WishlistRoute
+  '/kategori/$slug': typeof KategoriSlugRoute
+  '/panduan/belanja': typeof PanduanBelanjaRoute
+  '/panduan/pembayaran': typeof PanduanPembayaranRoute
+  '/panduan/pengembalian': typeof PanduanPengembalianRoute
+  '/panduan/pengiriman': typeof PanduanPengirimanRoute
+  '/kategori/': typeof KategoriIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/akun': typeof AkunRoute
+  '/blog': typeof BlogRoute
+  '/daftar': typeof DaftarRoute
+  '/gudang': typeof GudangRoute
+  '/keranjang': typeof KeranjangRoute
+  '/masuk': typeof MasukRoute
+  '/notifikasi': typeof NotifikasiRoute
+  '/pesan': typeof PesanRoute
+  '/privasi': typeof PrivasiRoute
+  '/promo': typeof PromoRoute
+  '/syarat': typeof SyaratRoute
+  '/tentang': typeof TentangRoute
+  '/wishlist': typeof WishlistRoute
+  '/kategori/$slug': typeof KategoriSlugRoute
+  '/panduan/belanja': typeof PanduanBelanjaRoute
+  '/panduan/pembayaran': typeof PanduanPembayaranRoute
+  '/panduan/pengembalian': typeof PanduanPengembalianRoute
+  '/panduan/pengiriman': typeof PanduanPengirimanRoute
+  '/kategori': typeof KategoriIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/akun': typeof AkunRoute
+  '/blog': typeof BlogRoute
+  '/daftar': typeof DaftarRoute
+  '/gudang': typeof GudangRoute
+  '/keranjang': typeof KeranjangRoute
+  '/masuk': typeof MasukRoute
+  '/notifikasi': typeof NotifikasiRoute
+  '/pesan': typeof PesanRoute
+  '/privasi': typeof PrivasiRoute
+  '/promo': typeof PromoRoute
+  '/syarat': typeof SyaratRoute
+  '/tentang': typeof TentangRoute
+  '/wishlist': typeof WishlistRoute
+  '/kategori/$slug': typeof KategoriSlugRoute
+  '/panduan/belanja': typeof PanduanBelanjaRoute
+  '/panduan/pembayaran': typeof PanduanPembayaranRoute
+  '/panduan/pengembalian': typeof PanduanPengembalianRoute
+  '/panduan/pengiriman': typeof PanduanPengirimanRoute
+  '/kategori/': typeof KategoriIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/akun'
+    | '/blog'
+    | '/daftar'
+    | '/gudang'
+    | '/keranjang'
+    | '/masuk'
+    | '/notifikasi'
+    | '/pesan'
+    | '/privasi'
+    | '/promo'
+    | '/syarat'
+    | '/tentang'
+    | '/wishlist'
+    | '/kategori/$slug'
+    | '/panduan/belanja'
+    | '/panduan/pembayaran'
+    | '/panduan/pengembalian'
+    | '/panduan/pengiriman'
+    | '/kategori/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/akun'
+    | '/blog'
+    | '/daftar'
+    | '/gudang'
+    | '/keranjang'
+    | '/masuk'
+    | '/notifikasi'
+    | '/pesan'
+    | '/privasi'
+    | '/promo'
+    | '/syarat'
+    | '/tentang'
+    | '/wishlist'
+    | '/kategori/$slug'
+    | '/panduan/belanja'
+    | '/panduan/pembayaran'
+    | '/panduan/pengembalian'
+    | '/panduan/pengiriman'
+    | '/kategori'
+  id:
+    | '__root__'
+    | '/'
+    | '/akun'
+    | '/blog'
+    | '/daftar'
+    | '/gudang'
+    | '/keranjang'
+    | '/masuk'
+    | '/notifikasi'
+    | '/pesan'
+    | '/privasi'
+    | '/promo'
+    | '/syarat'
+    | '/tentang'
+    | '/wishlist'
+    | '/kategori/$slug'
+    | '/panduan/belanja'
+    | '/panduan/pembayaran'
+    | '/panduan/pengembalian'
+    | '/panduan/pengiriman'
+    | '/kategori/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AkunRoute: typeof AkunRoute
+  BlogRoute: typeof BlogRoute
+  DaftarRoute: typeof DaftarRoute
+  GudangRoute: typeof GudangRoute
+  KeranjangRoute: typeof KeranjangRoute
+  MasukRoute: typeof MasukRoute
+  NotifikasiRoute: typeof NotifikasiRoute
+  PesanRoute: typeof PesanRoute
+  PrivasiRoute: typeof PrivasiRoute
+  PromoRoute: typeof PromoRoute
+  SyaratRoute: typeof SyaratRoute
+  TentangRoute: typeof TentangRoute
+  WishlistRoute: typeof WishlistRoute
+  KategoriSlugRoute: typeof KategoriSlugRoute
+  PanduanBelanjaRoute: typeof PanduanBelanjaRoute
+  PanduanPembayaranRoute: typeof PanduanPembayaranRoute
+  PanduanPengembalianRoute: typeof PanduanPengembalianRoute
+  PanduanPengirimanRoute: typeof PanduanPengirimanRoute
+  KategoriIndexRoute: typeof KategoriIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tentang': {
+      id: '/tentang'
+      path: '/tentang'
+      fullPath: '/tentang'
+      preLoaderRoute: typeof TentangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/syarat': {
+      id: '/syarat'
+      path: '/syarat'
+      fullPath: '/syarat'
+      preLoaderRoute: typeof SyaratRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promo': {
+      id: '/promo'
+      path: '/promo'
+      fullPath: '/promo'
+      preLoaderRoute: typeof PromoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privasi': {
+      id: '/privasi'
+      path: '/privasi'
+      fullPath: '/privasi'
+      preLoaderRoute: typeof PrivasiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pesan': {
+      id: '/pesan'
+      path: '/pesan'
+      fullPath: '/pesan'
+      preLoaderRoute: typeof PesanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifikasi': {
+      id: '/notifikasi'
+      path: '/notifikasi'
+      fullPath: '/notifikasi'
+      preLoaderRoute: typeof NotifikasiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/masuk': {
+      id: '/masuk'
+      path: '/masuk'
+      fullPath: '/masuk'
+      preLoaderRoute: typeof MasukRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keranjang': {
+      id: '/keranjang'
+      path: '/keranjang'
+      fullPath: '/keranjang'
+      preLoaderRoute: typeof KeranjangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gudang': {
+      id: '/gudang'
+      path: '/gudang'
+      fullPath: '/gudang'
+      preLoaderRoute: typeof GudangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daftar': {
+      id: '/daftar'
+      path: '/daftar'
+      fullPath: '/daftar'
+      preLoaderRoute: typeof DaftarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/akun': {
+      id: '/akun'
+      path: '/akun'
+      fullPath: '/akun'
+      preLoaderRoute: typeof AkunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +390,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kategori/': {
+      id: '/kategori/'
+      path: '/kategori'
+      fullPath: '/kategori/'
+      preLoaderRoute: typeof KategoriIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/pengiriman': {
+      id: '/panduan/pengiriman'
+      path: '/panduan/pengiriman'
+      fullPath: '/panduan/pengiriman'
+      preLoaderRoute: typeof PanduanPengirimanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/pengembalian': {
+      id: '/panduan/pengembalian'
+      path: '/panduan/pengembalian'
+      fullPath: '/panduan/pengembalian'
+      preLoaderRoute: typeof PanduanPengembalianRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/pembayaran': {
+      id: '/panduan/pembayaran'
+      path: '/panduan/pembayaran'
+      fullPath: '/panduan/pembayaran'
+      preLoaderRoute: typeof PanduanPembayaranRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/belanja': {
+      id: '/panduan/belanja'
+      path: '/panduan/belanja'
+      fullPath: '/panduan/belanja'
+      preLoaderRoute: typeof PanduanBelanjaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kategori/$slug': {
+      id: '/kategori/$slug'
+      path: '/kategori/$slug'
+      fullPath: '/kategori/$slug'
+      preLoaderRoute: typeof KategoriSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AkunRoute: AkunRoute,
+  BlogRoute: BlogRoute,
+  DaftarRoute: DaftarRoute,
+  GudangRoute: GudangRoute,
+  KeranjangRoute: KeranjangRoute,
+  MasukRoute: MasukRoute,
+  NotifikasiRoute: NotifikasiRoute,
+  PesanRoute: PesanRoute,
+  PrivasiRoute: PrivasiRoute,
+  PromoRoute: PromoRoute,
+  SyaratRoute: SyaratRoute,
+  TentangRoute: TentangRoute,
+  WishlistRoute: WishlistRoute,
+  KategoriSlugRoute: KategoriSlugRoute,
+  PanduanBelanjaRoute: PanduanBelanjaRoute,
+  PanduanPembayaranRoute: PanduanPembayaranRoute,
+  PanduanPengembalianRoute: PanduanPengembalianRoute,
+  PanduanPengirimanRoute: PanduanPengirimanRoute,
+  KategoriIndexRoute: KategoriIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
