@@ -36,9 +36,27 @@ function ProductDetailPage() {
   const [variant, setVariant] = useState(product.variants?.[0] ?? "");
   const [qty, setQty] = useState(200);
   const [reviewPage, setReviewPage] = useState(1);
+  const cart = useCart();
+  const navigate = useNavigate();
 
   const subTotal = qty * product.price;
   const related = ALL_PRODUCTS.filter((p) => p.id !== product.id).slice(0, 5);
+
+  const addToCart = () => {
+    cart.addItem({
+      id: product.id,
+      name: product.name + (variant ? ` ${variant}` : ""),
+      price: product.price,
+      originalPrice: product.originalPrice,
+      discountPercent: product.discountPercent,
+      image: product.images[0] ?? product.image,
+      warehouse: product.warehouse,
+      qty,
+      unit: "Sak",
+    });
+  };
+
+  const buyNow = () => { addToCart(); navigate({ to: "/keranjang" }); };
 
   return (
     <MainLayout user={{ name: "Auliya Gita Ananda" }}>
