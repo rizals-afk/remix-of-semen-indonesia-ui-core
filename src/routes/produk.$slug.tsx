@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bookmark, Heart, MapPin, Share2, Star, Truck } from "lucide-react";
+import { useCart } from "@/store/cart";
 import { useState } from "react";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { Pagination } from "@/components/common/Pagination";
