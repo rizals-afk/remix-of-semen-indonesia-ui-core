@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bookmark, Heart, MapPin, Share2, Star, Truck } from "lucide-react";
+import { useCart } from "@/store/cart";
 import { useState } from "react";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { Pagination } from "@/components/common/Pagination";
@@ -35,9 +36,27 @@ function ProductDetailPage() {
   const [variant, setVariant] = useState(product.variants?.[0] ?? "");
   const [qty, setQty] = useState(200);
   const [reviewPage, setReviewPage] = useState(1);
+  const cart = useCart();
+  const navigate = useNavigate();
 
   const subTotal = qty * product.price;
   const related = ALL_PRODUCTS.filter((p) => p.id !== product.id).slice(0, 5);
+
+  const addToCart = () => {
+    cart.addItem({
+      id: product.id,
+      name: product.name + (variant ? ` ${variant}` : ""),
+      price: product.price,
+      originalPrice: product.originalPrice,
+      discountPercent: product.discountPercent,
+      image: product.images[0] ?? product.image,
+      warehouse: product.warehouse,
+      qty,
+      unit: "Sak",
+    });
+  };
+
+  const buyNow = () => { addToCart(); navigate({ to: "/keranjang" }); };
 
   return (
     <MainLayout user={{ name: "Auliya Gita Ananda" }}>
@@ -154,10 +173,10 @@ function ProductDetailPage() {
               <p className="text-2xl font-bold text-accent">{formatRupiah(subTotal)}</p>
             </div>
             <div className="mt-5 space-y-2">
-              <button className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+              <button onClick={buyNow} className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                 Beli Sekarang
               </button>
-              <button className="w-full rounded-md border border-primary py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5">
+              <button onClick={addToCart} className="w-full rounded-md border border-primary py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5">
                 Masukkan Keranjang
               </button>
             </div>

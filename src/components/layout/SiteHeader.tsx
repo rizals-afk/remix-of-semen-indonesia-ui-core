@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Bell, Heart, MapPin, MessageSquare, ShoppingCart, User } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { SearchBar } from "@/components/search/SearchBar";
+import { useCart } from "@/store/cart";
 
 interface SiteHeaderProps {
   /** When provided, header renders the signed-in icon set (notifications + wishlist + cart + user). */
@@ -23,6 +24,8 @@ const NAV_ITEMS = [
  * Bottom row: primary nav links + "Kirim ke" location.
  */
 export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: SiteHeaderProps) {
+  const cart = useCart();
+  const cartBadge = cart.totalQty > 0 ? cart.totalQty : undefined;
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background">
       <div className="container mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:gap-6 lg:py-4">
@@ -41,7 +44,7 @@ export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: Site
               <IconButton label="Wishlist" to="/wishlist">
                 <Heart className="h-5 w-5" />
               </IconButton>
-              <IconButton label="Keranjang" to="/keranjang">
+              <IconButton label="Keranjang" to="/keranjang" badge={cartBadge}>
                 <ShoppingCart className="h-5 w-5" />
               </IconButton>
               <div className="hidden h-6 w-px bg-border lg:block" />
@@ -57,7 +60,7 @@ export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: Site
             </nav>
           ) : (
             <nav aria-label="Akun" className="flex items-center gap-4">
-              <IconButton label="Keranjang" to="/keranjang">
+              <IconButton label="Keranjang" to="/keranjang" badge={cartBadge}>
                 <ShoppingCart className="h-5 w-5" />
               </IconButton>
               <IconButton label="Notifikasi" to="/notifikasi">
@@ -113,18 +116,25 @@ function IconButton({
   children,
   label,
   to,
+  badge,
 }: {
   children: React.ReactNode;
   label: string;
   to: string;
+  badge?: number;
 }) {
   return (
     <Link
       to={to}
       aria-label={label}
-      className="grid h-9 w-9 place-items-center rounded-md text-foreground transition-colors hover:bg-muted hover:text-primary"
+      className="relative grid h-9 w-9 place-items-center rounded-md text-foreground transition-colors hover:bg-muted hover:text-primary"
     >
       {children}
+      {badge ? (
+        <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-accent px-1 text-[10px] font-bold leading-none text-accent-foreground">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      ) : null}
     </Link>
   );
 }
