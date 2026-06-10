@@ -173,10 +173,10 @@ function ProductDetailPage() {
               <p className="text-2xl font-bold text-accent">{formatRupiah(subTotal)}</p>
             </div>
             <div className="mt-5 space-y-2">
-              <button className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+              <button onClick={buyNow} className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                 Beli Sekarang
               </button>
-              <button className="w-full rounded-md border border-primary py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5">
+              <button onClick={addToCart} className="w-full rounded-md border border-primary py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5">
                 Masukkan Keranjang
               </button>
             </div>
