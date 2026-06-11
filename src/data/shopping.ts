@@ -32,20 +32,19 @@ export interface Voucher {
 export interface PaymentMethod {
   id: string;
   name: string;
-  category: "Virtual Account" | "E-Wallet" | "Transfer Manual" | "Kredit";
-  logo?: string;
-  fee?: number;
+  category: "QRIS" | "Transfer Bank" | "E-Wallet" | "Tunai";
   description?: string;
+  fee?: number;
 }
 
 export const ADDRESSES: Address[] = [
   {
     id: "addr-1",
-    label: "Rumah",
-    recipient: "Auliya Gita Ananda",
-    phone: "+62 812-3456-7890",
-    address: "Jl. Veteran No. 17, RT 03 / RW 02, Sidokumpul",
-    city: "Gresik, Jawa Timur, 61111",
+    label: "Auliya Gita",
+    recipient: "Auliya Gita",
+    phone: "0851234567890",
+    address: "Jl. Dr. Wahidin Sudirohusodo No.728A, Dahanrejo, Kec. Kebomas",
+    city: "Kabupaten Gresik, Jawa Timur 61122",
     isPrimary: true,
   },
   {
@@ -68,17 +67,17 @@ export const ADDRESSES: Address[] = [
 
 export const WAREHOUSES: Warehouse[] = [
   {
+    id: "wh-gresik",
+    name: "Gudang Utama Semen Gresik",
+    address: "Jl. Veteran Sidokumpul, Kebomas, Gresik",
+    distanceKm: 3.5,
+    hours: "09.00 - 15.00 WIB",
+  },
+  {
     id: "wh-sby-barat",
     name: "Gudang Surabaya Barat",
     address: "Jl. Margomulyo No. 44, Surabaya",
-    distanceKm: 3.5,
-    hours: "08.00 - 17.00",
-  },
-  {
-    id: "wh-gresik",
-    name: "Gudang Gresik",
-    address: "Jl. Veteran No. 100, Gresik",
-    distanceKm: 8.2,
+    distanceKm: 12.7,
     hours: "08.00 - 17.00",
   },
   {
@@ -88,21 +87,14 @@ export const WAREHOUSES: Warehouse[] = [
     distanceKm: 15.1,
     hours: "07.30 - 16.30",
   },
-  {
-    id: "wh-mojokerto",
-    name: "Gudang Mojokerto",
-    address: "Jl. Raya Bypass No. 22, Mojokerto",
-    distanceKm: 38.4,
-    hours: "08.00 - 17.00",
-  },
 ];
 
 export const VOUCHERS: Voucher[] = [
   {
     id: "v1",
     code: "GRATISONGKIR",
-    title: "Gratis Ongkir s/d Rp 50.000",
-    description: "Minimal belanja Rp 500.000",
+    title: "Voucher Gratis Ongkir",
+    description: "Hemat ongkos kirim s/d Rp 50.000",
     discount: 50000,
     minSpend: 500000,
     expiresAt: "30 Jun 2026",
@@ -111,9 +103,9 @@ export const VOUCHERS: Voucher[] = [
   {
     id: "v2",
     code: "DISKON10",
-    title: "Diskon 10% s/d Rp 100.000",
+    title: "Voucher Diskon 10%",
     description: "Minimal belanja Rp 1.000.000",
-    discount: 100000,
+    discount: 200000,
     minSpend: 1000000,
     expiresAt: "30 Jun 2026",
     type: "discount",
@@ -131,42 +123,59 @@ export const VOUCHERS: Voucher[] = [
 ];
 
 export const PAYMENT_METHODS: PaymentMethod[] = [
-  { id: "bca-va", name: "BCA Virtual Account", category: "Virtual Account", fee: 4000 },
-  { id: "mandiri-va", name: "Mandiri Virtual Account", category: "Virtual Account", fee: 4000 },
-  { id: "bni-va", name: "BNI Virtual Account", category: "Virtual Account", fee: 4000 },
-  { id: "bri-va", name: "BRI Virtual Account", category: "Virtual Account", fee: 4000 },
-  { id: "gopay", name: "GoPay", category: "E-Wallet", fee: 0 },
-  { id: "ovo", name: "OVO", category: "E-Wallet", fee: 0 },
-  { id: "dana", name: "DANA", category: "E-Wallet", fee: 0 },
-  { id: "shopeepay", name: "ShopeePay", category: "E-Wallet", fee: 0 },
-  { id: "transfer", name: "Transfer Bank Manual", category: "Transfer Manual", fee: 0, description: "Konfirmasi manual setelah transfer" },
-  { id: "kredivo", name: "Kredivo (Cicilan)", category: "Kredit", fee: 0, description: "Cicilan 3, 6, 12 bulan" },
+  { id: "qris", name: "QRIS", category: "QRIS", description: "Scan menggunakan aplikasi e-wallet atau m-banking" },
+  { id: "bca-va", name: "BCA Virtual Account", category: "Transfer Bank" },
+  { id: "mandiri-va", name: "Mandiri Virtual Account", category: "Transfer Bank" },
+  { id: "bni-va", name: "BNI Virtual Account", category: "Transfer Bank" },
+  { id: "gopay", name: "GoPay", category: "E-Wallet" },
+  { id: "ovo", name: "OVO", category: "E-Wallet" },
+  { id: "dana", name: "DANA", category: "E-Wallet" },
+  { id: "tunai-mitra", name: "Bayar Tunai di Mitra/Agen", category: "Tunai", description: "Bayar langsung di mitra Bahan Material terdekat" },
 ];
 
 export interface CartProduct extends Product {
   qty: number;
   unit: string;
+  variant?: string;
+  /** Weight per single unit in kg. Used to compute tonase. */
+  weightKg?: number;
 }
 
 export const DEMO_CART: CartProduct[] = [
   {
     id: "semen-gresik-pcc",
-    name: "Semen Gresik PCC 50 Kg",
+    name: "Semen Gresik PCC",
     price: 60500,
-    originalPrice: 69540,
-    discountPercent: 17,
     image: "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70",
-    warehouse: "Gudang Surabaya Barat",
-    qty: 200,
+    warehouse: "Gudang Cabang Gresik",
+    qty: 120,
     unit: "Sak",
+    variant: "50 Kg",
+    weightKg: 50,
   },
   {
-    id: "bata-ringan",
-    name: "Bata Ringan AAC 60x20x10",
-    price: 9500,
+    id: "semen-merdeka-pcc",
+    name: "Semen Merdeka PCC",
+    price: 62500,
     image: "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70",
-    warehouse: "Gudang Surabaya Barat",
-    qty: 300,
+    warehouse: "Gudang Cabang Gresik",
+    qty: 100,
+    unit: "Sak",
+    variant: "40 Kg",
+    weightKg: 40,
+  },
+  {
+    id: "closet-duduk-volk",
+    name: "Closet Duduk Volk",
+    price: 750600,
+    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&q=70",
+    warehouse: "Gudang Cabang Surabaya",
+    qty: 1,
     unit: "Pcs",
+    variant: "Putih",
+    weightKg: 25,
   },
 ];
+
+/** Estimated per-warehouse delivery fee (used pre-verification display). */
+export const ESTIMATED_GROUP_SHIPPING_FEE = 85000;

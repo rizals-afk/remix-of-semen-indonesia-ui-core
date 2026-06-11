@@ -34,6 +34,7 @@ import { Route as PanduanPembayaranRouteImport } from './routes/panduan.pembayar
 import { Route as PanduanBelanjaRouteImport } from './routes/panduan.belanja'
 import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
 import { Route as CheckoutVoucherRouteImport } from './routes/checkout.voucher'
+import { Route as CheckoutVerifikasiRouteImport } from './routes/checkout.verifikasi'
 import { Route as CheckoutPembayaranRouteImport } from './routes/checkout.pembayaran'
 import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
@@ -163,6 +164,11 @@ const CheckoutVoucherRoute = CheckoutVoucherRouteImport.update({
   path: '/voucher',
   getParentRoute: () => CheckoutRoute,
 } as any)
+const CheckoutVerifikasiRoute = CheckoutVerifikasiRouteImport.update({
+  id: '/verifikasi',
+  path: '/verifikasi',
+  getParentRoute: () => CheckoutRoute,
+} as any)
 const CheckoutPembayaranRoute = CheckoutPembayaranRouteImport.update({
   id: '/pembayaran',
   path: '/pembayaran',
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
   '/checkout/pembayaran': typeof CheckoutPembayaranRoute
+  '/checkout/verifikasi': typeof CheckoutVerifikasiRoute
   '/checkout/voucher': typeof CheckoutVoucherRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/panduan/belanja': typeof PanduanBelanjaRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
   '/checkout/pembayaran': typeof CheckoutPembayaranRoute
+  '/checkout/verifikasi': typeof CheckoutVerifikasiRoute
   '/checkout/voucher': typeof CheckoutVoucherRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/panduan/belanja': typeof PanduanBelanjaRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
   '/checkout/pembayaran': typeof CheckoutPembayaranRoute
+  '/checkout/verifikasi': typeof CheckoutVerifikasiRoute
   '/checkout/voucher': typeof CheckoutVoucherRoute
   '/kategori/$slug': typeof KategoriSlugRoute
   '/panduan/belanja': typeof PanduanBelanjaRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/checkout/alamat'
     | '/checkout/gudang'
     | '/checkout/pembayaran'
+    | '/checkout/verifikasi'
     | '/checkout/voucher'
     | '/kategori/$slug'
     | '/panduan/belanja'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/checkout/alamat'
     | '/checkout/gudang'
     | '/checkout/pembayaran'
+    | '/checkout/verifikasi'
     | '/checkout/voucher'
     | '/kategori/$slug'
     | '/panduan/belanja'
@@ -351,6 +362,7 @@ export interface FileRouteTypes {
     | '/checkout/alamat'
     | '/checkout/gudang'
     | '/checkout/pembayaran'
+    | '/checkout/verifikasi'
     | '/checkout/voucher'
     | '/kategori/$slug'
     | '/panduan/belanja'
@@ -567,6 +579,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutVoucherRouteImport
       parentRoute: typeof CheckoutRoute
     }
+    '/checkout/verifikasi': {
+      id: '/checkout/verifikasi'
+      path: '/verifikasi'
+      fullPath: '/checkout/verifikasi'
+      preLoaderRoute: typeof CheckoutVerifikasiRouteImport
+      parentRoute: typeof CheckoutRoute
+    }
     '/checkout/pembayaran': {
       id: '/checkout/pembayaran'
       path: '/pembayaran'
@@ -595,6 +614,7 @@ interface CheckoutRouteChildren {
   CheckoutAlamatRoute: typeof CheckoutAlamatRoute
   CheckoutGudangRoute: typeof CheckoutGudangRoute
   CheckoutPembayaranRoute: typeof CheckoutPembayaranRoute
+  CheckoutVerifikasiRoute: typeof CheckoutVerifikasiRoute
   CheckoutVoucherRoute: typeof CheckoutVoucherRoute
 }
 
@@ -602,6 +622,7 @@ const CheckoutRouteChildren: CheckoutRouteChildren = {
   CheckoutAlamatRoute: CheckoutAlamatRoute,
   CheckoutGudangRoute: CheckoutGudangRoute,
   CheckoutPembayaranRoute: CheckoutPembayaranRoute,
+  CheckoutVerifikasiRoute: CheckoutVerifikasiRoute,
   CheckoutVoucherRoute: CheckoutVoucherRoute,
 }
 

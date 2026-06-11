@@ -1,12 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ShoppingCart } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CartItemRow } from "@/components/cart/CartItemRow";
-import { Breadcrumbs } from "@/components/common/Breadcrumbs";
-import { CheckoutStepper } from "@/components/checkout/CheckoutStepper";
-import { OrderSummary } from "@/components/checkout/OrderSummary";
+import { CartWarehouseGroupCard } from "@/components/cart/CartWarehouseGroupCard";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useCart } from "@/store/cart";
-import { ShoppingCart } from "lucide-react";
+import { formatRupiah } from "@/lib/format";
 
 export const Route = createFileRoute("/keranjang")({
   head: () => ({ meta: [{ title: "Keranjang Belanja — BahanMaterial.com" }] }),
@@ -20,60 +18,63 @@ function CartPage() {
 
   return (
     <MainLayout user={{ name: "Auliya Gita Ananda" }}>
-      <div className="container mx-auto max-w-7xl px-4 py-6">
-        <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Keranjang Belanja" }]} />
-        <div className="mt-6">
-          <CheckoutStepper current={1} />
-        </div>
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <h1 className="text-2xl font-bold text-primary">Keranjang</h1>
 
         {cart.items.length === 0 ? (
           <EmptyCart />
         ) : (
-          <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
-            <div className="rounded-2xl border border-border bg-card">
-              <div className="flex items-center justify-between border-b border-border px-5 py-4">
-                <label className="flex items-center gap-3 text-sm font-semibold text-foreground">
-                  <Checkbox
-                    checked={allSelected}
-                    onCheckedChange={(v) => cart.toggleSelectAll(Boolean(v))}
-                  />
-                  Pilih Semua ({cart.items.length} produk)
-                </label>
-                <button
-                  onClick={cart.clearSelected}
-                  disabled={cart.selectedIds.size === 0}
-                  className="text-sm font-semibold text-destructive transition-opacity hover:underline disabled:opacity-40"
-                >
-                  Hapus
-                </button>
-              </div>
-              <div className="divide-y divide-border px-5">
-                {cart.items.map((item) => (
-                  <CartItemRow
-                    key={item.id}
-                    item={item}
-                    selected={cart.selectedIds.has(item.id)}
-                    onToggle={() => cart.toggleSelect(item.id)}
-                    onQtyChange={(q) => cart.updateQty(item.id, q)}
-                    onRemove={() => cart.removeItem(item.id)}
-                  />
-                ))}
+          <div className="mt-6 space-y-4">
+            {/* Header row */}
+            <div className="hidden rounded-2xl border border-border bg-card px-5 py-4 md:block">
+              <div className="grid grid-cols-[auto_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-4 text-sm font-semibold text-foreground">
+                <span />
+                <span>Nama Produk</span>
+                <span>Harga Satuan</span>
+                <span>Kuantitas</span>
+                <span>Total Harga</span>
+                <span>Aksi</span>
               </div>
             </div>
 
-            <OrderSummary
-              rows={[
-                { label: `Total Harga (${cart.totalSelected} barang)`, value: cart.subTotal },
-                { label: "Diskon Produk", value: 0 },
-              ]}
-              total={cart.subTotal}
-              totalLabel="Sub Total"
-              cta={{
-                label: `Checkout (${cart.totalSelected})`,
-                onClick: () => navigate({ to: "/checkout" }),
-                disabled: cart.totalSelected === 0,
-              }}
-            />
+            {cart.groups.map((g) => (
+              <CartWarehouseGroupCard
+                key={g.warehouse}
+                group={g}
+                selectedIds={cart.selectedIds}
+                onToggleItem={cart.toggleSelect}
+                onToggleGroup={cart.toggleSelectGroup}
+                onQtyChange={cart.updateQty}
+                onRemove={cart.removeItem}
+              />
+            ))}
+
+            {/* Footer summary bar */}
+            <div className="sticky bottom-0 z-10 grid grid-cols-1 items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm md:grid-cols-[auto_auto_1fr_auto_auto]">
+              <label className="flex items-center gap-3 text-sm font-semibold text-foreground">
+                <Checkbox checked={allSelected} onCheckedChange={(v) => cart.toggleSelectAll(Boolean(v))} />
+                Pilih Semua
+              </label>
+              <button
+                onClick={cart.clearSelected}
+                disabled={cart.selectedIds.size === 0}
+                className="text-sm font-semibold text-primary hover:underline disabled:opacity-40"
+              >
+                Hapus
+              </button>
+              <div className="md:text-right">
+                <p className="text-sm font-semibold text-foreground">Total Harga</p>
+                <p className="text-xs text-muted-foreground">Total ({cart.totalSelected} Produk):</p>
+              </div>
+              <p className="text-lg font-bold text-accent">{formatRupiah(cart.subTotal)}</p>
+              <button
+                onClick={() => navigate({ to: "/checkout" })}
+                disabled={cart.totalSelected === 0}
+                className="rounded-md bg-primary px-8 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+              >
+                Beli Sekarang
+              </button>
+            </div>
           </div>
         )}
       </div>
