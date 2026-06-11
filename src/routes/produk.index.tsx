@@ -14,7 +14,7 @@ const searchSchema = z.object({
   sort: z.enum(["terbaru", "termurah", "termahal", "terlaris"]).optional(),
 });
 
-export const Route = createFileRoute("/produk")({
+export const Route = createFileRoute("/produk/")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
