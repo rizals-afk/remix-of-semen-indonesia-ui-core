@@ -124,9 +124,9 @@ const KategoriIndexRoute = KategoriIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProdukSlugRoute = ProdukSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => ProdukRoute,
+  id: '/produk/$slug',
+  path: '/produk/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PembayaranSuksesRoute = PembayaranSuksesRouteImport.update({
   id: '/pembayaran/sukses',
@@ -385,6 +385,7 @@ export interface RootRouteChildren {
   PanduanPengembalianRoute: typeof PanduanPengembalianRoute
   PanduanPengirimanRoute: typeof PanduanPengirimanRoute
   PembayaranSuksesRoute: typeof PembayaranSuksesRoute
+  ProdukSlugRoute: typeof ProdukSlugRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
   ProdukIndexRoute: typeof ProdukIndexRoute
 }
@@ -512,10 +513,10 @@ declare module '@tanstack/react-router' {
     }
     '/produk/$slug': {
       id: '/produk/$slug'
-      path: '/$slug'
+      path: '/produk/$slug'
       fullPath: '/produk/$slug'
       preLoaderRoute: typeof ProdukSlugRouteImport
-      parentRoute: typeof ProdukRoute
+      parentRoute: typeof rootRouteImport
     }
     '/pembayaran/sukses': {
       id: '/pembayaran/sukses'
@@ -630,6 +631,7 @@ const rootRouteChildren: RootRouteChildren = {
   PanduanPengembalianRoute: PanduanPengembalianRoute,
   PanduanPengirimanRoute: PanduanPengirimanRoute,
   PembayaranSuksesRoute: PembayaranSuksesRoute,
+  ProdukSlugRoute: ProdukSlugRoute,
   KategoriIndexRoute: KategoriIndexRoute,
   ProdukIndexRoute: ProdukIndexRoute,
 }
