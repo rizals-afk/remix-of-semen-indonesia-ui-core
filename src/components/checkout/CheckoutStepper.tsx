@@ -5,12 +5,12 @@ interface CheckoutStepperProps {
   steps?: string[];
 }
 
-const DEFAULT_STEPS = ["Keranjang", "Checkout", "Pembayaran", "Selesai"];
+const DEFAULT_STEPS = ["Keranjang", "Checkout", "Verifikasi", "Pembayaran", "Selesai"];
 
 /** Horizontal step indicator used across the checkout flow. */
 export function CheckoutStepper({ current, steps = DEFAULT_STEPS }: CheckoutStepperProps) {
   return (
-    <ol className="mx-auto flex w-full max-w-2xl items-center gap-2">
+    <ol className="mx-auto flex w-full max-w-3xl items-center gap-2">
       {steps.map((label, idx) => {
         const stepNum = idx + 1;
         const done = stepNum < current;
@@ -40,11 +40,7 @@ export function CheckoutStepper({ current, steps = DEFAULT_STEPS }: CheckoutStep
               </span>
             </div>
             {idx < steps.length - 1 ? (
-              <div
-                className={
-                  "mb-5 h-0.5 flex-1 " + (stepNum < current ? "bg-primary" : "bg-border")
-                }
-              />
+              <div className={"mb-5 h-0.5 flex-1 " + (stepNum < current ? "bg-primary" : "bg-border")} />
             ) : null}
           </li>
         );
