@@ -2,7 +2,8 @@ import { ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { QuantityStepper } from "@/components/common/QuantityStepper";
 import { formatRupiah } from "@/lib/format";
-import type { CartProduct, CartWarehouseGroup } from "@/store/cart";
+import type { CartProduct } from "@/data/shopping";
+import type { CartWarehouseGroup } from "@/store/cart";
 
 interface CartWarehouseGroupCardProps {
   group: CartWarehouseGroup;
