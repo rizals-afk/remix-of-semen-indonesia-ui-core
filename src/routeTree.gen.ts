@@ -26,6 +26,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProdukIndexRouteImport } from './routes/produk.index'
 import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
+import { Route as AkunIndexRouteImport } from './routes/akun.index'
 import { Route as ProdukSlugRouteImport } from './routes/produk.$slug'
 import { Route as PembayaranSuksesRouteImport } from './routes/pembayaran.sukses'
 import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
@@ -38,6 +39,8 @@ import { Route as CheckoutVerifikasiRouteImport } from './routes/checkout.verifi
 import { Route as CheckoutPembayaranRouteImport } from './routes/checkout.pembayaran'
 import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
+import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
+import { Route as AkunTransaksiIdRouteImport } from './routes/akun.transaksi.$id'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -124,6 +127,11 @@ const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
   path: '/checkout/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AkunIndexRoute = AkunIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AkunRoute,
+} as any)
 const ProdukSlugRoute = ProdukSlugRouteImport.update({
   id: '/produk/$slug',
   path: '/produk/$slug',
@@ -184,10 +192,20 @@ const CheckoutAlamatRoute = CheckoutAlamatRouteImport.update({
   path: '/checkout/alamat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AkunTransaksiIndexRoute = AkunTransaksiIndexRouteImport.update({
+  id: '/transaksi/',
+  path: '/transaksi/',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunTransaksiIdRoute = AkunTransaksiIdRouteImport.update({
+  id: '/transaksi/$id',
+  path: '/transaksi/$id',
+  getParentRoute: () => AkunRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/akun': typeof AkunRoute
+  '/akun': typeof AkunRouteWithChildren
   '/blog': typeof BlogRoute
   '/daftar': typeof DaftarRoute
   '/gudang': typeof GudangRoute
@@ -212,13 +230,15 @@ export interface FileRoutesByFullPath {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/akun/': typeof AkunIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/produk/': typeof ProdukIndexRoute
+  '/akun/transaksi/$id': typeof AkunTransaksiIdRoute
+  '/akun/transaksi/': typeof AkunTransaksiIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/akun': typeof AkunRoute
   '/blog': typeof BlogRoute
   '/daftar': typeof DaftarRoute
   '/gudang': typeof GudangRoute
@@ -243,14 +263,17 @@ export interface FileRoutesByTo {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/akun': typeof AkunIndexRoute
   '/checkout': typeof CheckoutIndexRoute
   '/kategori': typeof KategoriIndexRoute
   '/produk': typeof ProdukIndexRoute
+  '/akun/transaksi/$id': typeof AkunTransaksiIdRoute
+  '/akun/transaksi': typeof AkunTransaksiIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/akun': typeof AkunRoute
+  '/akun': typeof AkunRouteWithChildren
   '/blog': typeof BlogRoute
   '/daftar': typeof DaftarRoute
   '/gudang': typeof GudangRoute
@@ -275,9 +298,12 @@ export interface FileRoutesById {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/akun/': typeof AkunIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/produk/': typeof ProdukIndexRoute
+  '/akun/transaksi/$id': typeof AkunTransaksiIdRoute
+  '/akun/transaksi/': typeof AkunTransaksiIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -308,13 +334,15 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/akun/'
     | '/checkout/'
     | '/kategori/'
     | '/produk/'
+    | '/akun/transaksi/$id'
+    | '/akun/transaksi/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/akun'
     | '/blog'
     | '/daftar'
     | '/gudang'
@@ -339,9 +367,12 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/akun'
     | '/checkout'
     | '/kategori'
     | '/produk'
+    | '/akun/transaksi/$id'
+    | '/akun/transaksi'
   id:
     | '__root__'
     | '/'
@@ -370,14 +401,17 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/akun/'
     | '/checkout/'
     | '/kategori/'
     | '/produk/'
+    | '/akun/transaksi/$id'
+    | '/akun/transaksi/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AkunRoute: typeof AkunRoute
+  AkunRoute: typeof AkunRouteWithChildren
   BlogRoute: typeof BlogRoute
   DaftarRoute: typeof DaftarRoute
   GudangRoute: typeof GudangRoute
@@ -528,6 +562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/akun/': {
+      id: '/akun/'
+      path: '/'
+      fullPath: '/akun/'
+      preLoaderRoute: typeof AkunIndexRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/produk/$slug': {
       id: '/produk/$slug'
       path: '/produk/$slug'
@@ -612,12 +653,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutAlamatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/akun/transaksi/': {
+      id: '/akun/transaksi/'
+      path: '/transaksi'
+      fullPath: '/akun/transaksi/'
+      preLoaderRoute: typeof AkunTransaksiIndexRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/transaksi/$id': {
+      id: '/akun/transaksi/$id'
+      path: '/transaksi/$id'
+      fullPath: '/akun/transaksi/$id'
+      preLoaderRoute: typeof AkunTransaksiIdRouteImport
+      parentRoute: typeof AkunRoute
+    }
   }
 }
 
+interface AkunRouteChildren {
+  AkunIndexRoute: typeof AkunIndexRoute
+  AkunTransaksiIdRoute: typeof AkunTransaksiIdRoute
+  AkunTransaksiIndexRoute: typeof AkunTransaksiIndexRoute
+}
+
+const AkunRouteChildren: AkunRouteChildren = {
+  AkunIndexRoute: AkunIndexRoute,
+  AkunTransaksiIdRoute: AkunTransaksiIdRoute,
+  AkunTransaksiIndexRoute: AkunTransaksiIndexRoute,
+}
+
+const AkunRouteWithChildren = AkunRoute._addFileChildren(AkunRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AkunRoute: AkunRoute,
+  AkunRoute: AkunRouteWithChildren,
   BlogRoute: BlogRoute,
   DaftarRoute: DaftarRoute,
   GudangRoute: GudangRoute,
