@@ -9,7 +9,7 @@ import { useCheckout, type FulfillmentMode } from "@/store/checkout";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
 
-export const Route = createFileRoute("/checkout")({
+export const Route = createFileRoute("/checkout/")({
   head: () => ({ meta: [{ title: "Checkout — BahanMaterial.com" }] }),
   component: CheckoutPage,
 });
