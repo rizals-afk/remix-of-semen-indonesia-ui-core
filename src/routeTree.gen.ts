@@ -39,6 +39,8 @@ import { Route as CheckoutVerifikasiRouteImport } from './routes/checkout.verifi
 import { Route as CheckoutPembayaranRouteImport } from './routes/checkout.pembayaran'
 import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
+import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
+import { Route as AkunTransaksiIdRouteImport } from './routes/akun.transaksi.$id'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -190,6 +192,16 @@ const CheckoutAlamatRoute = CheckoutAlamatRouteImport.update({
   path: '/checkout/alamat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AkunTransaksiIndexRoute = AkunTransaksiIndexRouteImport.update({
+  id: '/transaksi/',
+  path: '/transaksi/',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunTransaksiIdRoute = AkunTransaksiIdRouteImport.update({
+  id: '/transaksi/$id',
+  path: '/transaksi/$id',
+  getParentRoute: () => AkunRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -222,6 +234,8 @@ export interface FileRoutesByFullPath {
   '/checkout/': typeof CheckoutIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/produk/': typeof ProdukIndexRoute
+  '/akun/transaksi/$id': typeof AkunTransaksiIdRoute
+  '/akun/transaksi/': typeof AkunTransaksiIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -253,6 +267,8 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutIndexRoute
   '/kategori': typeof KategoriIndexRoute
   '/produk': typeof ProdukIndexRoute
+  '/akun/transaksi/$id': typeof AkunTransaksiIdRoute
+  '/akun/transaksi': typeof AkunTransaksiIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -286,6 +302,8 @@ export interface FileRoutesById {
   '/checkout/': typeof CheckoutIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/produk/': typeof ProdukIndexRoute
+  '/akun/transaksi/$id': typeof AkunTransaksiIdRoute
+  '/akun/transaksi/': typeof AkunTransaksiIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -320,6 +338,8 @@ export interface FileRouteTypes {
     | '/checkout/'
     | '/kategori/'
     | '/produk/'
+    | '/akun/transaksi/$id'
+    | '/akun/transaksi/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -351,6 +371,8 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/kategori'
     | '/produk'
+    | '/akun/transaksi/$id'
+    | '/akun/transaksi'
   id:
     | '__root__'
     | '/'
@@ -383,6 +405,8 @@ export interface FileRouteTypes {
     | '/checkout/'
     | '/kategori/'
     | '/produk/'
+    | '/akun/transaksi/$id'
+    | '/akun/transaksi/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -629,15 +653,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutAlamatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/akun/transaksi/': {
+      id: '/akun/transaksi/'
+      path: '/transaksi'
+      fullPath: '/akun/transaksi/'
+      preLoaderRoute: typeof AkunTransaksiIndexRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/transaksi/$id': {
+      id: '/akun/transaksi/$id'
+      path: '/transaksi/$id'
+      fullPath: '/akun/transaksi/$id'
+      preLoaderRoute: typeof AkunTransaksiIdRouteImport
+      parentRoute: typeof AkunRoute
+    }
   }
 }
 
 interface AkunRouteChildren {
   AkunIndexRoute: typeof AkunIndexRoute
+  AkunTransaksiIdRoute: typeof AkunTransaksiIdRoute
+  AkunTransaksiIndexRoute: typeof AkunTransaksiIndexRoute
 }
 
 const AkunRouteChildren: AkunRouteChildren = {
   AkunIndexRoute: AkunIndexRoute,
+  AkunTransaksiIdRoute: AkunTransaksiIdRoute,
+  AkunTransaksiIndexRoute: AkunTransaksiIndexRoute,
 }
 
 const AkunRouteWithChildren = AkunRoute._addFileChildren(AkunRouteChildren)
@@ -676,13 +718,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
