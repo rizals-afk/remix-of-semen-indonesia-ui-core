@@ -92,7 +92,7 @@ function bannerFor(order: Order): BannerCopy {
 }
 
 function OrderDetailPage() {
-  const { order } = Route.useLoaderData();
+  const { order } = Route.useLoaderData() as { order: Order };
   const subtotal = orderSubtotal(order);
   const shipping = orderShipping(order);
   const total = orderTotal(order);
