@@ -1,8 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ChevronLeft, MapPin, Warehouse as WarehouseIcon, CreditCard, Truck, Store, FileText, MessageCircle } from "lucide-react";
-import { OrderStatusBadge } from "@/components/account/OrderStatusBadge";
+import {
+  MapPin, Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info,
+} from "lucide-react";
+import { OrderStatusStepper } from "@/components/account/OrderStatusStepper";
 import { formatRupiah } from "@/lib/format";
-import { getOrder, orderShipping, orderSubtotal, orderTonase, orderTotal } from "@/data/orders";
+import {
+  getOrder, orderShipping, orderSubtotal, orderTonase, orderTotal,
+  type Order, type OrderWarehouseGroup,
+} from "@/data/orders";
 
 export const Route = createFileRoute("/akun/transaksi/$id")({
   head: () => ({ meta: [{ title: "Detail Pesanan — BahanMaterial.com" }] }),
@@ -23,156 +28,306 @@ export const Route = createFileRoute("/akun/transaksi/$id")({
   ),
 });
 
+interface BannerCopy {
+  icon: typeof Hourglass;
+  title: string;
+  subtitle: string;
+  tone: "primary" | "success" | "destructive" | "accent";
+  invoice?: boolean;
+}
+
+function bannerFor(order: Order): BannerCopy {
+  switch (order.status) {
+    case "menunggu-verifikasi":
+      return {
+        icon: Hourglass,
+        title: "Menunggu Verifikasi",
+        subtitle: "Pesanan anda sedang dalam proses peninjauan oleh tim admin pusat kami.",
+        tone: "primary",
+      };
+    case "menunggu-pembayaran":
+      return {
+        icon: Wallet,
+        title: "Menunggu Pembayaran",
+        subtitle: `Silahkan lakukan pembayaran paling lambat ${order.deadline ?? "—"}`,
+        tone: "primary",
+      };
+    case "diproses":
+      return {
+        icon: Hourglass,
+        title: "Pesanan Diproses",
+        subtitle: "Gudang sedang menyiapkan pesanan anda untuk pengiriman.",
+        tone: "primary",
+      };
+    case "dikirim":
+      return {
+        icon: Truck,
+        title: "Pesanan Dikirim",
+        subtitle: "Pesanan sedang dalam perjalanan menuju lokasi Anda.",
+        tone: "primary",
+      };
+    case "selesai":
+      return {
+        icon: CheckCircle2,
+        title: "Pesanan Selesai",
+        subtitle: `Pesanan Diterima pada ${order.createdAt}`,
+        tone: "success",
+        invoice: true,
+      };
+    case "pengembalian":
+      return {
+        icon: RotateCcw,
+        title: "Menunggu Verifikasi Pengembalian",
+        subtitle: "Tim admin sedang meninjau permintaan pengembalian anda.",
+        tone: "accent",
+      };
+    case "dibatalkan":
+      return {
+        icon: XCircle,
+        title: "Pesanan Dibatalkan",
+        subtitle: "Pesanan ini telah dibatalkan.",
+        tone: "destructive",
+      };
+  }
+}
+
 function OrderDetailPage() {
   const { order } = Route.useLoaderData();
   const subtotal = orderSubtotal(order);
   const shipping = orderShipping(order);
-  const tonase = orderTonase(order);
   const total = orderTotal(order);
+  const banner = bannerFor(order);
+  const BannerIcon = banner.icon;
+  const toneText =
+    banner.tone === "success" ? "text-success"
+    : banner.tone === "destructive" ? "text-destructive"
+    : banner.tone === "accent" ? "text-accent"
+    : "text-primary";
+  const toneBg =
+    banner.tone === "success" ? "bg-success/10 border-success/30"
+    : banner.tone === "destructive" ? "bg-destructive/10 border-destructive/30"
+    : banner.tone === "accent" ? "bg-accent/10 border-accent/30"
+    : "bg-primary-soft border-primary/20";
+
+  const eta = order.etaWindow;
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/akun/transaksi" className="inline-flex items-center gap-1 text-sm font-semibold text-foreground hover:text-primary">
-          <ChevronLeft className="h-4 w-4" /> Kembali ke Riwayat Transaksi
-        </Link>
-        <OrderStatusBadge status={order.status} />
-      </div>
-
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4">
+      {/* Status banner */}
+      <section className={`flex flex-wrap items-start justify-between gap-4 rounded-2xl border p-5 ${toneBg}`}>
+        <div className="flex items-start gap-4">
+          <span className={`grid h-12 w-12 place-items-center rounded-md bg-card ${toneText}`}>
+            <BannerIcon className="h-6 w-6" />
+          </span>
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">ID Pesanan</p>
-            <p className="mt-1 font-mono text-sm font-bold text-foreground">{order.id}</p>
+            <p className={`text-base font-bold ${toneText}`}>{banner.title}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{banner.subtitle}</p>
           </div>
-          <div className="text-right">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Tanggal Pesanan</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{order.createdAt}</p>
+        </div>
+        {order.status === "dikirim" && eta ? (
+          <div className="text-right text-sm">
+            <p className="text-muted-foreground">Estimasi Tiba</p>
+            <p className="mt-0.5 font-bold text-foreground">{eta}</p>
+          </div>
+        ) : banner.invoice ? (
+          <div className="text-right text-sm">
+            <p className="text-muted-foreground">No. Pesanan</p>
+            <p className="mt-0.5 font-mono font-bold text-foreground">{order.id}</p>
+          </div>
+        ) : null}
+      </section>
+
+      {order.status === "dikirim" ? (
+        <section className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary-soft p-4">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="text-sm">
+            <p className="font-bold text-foreground">Informasi Penting</p>
+            <p className="mt-0.5 text-muted-foreground">
+              Pastikan terdapat tim bongkar di lokasi saat pesanan tiba untuk proses bongkar muat barang.
+            </p>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Address */}
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-start gap-4">
+          <span className="grid h-12 w-12 place-items-center rounded-md bg-primary-soft text-primary">
+            <MapPin className="h-6 w-6" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-foreground">Alamat Pengiriman</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">
+              {order.recipient} <span className="text-muted-foreground">({order.phone})</span>
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{order.address}</p>
           </div>
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-card p-5">
-          <p className="flex items-center gap-2 text-sm font-bold text-foreground">
-            {order.mode === "dikirim" ? <Truck className="h-4 w-4 text-primary" /> : <Store className="h-4 w-4 text-primary" />}
-            {order.mode === "dikirim" ? "Alamat Pengiriman" : "Lokasi Pengambilan"}
-          </p>
-          <div className="mt-3 flex items-start gap-2 text-sm">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-            <div>
-              <p className="font-semibold text-foreground">{order.recipient} <span className="text-muted-foreground">({order.phone})</span></p>
-              <p className="mt-0.5 text-muted-foreground">{order.address}</p>
-            </div>
-          </div>
-        </section>
+      {/* Stepper */}
+      <OrderStatusStepper
+        status={order.status}
+        timestamps={{
+          dibuat: order.createdAt,
+          verifikasi: order.status !== "menunggu-verifikasi" && order.status !== "dibatalkan" ? order.createdAt : undefined,
+          pembayaran: ["diproses", "dikirim", "selesai"].includes(order.status) ? order.createdAt : undefined,
+          dikirim: ["dikirim", "selesai"].includes(order.status) ? order.createdAt : undefined,
+          selesai: order.status === "selesai" ? order.createdAt : undefined,
+        }}
+      />
 
-        <section className="rounded-2xl border border-border bg-card p-5">
-          <p className="flex items-center gap-2 text-sm font-bold text-foreground">
-            <CreditCard className="h-4 w-4 text-primary" /> Metode Pembayaran
-          </p>
-          <p className="mt-3 text-sm font-semibold text-foreground">{order.paymentMethod}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {order.cod ? "Bayar saat barang diambil" : "Pembayaran melalui channel terpilih"}
-          </p>
-        </section>
-      </div>
+      {/* Warehouse groups */}
+      {order.groups.map((g, idx) => (
+        <WarehouseDetailCard key={g.warehouse + idx} group={g} />
+      ))}
 
-      {order.groups.map((g) => {
-        const groupSubtotal = g.items.reduce((s, i) => s + i.price * i.qty, 0);
-        return (
-          <section key={g.warehouse} className="overflow-hidden rounded-2xl border border-border bg-card">
-            <div className="flex items-center gap-2 border-b border-border px-5 py-3 text-sm font-semibold text-foreground">
-              <WarehouseIcon className="h-4 w-4 text-muted-foreground" />
-              {g.warehouse}
-            </div>
-            <div className="divide-y divide-border">
-              {g.items.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 px-5 py-4">
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
-                    <img src={item.image} alt={item.name} className="h-full w-full object-contain p-1" loading="lazy" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-sm font-semibold text-foreground">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.variant} · {item.qty} {item.unit}
-                    </p>
-                  </div>
-                  <div className="text-right text-sm">
-                    <p className="text-muted-foreground">{formatRupiah(item.price)}</p>
-                    <p className="font-bold text-foreground">{formatRupiah(item.price * item.qty)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {g.note ? (
-              <div className="flex items-start gap-2 border-t border-border bg-muted/40 px-5 py-3 text-sm">
-                <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                <p className="text-muted-foreground"><span className="font-semibold text-foreground">Pesan: </span>{g.note}</p>
-              </div>
-            ) : null}
-            <div className="grid gap-2 border-t border-border px-5 py-3 text-sm sm:grid-cols-2">
-              <div className="flex justify-between sm:block">
-                <span className="text-muted-foreground">Subtotal Produk</span>
-                <p className="font-semibold text-foreground sm:mt-1">{formatRupiah(groupSubtotal)}</p>
-              </div>
-              <div className="flex justify-between sm:block sm:text-right">
-                <span className="text-muted-foreground">Ongkos Kirim</span>
-                <p className="font-semibold text-foreground sm:mt-1">{g.shippingFee > 0 ? formatRupiah(g.shippingFee) : "—"}</p>
-              </div>
-            </div>
-          </section>
-        );
-      })}
-
+      {/* Rincian Pembayaran */}
       <section className="rounded-2xl border border-border bg-card p-5">
         <h3 className="text-base font-bold text-foreground">Rincian Pembayaran</h3>
         <dl className="mt-4 space-y-3 text-sm">
-          <Row label="Subtotal Tonase" value={`${tonase.toLocaleString("id-ID")} Ton`} />
+          <Row label="Metode Pembayaran" value={order.paymentMethod} />
           <Row label="Subtotal Pesanan" value={formatRupiah(subtotal)} />
           <Row label="Subtotal Pengiriman" value={formatRupiah(shipping)} />
           {order.voucherDiscount ? (
-            <Row label="Voucher" value={`- ${formatRupiah(order.voucherDiscount)}`} accent="success" />
+            <Row label="Voucher Gratis Ongkir" value={formatRupiah(order.voucherDiscount)} />
           ) : null}
         </dl>
         <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
-          <span className="text-sm font-bold text-foreground">Total Pembayaran</span>
+          <span className="text-base font-bold text-foreground">Total Pembayaran</span>
           <span className="text-xl font-bold text-accent">{formatRupiah(total)}</span>
         </div>
-      </section>
 
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <a
-          href="https://wa.me/6281133331800"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-md border-2 border-primary px-5 py-2.5 text-sm font-bold text-primary hover:bg-primary/5"
-        >
-          <MessageCircle className="h-4 w-4" /> Hubungi Admin
-        </a>
-        {order.status === "menunggu-pembayaran" ? (
-          <Link
-            to="/checkout/pembayaran"
-            className="rounded-md bg-accent px-5 py-2.5 text-sm font-bold text-accent-foreground hover:bg-accent/90"
-          >
-            Bayar Sekarang
-          </Link>
-        ) : null}
-        {order.status === "selesai" ? (
-          <button className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
-            Beli Lagi
-          </button>
-        ) : null}
-      </div>
+        <DetailActions order={order} />
+      </section>
     </div>
   );
 }
 
-function Row({ label, value, accent }: { label: string; value: string; accent?: "success" }) {
+function WarehouseDetailCard({ group }: { group: OrderWarehouseGroup }) {
+  const groupSubtotal = group.items.reduce((s, i) => s + i.price * i.qty, 0);
+  const groupTonase = group.items.reduce(
+    (s, i) => s + ((i.weightKg ?? 0) * i.qty) / 1000,
+    0,
+  );
+  return (
+    <section className="rounded-2xl border border-border bg-card">
+      <div className="flex items-center justify-between gap-3 px-5 pt-5">
+        <p className="text-sm font-bold text-foreground">{group.warehouse}</p>
+        <span className="text-sm font-semibold text-primary">Selesai</span>
+      </div>
+      <ul className="px-5 py-4">
+        {group.items.map((item) => (
+          <li key={item.id} className="flex items-center gap-4 py-2">
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+              <img src={item.image} alt={item.name} className="h-full w-full object-contain p-1" loading="lazy" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 text-sm font-bold text-foreground">{item.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{item.variant}</p>
+              <p className="mt-1 text-sm font-bold text-foreground">{formatRupiah(item.price)}</p>
+            </div>
+            <p className="text-right text-sm text-muted-foreground">x{item.qty}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="grid gap-2 border-t border-border px-5 py-3 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">Total Tonase:</span>
+          <span className="font-bold text-foreground">{groupTonase.toLocaleString("id-ID")} Ton</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground">Total Pesanan:</span>
+          <span className="font-bold text-accent">{formatRupiah(groupSubtotal)}</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DetailActions({ order }: { order: Order }) {
+  const outline = (label: string, href?: string) =>
+    href ? (
+      <a href={href} target="_blank" rel="noreferrer"
+        className="rounded-md border-2 border-primary px-5 py-2.5 text-sm font-bold text-primary hover:bg-primary/5">
+        {label}
+      </a>
+    ) : (
+      <button className="rounded-md border-2 border-primary px-5 py-2.5 text-sm font-bold text-primary hover:bg-primary/5">
+        {label}
+      </button>
+    );
+  const primary = (label: string, to?: string) =>
+    to ? (
+      <Link to={to as "/checkout/pembayaran"}
+        className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+        {label}
+      </Link>
+    ) : (
+      <button className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+        {label}
+      </button>
+    );
+
+  const whatsapp = "https://wa.me/6281133331800";
+
+  let content: React.ReactNode = null;
+  switch (order.status) {
+    case "menunggu-verifikasi":
+      content = outline("Hubungi Penjual", whatsapp);
+      break;
+    case "menunggu-pembayaran":
+      content = (
+        <>
+          {outline("Hubungi Penjual", whatsapp)}
+          {primary("Bayar Sekarang", "/checkout/pembayaran")}
+        </>
+      );
+      break;
+    case "diproses":
+      content = outline("Hubungi Penjual", whatsapp);
+      break;
+    case "dikirim":
+      content = (
+        <>
+          {outline("Ajukan Pengembalian")}
+          {primary("Pesanan Selesai")}
+        </>
+      );
+      break;
+    case "selesai":
+      content = (
+        <>
+          {outline("Beli Lagi")}
+          {primary("Nilai")}
+        </>
+      );
+      break;
+    case "pengembalian":
+      content = primary("Rincian Pengembalian");
+      break;
+    case "dibatalkan":
+      content = (
+        <>
+          {outline("Rincian Pembatalan")}
+          {primary("Beli Lagi")}
+        </>
+      );
+      break;
+  }
+
+  return (
+    <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+      {content}
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className={"font-semibold " + (accent === "success" ? "text-success" : "text-foreground")}>{value}</dd>
+      <dd className="font-semibold text-foreground">{value}</dd>
     </div>
   );
 }
