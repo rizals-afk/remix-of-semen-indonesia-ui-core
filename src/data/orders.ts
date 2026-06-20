@@ -6,6 +6,7 @@ export type OrderStatus =
   | "diproses"
   | "dikirim"
   | "selesai"
+  | "pengembalian"
   | "dibatalkan";
 
 export interface OrderItem extends CartProduct {}
@@ -29,6 +30,12 @@ export interface Order {
   address: string;
   voucherDiscount?: number;
   groups: OrderWarehouseGroup[];
+  /** ISO-ish display deadline depending on status (pay-by, ship-by, confirm-by). */
+  deadline?: string;
+  /** Estimated arrival window for shipped orders. */
+  etaWindow?: string;
+  /** Coins earned hint for completed orders. */
+  coinsHint?: number;
 }
 
 const c = DEMO_CART;
@@ -45,6 +52,7 @@ export const ORDERS: Order[] = [
     phone: "0851234567890",
     address: "Jl. Dr. Wahidin Sudirohusodo No.728A, Dahanrejo, Kebomas, Gresik",
     voucherDiscount: 50000,
+    deadline: "31-01-2026",
     groups: [
       { warehouse: "Gudang Cabang Gresik", items: [c[0], c[1]], shippingFee: 170000, note: "Tolong dibungkus rapi" },
       { warehouse: "Gudang Cabang Surabaya", items: [c[2]], shippingFee: 85000 },
@@ -60,6 +68,8 @@ export const ORDERS: Order[] = [
     recipient: "Auliya Gita Ananda",
     phone: "0851234567890",
     address: "Jl. Dr. Wahidin Sudirohusodo No.728A, Gresik",
+    deadline: "31-01-2026",
+    etaWindow: "1 Feb 2026, 09.00 - 15.00 WIB",
     groups: [{ warehouse: "Gudang Cabang Gresik", items: [c[0]], shippingFee: 170000 }],
   },
   {
@@ -72,6 +82,8 @@ export const ORDERS: Order[] = [
     recipient: "Auliya Gita Ananda",
     phone: "0851234567890",
     address: "Diambil di Gudang Cabang Gresik",
+    coinsHint: 80,
+    deadline: "03 Jan 2027",
     groups: [{ warehouse: "Gudang Cabang Gresik", items: [c[1]], shippingFee: 0 }],
   },
   {
@@ -96,7 +108,21 @@ export const ORDERS: Order[] = [
     recipient: "Auliya Gita Ananda",
     phone: "0851234567890",
     address: "Jl. Dr. Wahidin Sudirohusodo No.728A, Gresik",
+    deadline: "29-01-2026",
     groups: [{ warehouse: "Gudang Cabang Gresik", items: [c[0], c[1]], shippingFee: 170000 }],
+  },
+  {
+    id: "ORD-25052026-447120",
+    createdAt: "25 Mei 2026, 13:18",
+    status: "pengembalian",
+    mode: "dikirim",
+    cod: false,
+    paymentMethod: "BCA Virtual Account",
+    recipient: "Auliya Gita Ananda",
+    phone: "0851234567890",
+    address: "Jl. Dr. Wahidin Sudirohusodo No.728A, Gresik",
+    deadline: "28-01-2026",
+    groups: [{ warehouse: "Gudang Cabang Gresik", items: [c[0]], shippingFee: 0 }],
   },
   {
     id: "ORD-21052026-998817",
@@ -108,6 +134,7 @@ export const ORDERS: Order[] = [
     recipient: "Auliya Gita Ananda",
     phone: "0851234567890",
     address: "Jl. Dr. Wahidin Sudirohusodo No.728A, Gresik",
+    deadline: "28-01-2026",
     groups: [{ warehouse: "Gudang Cabang Gresik", items: [c[0]], shippingFee: 0 }],
   },
 ];
@@ -130,10 +157,11 @@ export function orderTonase(o: Order) {
 
 export const STATUS_LABEL: Record<OrderStatus, string> = {
   "menunggu-verifikasi": "Menunggu Verifikasi",
-  "menunggu-pembayaran": "Menunggu Pembayaran",
+  "menunggu-pembayaran": "Belum Bayar",
   diproses: "Diproses",
   dikirim: "Dikirim",
   selesai: "Selesai",
+  pengembalian: "Pengembalian",
   dibatalkan: "Dibatalkan",
 };
 

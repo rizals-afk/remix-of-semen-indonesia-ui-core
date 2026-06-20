@@ -1,74 +1,48 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ClipboardList, Search } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import { UnderlineTabs } from "@/components/common/Tabs";
 import { OrderCard } from "@/components/account/OrderCard";
 import { ORDERS, type OrderStatus } from "@/data/orders";
 
 export const Route = createFileRoute("/akun/transaksi/")({
-  head: () => ({ meta: [{ title: "Riwayat Transaksi — BahanMaterial.com" }] }),
+  head: () => ({ meta: [{ title: "Riwayat Pesanan — BahanMaterial.com" }] }),
   component: TransactionsPage,
 });
 
 const TABS = [
-  "Semua",
-  "Menunggu Verifikasi",
-  "Menunggu Pembayaran",
+  "Diverifikasi",
+  "Belum Bayar",
   "Diproses",
   "Dikirim",
   "Selesai",
+  "Pengembalian",
   "Dibatalkan",
 ] as const;
 type Tab = (typeof TABS)[number];
 
-const TAB_TO_STATUS: Record<Tab, OrderStatus | null> = {
-  Semua: null,
-  "Menunggu Verifikasi": "menunggu-verifikasi",
-  "Menunggu Pembayaran": "menunggu-pembayaran",
+const TAB_TO_STATUS: Record<Tab, OrderStatus> = {
+  Diverifikasi: "menunggu-verifikasi",
+  "Belum Bayar": "menunggu-pembayaran",
   Diproses: "diproses",
   Dikirim: "dikirim",
   Selesai: "selesai",
+  Pengembalian: "pengembalian",
   Dibatalkan: "dibatalkan",
 };
 
 function TransactionsPage() {
-  const [tab, setTab] = useState<Tab>("Semua");
-  const [q, setQ] = useState("");
+  const [tab, setTab] = useState<Tab>("Belum Bayar");
 
   const orders = useMemo(() => {
     const status = TAB_TO_STATUS[tab];
-    return ORDERS.filter((o) => {
-      if (status && o.status !== status) return false;
-      if (q.trim()) {
-        const needle = q.toLowerCase();
-        const matchesId = o.id.toLowerCase().includes(needle);
-        const matchesName = o.groups.some((g) =>
-          g.items.some((i) => i.name.toLowerCase().includes(needle)),
-        );
-        if (!matchesId && !matchesName) return false;
-      }
-      return true;
-    });
-  }, [tab, q]);
+    return ORDERS.filter((o) => o.status === status);
+  }, [tab]);
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-foreground">Riwayat Transaksi</h2>
-          <div className="relative w-full max-w-xs">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Cari ID pesanan atau produk"
-              className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-3 text-sm focus:border-primary focus:outline-none"
-            />
-          </div>
-        </div>
-        <div className="mt-4 overflow-x-auto">
-          <UnderlineTabs tabs={TABS} value={tab} onChange={setTab} tone="primary" />
-        </div>
+    <div className="space-y-5 rounded-2xl border border-border bg-card p-5">
+      <div className="overflow-x-auto">
+        <UnderlineTabs tabs={TABS} value={tab} onChange={setTab} tone="primary" />
       </div>
 
       {orders.length === 0 ? (
