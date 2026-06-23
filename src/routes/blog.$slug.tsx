@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { BlogRelatedItem } from "@/components/blog/BlogListCard";
 import { ProductCard } from "@/components/product/ProductCard";
-import { PRODUCTS } from "@/data/catalog";
+import { ALL_PRODUCTS } from "@/data/catalog";
 import { getPostBySlug, relatedPosts, tagSlug } from "@/data/blog";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/blog/$slug")({
 function BlogDetailPage() {
   const post = Route.useLoaderData();
   const related = relatedPosts(post.slug);
-  const recommendations = PRODUCTS.slice(0, 5);
+  const recommendations = ALL_PRODUCTS.slice(0, 5);
 
   return (
     <MainLayout user={{ name: "Auliya Gita Ananda" }}>
