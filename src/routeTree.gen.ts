@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as TentangRouteImport } from './routes/tentang'
+import { Route as SyaratRouteImport } from './routes/syarat'
 import { Route as PromoRouteImport } from './routes/promo'
 import { Route as PrivasiRouteImport } from './routes/privasi'
 import { Route as PesanRouteImport } from './routes/pesan'
@@ -52,6 +53,11 @@ const WishlistRoute = WishlistRouteImport.update({
 const TentangRoute = TentangRouteImport.update({
   id: '/tentang',
   path: '/tentang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SyaratRoute = SyaratRouteImport.update({
+  id: '/syarat',
+  path: '/syarat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PromoRoute = PromoRouteImport.update({
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/pesan': typeof PesanRoute
   '/privasi': typeof PrivasiRoute
   '/promo': typeof PromoRoute
+  '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/pesan': typeof PesanRoute
   '/privasi': typeof PrivasiRoute
   '/promo': typeof PromoRoute
+  '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/pesan': typeof PesanRoute
   '/privasi': typeof PrivasiRoute
   '/promo': typeof PromoRoute
+  '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -337,6 +346,7 @@ export interface FileRouteTypes {
     | '/pesan'
     | '/privasi'
     | '/promo'
+    | '/syarat'
     | '/tentang'
     | '/wishlist'
     | '/checkout/alamat'
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/pesan'
     | '/privasi'
     | '/promo'
+    | '/syarat'
     | '/tentang'
     | '/wishlist'
     | '/checkout/alamat'
@@ -408,6 +419,7 @@ export interface FileRouteTypes {
     | '/pesan'
     | '/privasi'
     | '/promo'
+    | '/syarat'
     | '/tentang'
     | '/wishlist'
     | '/checkout/alamat'
@@ -445,6 +457,7 @@ export interface RootRouteChildren {
   PesanRoute: typeof PesanRoute
   PrivasiRoute: typeof PrivasiRoute
   PromoRoute: typeof PromoRoute
+  SyaratRoute: typeof SyaratRoute
   TentangRoute: typeof TentangRoute
   WishlistRoute: typeof WishlistRoute
   CheckoutAlamatRoute: typeof CheckoutAlamatRoute
@@ -481,6 +494,13 @@ declare module '@tanstack/react-router' {
       path: '/tentang'
       fullPath: '/tentang'
       preLoaderRoute: typeof TentangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/syarat': {
+      id: '/syarat'
+      path: '/syarat'
+      fullPath: '/syarat'
+      preLoaderRoute: typeof SyaratRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/promo': {
@@ -736,6 +756,7 @@ const rootRouteChildren: RootRouteChildren = {
   PesanRoute: PesanRoute,
   PrivasiRoute: PrivasiRoute,
   PromoRoute: PromoRoute,
+  SyaratRoute: SyaratRoute,
   TentangRoute: TentangRoute,
   WishlistRoute: WishlistRoute,
   CheckoutAlamatRoute: CheckoutAlamatRoute,
