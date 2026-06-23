@@ -1,9 +1,10 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   User, Lock, MapPin, ClipboardList, Users, Bell, Clock, Heart,
-  Bookmark, Gem, Ticket, Coins, Pencil,
+  Bookmark, Gem, Ticket, Coins, Pencil, LogOut,
 } from "lucide-react";
-import type { ComponentType } from "react";
+import { useState, type ComponentType } from "react";
+import { LogoutDialog } from "@/components/auth/LogoutDialog";
 
 interface MenuItem {
   to: string;
@@ -22,7 +23,7 @@ const GROUPS: MenuGroup[] = [
     title: "Kelola Akun",
     items: [
       { to: "/akun", label: "Profil Pengguna", icon: User },
-      { to: "/akun", label: "Ubah Password", icon: Lock },
+      { to: "/akun/ubah-password", label: "Ubah Password", icon: Lock },
       { to: "/checkout/alamat", label: "Alamat Pengiriman", icon: MapPin },
     ],
   },
@@ -59,6 +60,8 @@ const GROUPS: MenuGroup[] = [
 
 export function AccountSidebar({ user }: { user: { name: string; email?: string } }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [logoutOpen, setLogoutOpen] = useState(false);
   return (
     <aside className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-3 border-b border-border pb-4">
@@ -107,6 +110,24 @@ export function AccountSidebar({ user }: { user: { name: string; email?: string 
           </div>
         ))}
       </nav>
+
+      <button
+        type="button"
+        onClick={() => setLogoutOpen(true)}
+        className="mt-6 flex w-full items-center gap-3 rounded-md border border-border px-3 py-2 text-sm font-semibold text-destructive hover:bg-destructive/5"
+      >
+        <LogOut className="h-4 w-4" />
+        Keluar
+      </button>
+
+      <LogoutDialog
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        onConfirm={() => {
+          setLogoutOpen(false);
+          navigate({ to: "/masuk" });
+        }}
+      />
     </aside>
   );
 }
