@@ -42,6 +42,7 @@ import { Route as CheckoutVerifikasiRouteImport } from './routes/checkout.verifi
 import { Route as CheckoutPembayaranRouteImport } from './routes/checkout.pembayaran'
 import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
 import { Route as AkunTransaksiIdRouteImport } from './routes/akun.transaksi.$id'
 
@@ -210,6 +211,11 @@ const CheckoutAlamatRoute = CheckoutAlamatRouteImport.update({
   path: '/checkout/alamat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AkunTransaksiIndexRoute = AkunTransaksiIndexRouteImport.update({
   id: '/transaksi/',
   path: '/transaksi/',
@@ -236,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
   '/checkout/pembayaran': typeof CheckoutPembayaranRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
   '/checkout/pembayaran': typeof CheckoutPembayaranRoute
@@ -310,6 +318,7 @@ export interface FileRoutesById {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
   '/checkout/pembayaran': typeof CheckoutPembayaranRoute
@@ -349,6 +358,7 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
     | '/checkout/pembayaran'
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
     | '/checkout/pembayaran'
@@ -422,6 +433,7 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
     | '/checkout/pembayaran'
@@ -460,6 +472,7 @@ export interface RootRouteChildren {
   SyaratRoute: typeof SyaratRoute
   TentangRoute: typeof TentangRoute
   WishlistRoute: typeof WishlistRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   CheckoutAlamatRoute: typeof CheckoutAlamatRoute
   CheckoutGudangRoute: typeof CheckoutGudangRoute
   CheckoutPembayaranRoute: typeof CheckoutPembayaranRoute
@@ -713,6 +726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutAlamatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/akun/transaksi/': {
       id: '/akun/transaksi/'
       path: '/transaksi'
@@ -759,6 +779,7 @@ const rootRouteChildren: RootRouteChildren = {
   SyaratRoute: SyaratRoute,
   TentangRoute: TentangRoute,
   WishlistRoute: WishlistRoute,
+  BlogSlugRoute: BlogSlugRoute,
   CheckoutAlamatRoute: CheckoutAlamatRoute,
   CheckoutGudangRoute: CheckoutGudangRoute,
   CheckoutPembayaranRoute: CheckoutPembayaranRoute,
