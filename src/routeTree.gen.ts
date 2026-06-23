@@ -27,6 +27,7 @@ import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AkunIndexRouteImport } from './routes/akun.index'
+import { Route as ResetPasswordSuksesRouteImport } from './routes/reset-password.sukses'
 import { Route as ProdukSlugRouteImport } from './routes/produk.$slug'
 import { Route as PembayaranSuksesRouteImport } from './routes/pembayaran.sukses'
 import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
@@ -132,6 +133,11 @@ const AkunIndexRoute = AkunIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AkunRoute,
 } as any)
+const ResetPasswordSuksesRoute = ResetPasswordSuksesRouteImport.update({
+  id: '/reset-password/sukses',
+  path: '/reset-password/sukses',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdukSlugRoute = ProdukSlugRouteImport.update({
   id: '/produk/$slug',
   path: '/produk/$slug',
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun/': typeof AkunIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun': typeof AkunIndexRoute
   '/blog': typeof BlogIndexRoute
   '/checkout': typeof CheckoutIndexRoute
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun/': typeof AkunIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/sukses'
     | '/akun/'
     | '/blog/'
     | '/checkout/'
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/sukses'
     | '/akun'
     | '/blog'
     | '/checkout'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/sukses'
     | '/akun/'
     | '/blog/'
     | '/checkout/'
@@ -434,6 +446,7 @@ export interface RootRouteChildren {
   PanduanPengirimanRoute: typeof PanduanPengirimanRoute
   PembayaranSuksesRoute: typeof PembayaranSuksesRoute
   ProdukSlugRoute: typeof ProdukSlugRoute
+  ResetPasswordSuksesRoute: typeof ResetPasswordSuksesRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
@@ -568,6 +581,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/akun/'
       preLoaderRoute: typeof AkunIndexRouteImport
       parentRoute: typeof AkunRoute
+    }
+    '/reset-password/sukses': {
+      id: '/reset-password/sukses'
+      path: '/reset-password/sukses'
+      fullPath: '/reset-password/sukses'
+      preLoaderRoute: typeof ResetPasswordSuksesRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/produk/$slug': {
       id: '/produk/$slug'
@@ -709,6 +729,7 @@ const rootRouteChildren: RootRouteChildren = {
   PanduanPengirimanRoute: PanduanPengirimanRoute,
   PembayaranSuksesRoute: PembayaranSuksesRoute,
   ProdukSlugRoute: ProdukSlugRoute,
+  ResetPasswordSuksesRoute: ResetPasswordSuksesRoute,
   BlogIndexRoute: BlogIndexRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
   KategoriIndexRoute: KategoriIndexRoute,
