@@ -27,6 +27,7 @@ import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password.
 import { Route as ProdukIndexRouteImport } from './routes/produk.index'
 import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AkunIndexRouteImport } from './routes/akun.index'
 import { Route as ResetPasswordSuksesRouteImport } from './routes/reset-password.sukses'
 import { Route as ProdukSlugRouteImport } from './routes/produk.$slug'
@@ -132,6 +133,11 @@ const KategoriIndexRoute = KategoriIndexRouteImport.update({
 const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
   id: '/checkout/',
   path: '/checkout/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AkunIndexRoute = AkunIndexRouteImport.update({
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/produk/$slug': typeof ProdukSlugRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun/': typeof AkunIndexRoute
+  '/blog/': typeof BlogIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/produk/': typeof ProdukIndexRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/produk/$slug': typeof ProdukSlugRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun': typeof AkunIndexRoute
+  '/blog': typeof BlogIndexRoute
   '/checkout': typeof CheckoutIndexRoute
   '/kategori': typeof KategoriIndexRoute
   '/produk': typeof ProdukIndexRoute
@@ -316,6 +324,7 @@ export interface FileRoutesById {
   '/produk/$slug': typeof ProdukSlugRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun/': typeof AkunIndexRoute
+  '/blog/': typeof BlogIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/produk/': typeof ProdukIndexRoute
@@ -354,6 +363,7 @@ export interface FileRouteTypes {
     | '/produk/$slug'
     | '/reset-password/sukses'
     | '/akun/'
+    | '/blog/'
     | '/checkout/'
     | '/kategori/'
     | '/produk/'
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/produk/$slug'
     | '/reset-password/sukses'
     | '/akun'
+    | '/blog'
     | '/checkout'
     | '/kategori'
     | '/produk'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/produk/$slug'
     | '/reset-password/sukses'
     | '/akun/'
+    | '/blog/'
     | '/checkout/'
     | '/kategori/'
     | '/produk/'
@@ -461,6 +473,7 @@ export interface RootRouteChildren {
   PembayaranSuksesRoute: typeof PembayaranSuksesRoute
   ProdukSlugRoute: typeof ProdukSlugRoute
   ResetPasswordSuksesRoute: typeof ResetPasswordSuksesRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
   ProdukIndexRoute: typeof ProdukIndexRoute
@@ -593,6 +606,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout/'
       preLoaderRoute: typeof CheckoutIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/akun/': {
@@ -752,6 +772,7 @@ const rootRouteChildren: RootRouteChildren = {
   PembayaranSuksesRoute: PembayaranSuksesRoute,
   ProdukSlugRoute: ProdukSlugRoute,
   ResetPasswordSuksesRoute: ResetPasswordSuksesRoute,
+  BlogIndexRoute: BlogIndexRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
   KategoriIndexRoute: KategoriIndexRoute,
   ProdukIndexRoute: ProdukIndexRoute,
