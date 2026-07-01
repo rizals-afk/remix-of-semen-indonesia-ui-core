@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CartProvider } from "@/store/cart";
 import { CheckoutProvider } from "@/store/checkout";
+import { Toaster } from "@/components/ui/sonner";
 import {
   Outlet,
   Link,
@@ -124,6 +125,7 @@ function RootComponent() {
         <CheckoutProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <Toaster richColors position="top-center" />
         </CheckoutProvider>
       </CartProvider>
     </QueryClientProvider>
