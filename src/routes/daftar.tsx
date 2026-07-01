@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, UserPlus } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import {
   AuthShell,
-  AuthIllustration,
   NotchedInput,
   PrimarySubmit,
   SocialAuthRow,
   AuthFooterLink,
 } from "@/components/auth/AuthShell";
+import signupArt from "@/assets/auth/signup.png.asset.json";
 import { OtpDialog } from "@/components/auth/OtpDialog";
 
 export const Route = createFileRoute("/daftar")({
@@ -25,11 +25,7 @@ function SignUpPage() {
   return (
     <AuthShell
       reverse
-      illustration={
-        <AuthIllustration tone="primary">
-          <UserPlus className="h-32 w-32" strokeWidth={1.4} />
-        </AuthIllustration>
-      }
+      illustration={<img src={signupArt.url} alt="" className="mx-auto w-full max-w-md" />}
     >
       <div className="mx-auto max-w-xl space-y-6">
         <header className="space-y-1">

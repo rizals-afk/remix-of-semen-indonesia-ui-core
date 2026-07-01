@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import {
   AuthShell,
-  AuthIllustration,
   NotchedInput,
   PrimarySubmit,
 } from "@/components/auth/AuthShell";
+import forgotArt from "@/assets/auth/forgot.png.asset.json";
 
 export const Route = createFileRoute("/reset-password/")({
   head: () => ({ meta: [{ title: "Create New Password — BahanMaterial.com" }] }),
@@ -19,11 +19,7 @@ function ResetPasswordPage() {
   const [s2, setS2] = useState(false);
   return (
     <AuthShell
-      illustration={
-        <AuthIllustration tone="accent">
-          <Mail className="h-32 w-32" strokeWidth={1.4} />
-        </AuthIllustration>
-      }
+      illustration={<img src={forgotArt.url} alt="" className="mx-auto w-full max-w-md" />}
     >
       <div className="mx-auto max-w-md space-y-6">
         <header className="space-y-2">
