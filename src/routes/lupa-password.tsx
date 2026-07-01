@@ -1,12 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Mail } from "lucide-react";
 import { useState } from "react";
 import {
   AuthShell,
-  AuthIllustration,
   NotchedInput,
   PrimarySubmit,
 } from "@/components/auth/AuthShell";
+import forgotArt from "@/assets/auth/forgot.png.asset.json";
 import { OtpDialog } from "@/components/auth/OtpDialog";
 
 export const Route = createFileRoute("/lupa-password")({
@@ -20,11 +19,7 @@ function ForgotPasswordPage() {
 
   return (
     <AuthShell
-      illustration={
-        <AuthIllustration tone="accent">
-          <Mail className="h-32 w-32" strokeWidth={1.4} />
-        </AuthIllustration>
-      }
+      illustration={<img src={forgotArt.url} alt="" className="mx-auto w-full max-w-md" />}
     >
       <div className="mx-auto max-w-md space-y-6">
         <header className="space-y-2">
