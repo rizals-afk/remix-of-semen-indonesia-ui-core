@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, KeyRound } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import {
   AuthShell,
-  AuthIllustration,
   NotchedInput,
   PrimarySubmit,
   SocialAuthRow,
   AuthFooterLink,
 } from "@/components/auth/AuthShell";
+import loginArt from "@/assets/auth/login.png.asset.json";
 
 export const Route = createFileRoute("/masuk")({
   head: () => ({ meta: [{ title: "Sign In — BahanMaterial.com" }] }),
@@ -20,7 +20,7 @@ function SignInPage() {
   const [show, setShow] = useState(false);
 
   return (
-    <AuthShell illustration={<AuthIllustration tone="accent"><KeyRound className="h-32 w-32" strokeWidth={1.4} /></AuthIllustration>}>
+    <AuthShell illustration={<img src={loginArt.url} alt="" className="mx-auto w-full max-w-md" />}>
       <div className="mx-auto max-w-md space-y-6">
         <header className="space-y-1">
           <h1 className="text-4xl font-extrabold text-primary">Sign In</h1>
