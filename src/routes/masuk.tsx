@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import { login } from "@/lib/auth";
+import { ApiError } from "@/lib/api";
 import {
   AuthShell,
   NotchedInput,
@@ -18,6 +21,9 @@ export const Route = createFileRoute("/masuk")({
 function SignInPage() {
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
+  const [email, setEmail] = useState("testadmin@email.com");
+  const [password, setPassword] = useState("testadmin");
+  const [loading, setLoading] = useState(false);
 
   return (
     <AuthShell illustration={<img src={loginArt.url} alt="" className="mx-auto w-full max-w-md" />}>
@@ -29,17 +35,42 @@ function SignInPage() {
 
         <form
           className="space-y-5"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            navigate({ to: "/" });
+            if (loading) return;
+            setLoading(true);
+            try {
+              await login({ email, password });
+              toast.success("Login berhasil");
+              navigate({ to: "/" });
+            } catch (err) {
+              const message =
+                err instanceof ApiError
+                  ? err.message
+                  : err instanceof Error
+                    ? err.message
+                    : "Login gagal. Silakan coba lagi.";
+              toast.error(message);
+            } finally {
+              setLoading(false);
+            }
           }}
         >
-          <NotchedInput label="Email" id="email" type="email" defaultValue="auliya@gmail.com" />
+          <NotchedInput
+            label="Email"
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
           <NotchedInput
             label="Password"
             id="password"
             type={show ? "text" : "password"}
-            defaultValue="password123"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
             trailing={
               <button type="button" onClick={() => setShow((v) => !v)} aria-label="Toggle password">
                 {show ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
@@ -57,7 +88,9 @@ function SignInPage() {
             </Link>
           </div>
 
-          <PrimarySubmit>Sign In</PrimarySubmit>
+          <PrimarySubmit disabled={loading}>
+            {loading ? "Signing in…" : "Sign In"}
+          </PrimarySubmit>
           <AuthFooterLink to="/daftar" prompt="Don’t have an account?">Sign up</AuthFooterLink>
         </form>
 
