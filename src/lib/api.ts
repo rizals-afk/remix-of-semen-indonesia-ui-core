@@ -45,7 +45,7 @@ export async function apiFetch<T = unknown>(
     );
   }
 
-  const text = await res.text();
+  const text = await readResponseText(res);
   let data: unknown = null;
   if (text) {
     try {
@@ -76,4 +76,37 @@ export async function apiFetch<T = unknown>(
   }
 
   return data as T;
+}
+
+async function readResponseText(res: Response): Promise<string> {
+  if (!res.body) return res.text();
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+
+  while (true) {
+    const read = reader.read();
+    const result = await Promise.race([
+      read,
+      new Promise<"idle">((resolve) => {
+        window.setTimeout(resolve, text ? 1200 : 15000, "idle");
+      }),
+    ]);
+
+    if (result === "idle") {
+      try {
+        await reader.cancel();
+      } catch {
+        // Ignore cancellation failures; we already have the response body text.
+      }
+      return text;
+    }
+
+    if (result.done) {
+      return text + decoder.decode();
+    }
+
+    text += decoder.decode(result.value, { stream: true });
+  }
 }
