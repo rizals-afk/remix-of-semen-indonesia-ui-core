@@ -90,7 +90,7 @@ async function readResponseText(res: Response): Promise<string> {
     const result = await Promise.race([
       read,
       new Promise<"idle">((resolve) => {
-        window.setTimeout(resolve, text ? 1200 : 15000, "idle");
+        globalThis.setTimeout(resolve, text ? 1200 : 15000, "idle");
       }),
     ]);
 
