@@ -96,7 +96,7 @@ async function readResponseText(res: Response): Promise<string> {
 
     if (result === "idle") {
       try {
-        await reader.cancel();
+        void reader.cancel();
       } catch {
         // Ignore cancellation failures; we already have the response body text.
       }
