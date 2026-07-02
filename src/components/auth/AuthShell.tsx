@@ -118,8 +118,7 @@ export function SocialAuthRow({ mode = "login" }: { mode?: "login" | "signup" })
         <span>{label}</span>
         <span className="h-px flex-1 bg-border" />
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <SocialButton label="Facebook" icon={<FacebookIcon />} />
+      <div className="grid grid-cols-1 gap-3">
         <SocialButton label="Google" icon={<GoogleIcon />} />
       </div>
     </div>
@@ -138,17 +137,6 @@ function SocialButton({ label, icon }: { label: string; icon: ReactNode }) {
   );
 }
 
-function FacebookIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-      <circle cx="12" cy="12" r="12" fill="#1877F2" />
-      <path
-        d="M13.5 12.5h2l.3-2.5h-2.3V8.4c0-.7.2-1.2 1.2-1.2H16V5c-.3 0-1.1-.1-2-.1-2 0-3.4 1.2-3.4 3.4V10H8v2.5h2.5V19h3v-6.5z"
-        fill="#fff"
-      />
-    </svg>
-  );
-}
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden>
