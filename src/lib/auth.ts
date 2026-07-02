@@ -31,7 +31,10 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     null;
   const user = res.user ?? res.data?.user ?? null;
 
-  if (token) saveSession(token, user);
+  if (!token) {
+    throw new Error("Login berhasil tapi token tidak diterima dari server.");
+  }
+  saveSession(token, user);
   return res;
 }
 

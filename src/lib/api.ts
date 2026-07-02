@@ -56,14 +56,22 @@ export async function apiFetch<T = unknown>(
   }
 
   if (!res.ok) {
-    const message =
-      (data && typeof data === "object" && "message" in data && typeof (data as { message: unknown }).message === "string"
-        ? (data as { message: string }).message
-        : undefined) ||
-      (data && typeof data === "object" && "error" in data && typeof (data as { error: unknown }).error === "string"
-        ? (data as { error: string }).error
-        : undefined) ||
-      `Request failed with status ${res.status}`;
+    let message: string | undefined;
+    if (data && typeof data === "object") {
+      const d = data as Record<string, unknown>;
+      if (typeof d.message === "string") message = d.message;
+      else if (typeof d.error === "string") message = d.error;
+      if (d.errors && typeof d.errors === "object") {
+        const errs = d.errors as Record<string, unknown>;
+        const first = Object.values(errs)[0];
+        if (Array.isArray(first) && typeof first[0] === "string") {
+          message = message ?? first[0];
+        } else if (typeof first === "string") {
+          message = message ?? first;
+        }
+      }
+    }
+    message = message || `Request failed with status ${res.status}`;
     throw new ApiError(message, res.status, data);
   }
 

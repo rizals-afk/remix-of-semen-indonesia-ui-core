@@ -42,7 +42,7 @@ function SignInPage() {
             try {
               await login({ email, password });
               toast.success("Login berhasil");
-              navigate({ to: "/" });
+              await navigate({ to: "/" });
             } catch (err) {
               const message =
                 err instanceof ApiError
@@ -51,6 +51,7 @@ function SignInPage() {
                     ? err.message
                     : "Login gagal. Silakan coba lagi.";
               toast.error(message);
+              console.error("[login] failed:", err);
             } finally {
               setLoading(false);
             }
