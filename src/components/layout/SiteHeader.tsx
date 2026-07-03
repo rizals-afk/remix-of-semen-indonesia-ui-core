@@ -11,11 +11,10 @@ interface SiteHeaderProps {
   shipTo?: string;
 }
 
-
 /**
  * Site header used on every page.
  * Top row: logo, search bar, action icons, sign-in CTAs (or user name when logged in).
- * Bottom row: primary nav links + "Kirim ke" location.
+ * Bottom row: shipping location only.
  */
 export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: SiteHeaderProps) {
   const cart = useCart();
