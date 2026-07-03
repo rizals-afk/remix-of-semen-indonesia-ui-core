@@ -1,6 +1,5 @@
 export const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "https://2d4gssn7-8000.asse.devtunnels.ms/api";
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
 
 export const TOKEN_STORAGE_KEY = "bm_auth_token";
 export const USER_STORAGE_KEY = "bm_auth_user";
@@ -29,6 +28,7 @@ export async function apiFetch<T = unknown>(
     headers.set("Content-Type", "application/json");
   }
   headers.set("Accept", "application/json");
+  headers.set("ngrok-skip-browser-warning", "true");
   const token = getStoredToken();
   if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);

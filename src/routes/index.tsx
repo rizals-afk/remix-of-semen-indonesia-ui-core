@@ -27,6 +27,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { CategoryTile } from "@/components/product/CategoryTile";
 import { ProductCard } from "@/components/product/ProductCard";
 import { BLOG_POSTS, CATEGORIES, FEATURED_PRODUCTS } from "@/data/catalog";
+import { getUser } from "@/lib/auth";
 
 const CERITA = [
   { loc: "Gresik", img: cerita1.url },
@@ -66,8 +67,10 @@ export const Route = createFileRoute("/")({
 const TABS = ["Terlaris", "Promo Spesial", "Baru Masuk"] as const;
 
 function HomePage() {
+  const user = getUser<{ name: string }>();
+
   return (
-    <MainLayout>
+    <MainLayout user={user}>
       {/* HERO */}
       <section className="relative isolate">
         <div className="container mx-auto max-w-7xl px-4 pt-4">

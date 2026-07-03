@@ -5,6 +5,17 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  email: string;
+  code: string;
+  password: string;
+  password_confirmation: string;
+}
+
 export interface LoginResponse {
   token?: string;
   access_token?: string;
@@ -38,6 +49,41 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
   return res;
 }
 
+export async function loginAdmin(payload: LoginPayload): Promise<LoginResponse> {
+  const res = await apiFetch<LoginResponse>("/login-admin", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  const token =
+    res.token ??
+    res.access_token ??
+    res.data?.token ??
+    res.data?.access_token ??
+    null;
+  const user = res.user ?? res.data?.user ?? null;
+
+  if (!token) {
+    throw new Error("Login berhasil tapi token tidak diterima dari server.");
+  }
+  saveSession(token, user);
+  return res;
+}
+
+export async function forgotPassword(payload: ForgotPasswordPayload): Promise<void> {
+  await apiFetch<void>("/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function resetPassword(payload: ResetPasswordPayload): Promise<void> {
+  await apiFetch<void>("/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export function saveSession(token: string, user?: unknown) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
@@ -46,7 +92,15 @@ export function saveSession(token: string, user?: unknown) {
   }
 }
 
-export function logout() {
+export async function logout(): Promise<void> {
+  try {
+    await apiFetch<void>("/logout", {
+      method: "POST",
+    });
+  } catch (err) {
+    // Ignore logout API errors and proceed with local cleanup
+    console.error("Logout API call failed:", err);
+  }
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(TOKEN_STORAGE_KEY);
   window.localStorage.removeItem(USER_STORAGE_KEY);
@@ -66,4 +120,8 @@ export function getUser<T = unknown>(): T | null {
   } catch {
     return null;
   }
+}
+
+export async function getCurrentUser<T = unknown>(): Promise<T> {
+  return await apiFetch<T>("/me");
 }

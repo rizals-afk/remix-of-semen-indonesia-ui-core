@@ -4,6 +4,8 @@ import {
   Bookmark, Gem, Ticket, Coins, Pencil, LogOut,
 } from "lucide-react";
 import { useState, type ComponentType } from "react";
+import { toast } from "sonner";
+import { logout } from "@/lib/auth";
 import { LogoutDialog } from "@/components/auth/LogoutDialog";
 
 interface MenuItem {
@@ -123,9 +125,16 @@ export function AccountSidebar({ user }: { user: { name: string; email?: string 
       <LogoutDialog
         open={logoutOpen}
         onOpenChange={setLogoutOpen}
-        onConfirm={() => {
-          setLogoutOpen(false);
-          navigate({ to: "/masuk" });
+        onConfirm={async () => {
+          try {
+            await logout();
+            toast.success("Berhasil keluar");
+            setLogoutOpen(false);
+            await navigate({ to: "/masuk" });
+          } catch (err) {
+            toast.error("Gagal keluar. Silakan coba lagi.");
+            console.error("[logout] failed:", err);
+          }
         }}
       />
     </aside>

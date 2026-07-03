@@ -1,20 +1,75 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { User, Mail, Phone, MapPin, Pencil } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/akun/")({
   head: () => ({ meta: [{ title: "Profil Saya — BahanMaterial.com" }] }),
   component: ProfilePage,
 });
 
-const PROFILE = {
-  name: "Auliya Gita Ananda",
-  email: "auliya.gita@gmail.com",
-  phone: "0851234567890",
-  city: "Gresik, Jawa Timur",
-  joined: "Bergabung sejak Januari 2024",
-};
-
 function ProfilePage() {
+  const [user, setUser] = useState<{
+    id: number;
+    name: string;
+    email: string;
+    email_verified_at: string | null;
+    created_at: string;
+    updated_at: string;
+    role: string;
+    is_active: boolean;
+    branch_id: number | null;
+    nik_ktp: string | null;
+    birth_date: string | null;
+    birth_place: string | null;
+    phone: string | null;
+    nip: string | null;
+    photo: string | null;
+    department: string | null;
+    unit: string | null;
+    last_login: string;
+  } | null>(null);
+
+  useEffect(() => {
+    console.log("ProfilePage mounted, fetching user...");
+    const fetchUser = async () => {
+      try {
+        console.log("Calling getCurrentUser...");
+        const userData = await getCurrentUser<{
+          id: number;
+          name: string;
+          email: string;
+          email_verified_at: string | null;
+          created_at: string;
+          updated_at: string;
+          role: string;
+          is_active: boolean;
+          branch_id: number | null;
+          nik_ktp: string | null;
+          birth_date: string | null;
+          birth_place: string | null;
+          phone: string | null;
+          nip: string | null;
+          photo: string | null;
+          department: string | null;
+          unit: string | null;
+          last_login: string;
+        }>();
+        console.log("User data received:", userData);
+        setUser(userData);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const userData = user || { name: "Guest", email: "", phone: null, created_at: "", role: "" };
+
+  const joinedDate = userData.created_at
+    ? new Date(userData.created_at).toLocaleDateString("id-ID", { month: "long", year: "numeric" })
+    : "-";
+
   return (
     <div className="space-y-5">
       <section className="rounded-2xl border border-border bg-card p-6">
@@ -24,8 +79,8 @@ function ProfilePage() {
               <User className="h-10 w-10" />
             </span>
             <div>
-              <h2 className="text-lg font-bold text-foreground">{PROFILE.name}</h2>
-              <p className="text-sm text-muted-foreground">{PROFILE.joined}</p>
+              <h2 className="text-lg font-bold text-foreground">{userData.name}</h2>
+              <p className="text-sm text-muted-foreground">Bergabung sejak {joinedDate}</p>
             </div>
           </div>
           <button className="inline-flex items-center gap-2 rounded-md border-2 border-primary px-4 py-2 text-sm font-bold text-primary hover:bg-primary/5">
@@ -40,10 +95,10 @@ function ProfilePage() {
           <button className="text-sm font-semibold text-primary hover:underline">Edit Profil</button>
         </div>
         <dl className="mt-5 grid gap-5 sm:grid-cols-2">
-          <Field icon={User} label="Nama Lengkap" value={PROFILE.name} />
-          <Field icon={Mail} label="Email" value={PROFILE.email} />
-          <Field icon={Phone} label="Nomor HP" value={PROFILE.phone} />
-          <Field icon={MapPin} label="Kota" value={PROFILE.city} />
+          <Field icon={User} label="Nama Lengkap" value={userData.name} />
+          <Field icon={Mail} label="Email" value={userData.email} />
+          <Field icon={Phone} label="Nomor HP" value={userData.phone || "-"} />
+          <Field icon={MapPin} label="Role" value={userData.role || "-"} />
         </dl>
       </section>
 
