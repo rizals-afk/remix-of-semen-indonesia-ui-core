@@ -11,12 +11,6 @@ interface SiteHeaderProps {
   shipTo?: string;
 }
 
-const NAV_ITEMS = [
-  { label: "Kategori", to: "/kategori" },
-  { label: "Promo Spesial", to: "/promo" },
-  { label: "Gudang Terdekat", to: "/gudang" },
-  { label: "Blog & Inspirasi", to: "/blog" },
-] as const;
 
 /**
  * Site header used on every page.
