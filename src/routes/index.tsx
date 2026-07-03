@@ -73,26 +73,26 @@ function HomePage() {
     <MainLayout user={user}>
       {/* HERO */}
       <section className="relative isolate">
-        <div className="container mx-auto max-w-7xl px-4 pt-4">
-          <div className="relative overflow-hidden rounded-2xl">
-            <img
-              src={heroImage}
-              alt="Tim konstruksi profesional menggunakan material bangunan berkualitas"
-              width={1920}
-              height={768}
-              className="h-[260px] w-full object-cover md:h-[400px]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent" />
-            <div className="absolute inset-0 flex items-center px-6 md:px-12">
-              <div className="max-w-lg space-y-4 text-white">
-                <h1 className="text-3xl font-bold leading-tight md:text-5xl">
+        <div className="relative w-full overflow-hidden">
+          <img
+            src={heroImage}
+            alt="Tim konstruksi profesional menggunakan material bangunan berkualitas"
+            width={1920}
+            height={768}
+            className="h-[360px] w-full object-cover md:h-[520px] lg:h-[600px]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+          <div className="absolute inset-0 flex items-center">
+            <div className="container mx-auto max-w-7xl px-6 md:px-12">
+              <div className="max-w-xl space-y-5 text-white">
+                <h1 className="text-4xl font-bold leading-tight md:text-6xl">
                   The Best Partner in
                   <br />
                   Building Material
                 </h1>
                 <button
                   type="button"
-                  className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                  className="rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:text-base"
                 >
                   Learn More
                 </button>
