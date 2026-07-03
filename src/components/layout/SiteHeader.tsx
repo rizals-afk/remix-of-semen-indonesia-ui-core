@@ -82,24 +82,10 @@ export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: Site
       </div>
 
       <div className="border-t border-border/60 bg-background">
-        <div className="container mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5">
-          <nav aria-label="Utama" className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="text-sm font-medium text-foreground transition-colors hover:text-primary"
-                activeProps={{ className: "text-primary" }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2 text-sm text-foreground">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Kirim ke:</span>
-            <span className="font-medium">{shipTo}</span>
-          </div>
+        <div className="container mx-auto flex max-w-7xl items-center justify-end gap-2 px-4 py-2.5 text-sm text-foreground">
+          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Kirim ke:</span>
+          <span className="font-medium">{shipTo}</span>
         </div>
       </div>
     </header>
