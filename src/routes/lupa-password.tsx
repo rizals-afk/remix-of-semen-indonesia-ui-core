@@ -1,12 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import {
   AuthShell,
   NotchedInput,
   PrimarySubmit,
 } from "@/components/auth/AuthShell";
 import forgotArt from "@/assets/auth/forgot.png.asset.json";
-import { OtpDialog } from "@/components/auth/OtpDialog";
 
 export const Route = createFileRoute("/lupa-password")({
   head: () => ({ meta: [{ title: "Forgot Password — BahanMaterial.com" }] }),
@@ -15,7 +13,6 @@ export const Route = createFileRoute("/lupa-password")({
 
 function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [stage, setStage] = useState<"form" | "verify" | "otp">("form");
 
   return (
     <AuthShell
@@ -33,33 +30,13 @@ function ForgotPasswordPage() {
           className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
-            setStage("verify");
+            navigate({ to: "/reset-password/cek-email" });
           }}
         >
           <NotchedInput label="Email" id="recovery-email" type="email" defaultValue="auliya@gmail.com" />
           <PrimarySubmit>Send</PrimarySubmit>
         </form>
       </div>
-
-      <OtpDialog
-        open={stage === "verify"}
-        onOpenChange={(v) => !v && setStage("form")}
-        title="Verify your email"
-        description="Please enter your the verification code that we have sent to your email"
-        submitLabel="Verify"
-        onSubmit={() => setStage("otp")}
-      />
-      <OtpDialog
-        open={stage === "otp"}
-        onOpenChange={(v) => !v && setStage("form")}
-        title="OTP Verification"
-        description="We sent a verification code to your email"
-        submitLabel="Continue"
-        onSubmit={() => {
-          setStage("form");
-          navigate({ to: "/reset-password" });
-        }}
-      />
     </AuthShell>
   );
 }
