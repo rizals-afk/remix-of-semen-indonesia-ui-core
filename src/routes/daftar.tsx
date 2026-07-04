@@ -9,7 +9,6 @@ import {
   AuthFooterLink,
 } from "@/components/auth/AuthShell";
 import signupArt from "@/assets/auth/signup.png.asset.json";
-import { OtpDialog } from "@/components/auth/OtpDialog";
 
 export const Route = createFileRoute("/daftar")({
   head: () => ({ meta: [{ title: "Sign Up — BahanMaterial.com" }] }),
@@ -20,7 +19,6 @@ function SignUpPage() {
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
   const [show2, setShow2] = useState(false);
-  const [step, setStep] = useState<"form" | "verify" | "otp">("form");
 
   return (
     <AuthShell
@@ -39,7 +37,7 @@ function SignUpPage() {
           className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
-            setStep("verify");
+            navigate({ to: "/akun/cek-email" });
           }}
         >
           <NotchedInput label="Nama Lengkap" id="nama" defaultValue="Auliya Gita Ananda" />
@@ -85,27 +83,6 @@ function SignUpPage() {
 
         <SocialAuthRow mode="signup" />
       </div>
-
-      <OtpDialog
-        open={step === "verify"}
-        onOpenChange={(v) => !v && setStep("form")}
-        title="Verify your email"
-        description="Please enter your the verification code that we have sent to your email"
-        submitLabel="Verify"
-        onSubmit={() => setStep("otp")}
-      />
-
-      <OtpDialog
-        open={step === "otp"}
-        onOpenChange={(v) => !v && setStep("form")}
-        title="OTP Verification"
-        description="We sent a verification code to your email"
-        submitLabel="Continue"
-        onSubmit={() => {
-          setStep("form");
-          navigate({ to: "/masuk" });
-        }}
-      />
     </AuthShell>
   );
 }

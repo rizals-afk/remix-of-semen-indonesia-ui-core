@@ -30,6 +30,7 @@ import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AkunIndexRouteImport } from './routes/akun.index'
 import { Route as ResetPasswordSuksesRouteImport } from './routes/reset-password.sukses'
+import { Route as ResetPasswordCekEmailRouteImport } from './routes/reset-password.cek-email'
 import { Route as ProdukSlugRouteImport } from './routes/produk.$slug'
 import { Route as PembayaranSuksesRouteImport } from './routes/pembayaran.sukses'
 import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
@@ -44,6 +45,7 @@ import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
+import { Route as AkunCekEmailRouteImport } from './routes/akun.cek-email'
 import { Route as AkunAktivasiSuksesRouteImport } from './routes/akun.aktivasi-sukses'
 import { Route as AkunAktivasiGagalRouteImport } from './routes/akun.aktivasi-gagal'
 import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
@@ -155,6 +157,11 @@ const ResetPasswordSuksesRoute = ResetPasswordSuksesRouteImport.update({
   path: '/reset-password/sukses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordCekEmailRoute = ResetPasswordCekEmailRouteImport.update({
+  id: '/reset-password/cek-email',
+  path: '/reset-password/cek-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdukSlugRoute = ProdukSlugRouteImport.update({
   id: '/produk/$slug',
   path: '/produk/$slug',
@@ -225,6 +232,11 @@ const AkunUbahPasswordRoute = AkunUbahPasswordRouteImport.update({
   path: '/ubah-password',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunCekEmailRoute = AkunCekEmailRouteImport.update({
+  id: '/cek-email',
+  path: '/cek-email',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunAktivasiSuksesRoute = AkunAktivasiSuksesRouteImport.update({
   id: '/aktivasi-sukses',
   path: '/aktivasi-sukses',
@@ -268,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -282,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/cek-email': typeof ResetPasswordCekEmailRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun/': typeof AkunIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -309,6 +323,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -323,6 +338,7 @@ export interface FileRoutesByTo {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/cek-email': typeof ResetPasswordCekEmailRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun': typeof AkunIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -352,6 +368,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -366,6 +383,7 @@ export interface FileRoutesById {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/cek-email': typeof ResetPasswordCekEmailRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun/': typeof AkunIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -396,6 +414,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/akun/aktivasi-gagal'
     | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -410,6 +429,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/cek-email'
     | '/reset-password/sukses'
     | '/akun/'
     | '/blog/'
@@ -437,6 +457,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/akun/aktivasi-gagal'
     | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -451,6 +472,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/cek-email'
     | '/reset-password/sukses'
     | '/akun'
     | '/blog'
@@ -479,6 +501,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/akun/aktivasi-gagal'
     | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -493,6 +516,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/cek-email'
     | '/reset-password/sukses'
     | '/akun/'
     | '/blog/'
@@ -533,6 +557,7 @@ export interface RootRouteChildren {
   PanduanPengirimanRoute: typeof PanduanPengirimanRoute
   PembayaranSuksesRoute: typeof PembayaranSuksesRoute
   ProdukSlugRoute: typeof ProdukSlugRoute
+  ResetPasswordCekEmailRoute: typeof ResetPasswordCekEmailRoute
   ResetPasswordSuksesRoute: typeof ResetPasswordSuksesRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
@@ -691,6 +716,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordSuksesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password/cek-email': {
+      id: '/reset-password/cek-email'
+      path: '/reset-password/cek-email'
+      fullPath: '/reset-password/cek-email'
+      preLoaderRoute: typeof ResetPasswordCekEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produk/$slug': {
       id: '/produk/$slug'
       path: '/produk/$slug'
@@ -789,6 +821,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunUbahPasswordRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/cek-email': {
+      id: '/akun/cek-email'
+      path: '/cek-email'
+      fullPath: '/akun/cek-email'
+      preLoaderRoute: typeof AkunCekEmailRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/aktivasi-sukses': {
       id: '/akun/aktivasi-sukses'
       path: '/aktivasi-sukses'
@@ -830,6 +869,7 @@ declare module '@tanstack/react-router' {
 interface AkunRouteChildren {
   AkunAktivasiGagalRoute: typeof AkunAktivasiGagalRoute
   AkunAktivasiSuksesRoute: typeof AkunAktivasiSuksesRoute
+  AkunCekEmailRoute: typeof AkunCekEmailRoute
   AkunUbahPasswordRoute: typeof AkunUbahPasswordRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunTransaksiIdRoute: typeof AkunTransaksiIdRoute
@@ -839,6 +879,7 @@ interface AkunRouteChildren {
 const AkunRouteChildren: AkunRouteChildren = {
   AkunAktivasiGagalRoute: AkunAktivasiGagalRoute,
   AkunAktivasiSuksesRoute: AkunAktivasiSuksesRoute,
+  AkunCekEmailRoute: AkunCekEmailRoute,
   AkunUbahPasswordRoute: AkunUbahPasswordRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunTransaksiIdRoute: AkunTransaksiIdRoute,
@@ -875,6 +916,7 @@ const rootRouteChildren: RootRouteChildren = {
   PanduanPengirimanRoute: PanduanPengirimanRoute,
   PembayaranSuksesRoute: PembayaranSuksesRoute,
   ProdukSlugRoute: ProdukSlugRoute,
+  ResetPasswordCekEmailRoute: ResetPasswordCekEmailRoute,
   ResetPasswordSuksesRoute: ResetPasswordSuksesRoute,
   BlogIndexRoute: BlogIndexRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
