@@ -65,7 +65,8 @@ function AccountLayout() {
   const userData = user || { name: "Guest", email: "" };
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const fullBleed = pathname === "/akun/aktivasi-sukses";
+  const fullBleed =
+    pathname === "/akun/aktivasi-sukses" || pathname === "/akun/aktivasi-gagal";
 
   if (fullBleed) {
     return (
