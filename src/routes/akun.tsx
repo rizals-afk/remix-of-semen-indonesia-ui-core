@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { getCurrentUser } from "@/lib/auth";
@@ -63,6 +63,17 @@ function AccountLayout() {
   }, []);
 
   const userData = user || { name: "Guest", email: "" };
+
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const fullBleed = pathname === "/akun/aktivasi-sukses";
+
+  if (fullBleed) {
+    return (
+      <MainLayout user={{ name: userData.name }}>
+        <Outlet />
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout user={{ name: userData.name }}>
