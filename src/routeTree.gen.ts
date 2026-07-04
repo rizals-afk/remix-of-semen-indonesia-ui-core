@@ -44,6 +44,7 @@ import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
+import { Route as AkunAktivasiSuksesRouteImport } from './routes/akun.aktivasi-sukses'
 import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as AkunTransaksiIdRouteImport } from './routes/akun.transaksi.$id'
@@ -223,6 +224,11 @@ const AkunUbahPasswordRoute = AkunUbahPasswordRouteImport.update({
   path: '/ubah-password',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunAktivasiSuksesRoute = AkunAktivasiSuksesRouteImport.update({
+  id: '/aktivasi-sukses',
+  path: '/aktivasi-sukses',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunTransaksiIndexRoute = AkunTransaksiIndexRouteImport.update({
   id: '/transaksi/',
   path: '/transaksi/',
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -293,6 +300,7 @@ export interface FileRoutesByTo {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -334,6 +342,7 @@ export interface FileRoutesById {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -376,6 +385,7 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/akun/aktivasi-sukses'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/akun/aktivasi-sukses'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/akun/aktivasi-sukses'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -765,6 +777,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunUbahPasswordRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/aktivasi-sukses': {
+      id: '/akun/aktivasi-sukses'
+      path: '/aktivasi-sukses'
+      fullPath: '/akun/aktivasi-sukses'
+      preLoaderRoute: typeof AkunAktivasiSuksesRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/transaksi/': {
       id: '/akun/transaksi/'
       path: '/transaksi'
@@ -790,6 +809,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AkunRouteChildren {
+  AkunAktivasiSuksesRoute: typeof AkunAktivasiSuksesRoute
   AkunUbahPasswordRoute: typeof AkunUbahPasswordRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunTransaksiIdRoute: typeof AkunTransaksiIdRoute
@@ -797,6 +817,7 @@ interface AkunRouteChildren {
 }
 
 const AkunRouteChildren: AkunRouteChildren = {
+  AkunAktivasiSuksesRoute: AkunAktivasiSuksesRoute,
   AkunUbahPasswordRoute: AkunUbahPasswordRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunTransaksiIdRoute: AkunTransaksiIdRoute,
