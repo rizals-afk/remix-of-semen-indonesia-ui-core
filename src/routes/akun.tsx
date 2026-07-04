@@ -66,7 +66,9 @@ function AccountLayout() {
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const fullBleed =
-    pathname === "/akun/aktivasi-sukses" || pathname === "/akun/aktivasi-gagal";
+    pathname === "/akun/aktivasi-sukses" ||
+    pathname === "/akun/aktivasi-gagal" ||
+    pathname === "/akun/cek-email";
 
   if (fullBleed) {
     return (

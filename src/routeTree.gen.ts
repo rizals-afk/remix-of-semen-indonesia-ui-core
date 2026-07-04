@@ -30,6 +30,7 @@ import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AkunIndexRouteImport } from './routes/akun.index'
 import { Route as ResetPasswordSuksesRouteImport } from './routes/reset-password.sukses'
+import { Route as ResetPasswordCekEmailRouteImport } from './routes/reset-password.cek-email'
 import { Route as ProdukSlugRouteImport } from './routes/produk.$slug'
 import { Route as PembayaranSuksesRouteImport } from './routes/pembayaran.sukses'
 import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
@@ -154,6 +155,11 @@ const AkunIndexRoute = AkunIndexRouteImport.update({
 const ResetPasswordSuksesRoute = ResetPasswordSuksesRouteImport.update({
   id: '/reset-password/sukses',
   path: '/reset-password/sukses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordCekEmailRoute = ResetPasswordCekEmailRouteImport.update({
+  id: '/reset-password/cek-email',
+  path: '/reset-password/cek-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProdukSlugRoute = ProdukSlugRouteImport.update({
@@ -289,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/cek-email': typeof ResetPasswordCekEmailRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun/': typeof AkunIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -331,6 +338,7 @@ export interface FileRoutesByTo {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/cek-email': typeof ResetPasswordCekEmailRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun': typeof AkunIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -375,6 +383,7 @@ export interface FileRoutesById {
   '/panduan/pengiriman': typeof PanduanPengirimanRoute
   '/pembayaran/sukses': typeof PembayaranSuksesRoute
   '/produk/$slug': typeof ProdukSlugRoute
+  '/reset-password/cek-email': typeof ResetPasswordCekEmailRoute
   '/reset-password/sukses': typeof ResetPasswordSuksesRoute
   '/akun/': typeof AkunIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -420,6 +429,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/cek-email'
     | '/reset-password/sukses'
     | '/akun/'
     | '/blog/'
@@ -462,6 +472,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/cek-email'
     | '/reset-password/sukses'
     | '/akun'
     | '/blog'
@@ -505,6 +516,7 @@ export interface FileRouteTypes {
     | '/panduan/pengiriman'
     | '/pembayaran/sukses'
     | '/produk/$slug'
+    | '/reset-password/cek-email'
     | '/reset-password/sukses'
     | '/akun/'
     | '/blog/'
@@ -545,6 +557,7 @@ export interface RootRouteChildren {
   PanduanPengirimanRoute: typeof PanduanPengirimanRoute
   PembayaranSuksesRoute: typeof PembayaranSuksesRoute
   ProdukSlugRoute: typeof ProdukSlugRoute
+  ResetPasswordCekEmailRoute: typeof ResetPasswordCekEmailRoute
   ResetPasswordSuksesRoute: typeof ResetPasswordSuksesRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
@@ -701,6 +714,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password/sukses'
       fullPath: '/reset-password/sukses'
       preLoaderRoute: typeof ResetPasswordSuksesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password/cek-email': {
+      id: '/reset-password/cek-email'
+      path: '/reset-password/cek-email'
+      fullPath: '/reset-password/cek-email'
+      preLoaderRoute: typeof ResetPasswordCekEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/produk/$slug': {
@@ -896,6 +916,7 @@ const rootRouteChildren: RootRouteChildren = {
   PanduanPengirimanRoute: PanduanPengirimanRoute,
   PembayaranSuksesRoute: PembayaranSuksesRoute,
   ProdukSlugRoute: ProdukSlugRoute,
+  ResetPasswordCekEmailRoute: ResetPasswordCekEmailRoute,
   ResetPasswordSuksesRoute: ResetPasswordSuksesRoute,
   BlogIndexRoute: BlogIndexRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
