@@ -44,6 +44,7 @@ import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
+import { Route as AkunCekEmailRouteImport } from './routes/akun.cek-email'
 import { Route as AkunAktivasiSuksesRouteImport } from './routes/akun.aktivasi-sukses'
 import { Route as AkunAktivasiGagalRouteImport } from './routes/akun.aktivasi-gagal'
 import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
@@ -225,6 +226,11 @@ const AkunUbahPasswordRoute = AkunUbahPasswordRouteImport.update({
   path: '/ubah-password',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunCekEmailRoute = AkunCekEmailRouteImport.update({
+  id: '/cek-email',
+  path: '/cek-email',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunAktivasiSuksesRoute = AkunAktivasiSuksesRouteImport.update({
   id: '/aktivasi-sukses',
   path: '/aktivasi-sukses',
@@ -268,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -352,6 +360,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
@@ -396,6 +405,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/akun/aktivasi-gagal'
     | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -437,6 +447,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/akun/aktivasi-gagal'
     | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -479,6 +490,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/akun/aktivasi-gagal'
     | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/blog/$slug'
     | '/checkout/alamat'
@@ -789,6 +801,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunUbahPasswordRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/cek-email': {
+      id: '/akun/cek-email'
+      path: '/cek-email'
+      fullPath: '/akun/cek-email'
+      preLoaderRoute: typeof AkunCekEmailRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/aktivasi-sukses': {
       id: '/akun/aktivasi-sukses'
       path: '/aktivasi-sukses'
@@ -830,6 +849,7 @@ declare module '@tanstack/react-router' {
 interface AkunRouteChildren {
   AkunAktivasiGagalRoute: typeof AkunAktivasiGagalRoute
   AkunAktivasiSuksesRoute: typeof AkunAktivasiSuksesRoute
+  AkunCekEmailRoute: typeof AkunCekEmailRoute
   AkunUbahPasswordRoute: typeof AkunUbahPasswordRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunTransaksiIdRoute: typeof AkunTransaksiIdRoute
@@ -839,6 +859,7 @@ interface AkunRouteChildren {
 const AkunRouteChildren: AkunRouteChildren = {
   AkunAktivasiGagalRoute: AkunAktivasiGagalRoute,
   AkunAktivasiSuksesRoute: AkunAktivasiSuksesRoute,
+  AkunCekEmailRoute: AkunCekEmailRoute,
   AkunUbahPasswordRoute: AkunUbahPasswordRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunTransaksiIdRoute: AkunTransaksiIdRoute,
@@ -886,13 +907,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
