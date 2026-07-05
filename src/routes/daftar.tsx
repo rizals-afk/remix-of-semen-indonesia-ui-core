@@ -10,7 +10,7 @@ import {
 } from "@/components/auth/AuthShell";
 import signupArt from "@/assets/auth/signup.png.asset.json";
 
-export const Route = createFileRoute("/daftar/")({
+export const Route = createFileRoute("/daftar")({
   head: () => ({ meta: [{ title: "Sign Up — BahanMaterial.com" }] }),
   component: SignUpPage,
 });
