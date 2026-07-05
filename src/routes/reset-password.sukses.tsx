@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { CheckCircle2 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { PrimarySubmit } from "@/components/auth/AuthShell";
+import successImage from "@/assets/auth/reset-password-sukses.png";
+
 
 export const Route = createFileRoute("/reset-password/sukses")({
   head: () => ({ meta: [{ title: "Password Updated — BahanMaterial.com" }] }),
@@ -22,8 +23,12 @@ function SuccessPage() {
           <br />
           Please login again with your latest password
         </p>
-        <div className="my-10 grid h-48 w-48 place-items-center rounded-full bg-accent-soft text-accent">
-          <CheckCircle2 className="h-24 w-24" strokeWidth={1.5} />
+        <div className="my-10 flex justify-center">
+          <img
+            src={successImage}
+            alt="Password Updated Successfully"
+            className="h-48 w-48 object-contain"
+          />
         </div>
         <div className="w-full max-w-md">
           <PrimarySubmit type="button" onClick={() => navigate({ to: "/masuk" })}>

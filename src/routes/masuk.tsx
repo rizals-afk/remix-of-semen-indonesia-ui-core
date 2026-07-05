@@ -11,7 +11,7 @@ import {
   SocialAuthRow,
   AuthFooterLink,
 } from "@/components/auth/AuthShell";
-import loginArt from "@/assets/auth/login.png.asset.json";
+import loginArt from "@/assets/auth/login.png";
 
 export const Route = createFileRoute("/masuk")({
   head: () => ({ meta: [{ title: "Sign In — BahanMaterial.com" }] }),
@@ -26,7 +26,7 @@ function SignInPage() {
   const [loading, setLoading] = useState(false);
 
   return (
-    <AuthShell illustration={<img src={loginArt.url} alt="" className="mx-auto w-full max-w-md" />}>
+    <AuthShell illustration={<img src={loginArt} alt="" className="mx-auto w-full max-w-md" />}>
       <div className="mx-auto max-w-md space-y-6">
         <header className="space-y-1">
           <h1 className="text-4xl font-extrabold text-primary">Sign In</h1>

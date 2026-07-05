@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import logoAsset from "@/assets/brand/logo.png.asset.json";
+import logoAsset from "@/assets/brand/logo.png";
 
 /**
  * Brand wordmark used in header + footer.
@@ -10,7 +10,7 @@ export function BrandLogo({ className = "" }: { className?: string }) {
   return (
     <Link to="/" className={`inline-flex items-center leading-none ${className}`}>
       <img
-        src={logoAsset.url}
+        src={logoAsset}
         alt="BahanMaterial.com"
         className="h-12 w-auto object-contain"
       />

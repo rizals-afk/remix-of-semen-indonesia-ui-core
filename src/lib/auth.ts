@@ -10,10 +10,22 @@ export interface ForgotPasswordPayload {
 }
 
 export interface ResetPasswordPayload {
-  email: string;
-  code: string;
+  token: string;
   password: string;
   password_confirmation: string;
+}
+
+export interface SignupPayload {
+  name: string;
+  nik_ktp: string;
+  phone: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface ActivateAccountPayload {
+  token: string;
 }
 
 export interface LoginResponse {
@@ -82,6 +94,22 @@ export async function resetPassword(payload: ResetPasswordPayload): Promise<void
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function signup(payload: SignupPayload): Promise<{ message: string }> {
+  const res = await apiFetch<{ message: string }>("/signup", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return res;
+}
+
+export async function activateAccount(payload: ActivateAccountPayload): Promise<{ message: string }> {
+  const res = await apiFetch<{ message: string }>("/activate-account", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return res;
 }
 
 export function saveSession(token: string, user?: unknown) {

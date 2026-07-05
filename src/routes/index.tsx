@@ -1,24 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
 import heroImage from "@/assets/hero-construction.jpg";
-import pengirimanImg from "@/assets/mengapa/pengiriman-tepat-waktu.png.asset.json";
-import hargaImg from "@/assets/mengapa/harga-terjangkau.png.asset.json";
-import produkImg from "@/assets/mengapa/product-lengkap.png.asset.json";
-import pemesananImg from "@/assets/mengapa/pemesanan-praktis.png.asset.json";
-import layananImg from "@/assets/mengapa/layanan-terpercaya.png.asset.json";
-import cerita1 from "@/assets/cerita/rectangle-3004.png.asset.json";
-import cerita2 from "@/assets/cerita/rectangle-3005.png.asset.json";
-import cerita3 from "@/assets/cerita/rectangle-3006.png.asset.json";
-import cerita4 from "@/assets/cerita/rectangle-3007.png.asset.json";
-import mitraSig from "@/assets/mitra/sig.png.asset.json";
-import mitraGresik from "@/assets/mitra/semen-gresik.png.asset.json";
-import mitraPadang from "@/assets/mitra/semen-padang.png.asset.json";
-import mitraTonasa from "@/assets/mitra/semen-tonasa.png.asset.json";
-import mitraDynamix from "@/assets/mitra/dynamix.png.asset.json";
-import mitraBlesscon from "@/assets/mitra/blesscon.png.asset.json";
-import mitraCiticon from "@/assets/mitra/citicon.png.asset.json";
-import mitraAplus from "@/assets/mitra/aplus-pacific.png.asset.json";
-import mitraGrand from "@/assets/mitra/grand-elephant.png.asset.json";
+import pengirimanImg from "@/assets/mengapa/pengiriman-tepat-waktu.png";
+import hargaImg from "@/assets/mengapa/harga-terjangkau.png";
+import produkImg from "@/assets/mengapa/product-lengkap.png";
+import pemesananImg from "@/assets/mengapa/pemesanan-praktis.png";
+import layananImg from "@/assets/mengapa/layanan-terpercaya.png";
+import cerita1 from "@/assets/cerita/rectangle-3004.png";
+import cerita2 from "@/assets/cerita/rectangle-3005.png";
+import cerita3 from "@/assets/cerita/rectangle-3006.png";
+import cerita4 from "@/assets/cerita/rectangle-3007.png";
+import mitraSig from "@/assets/mitra/sig.png";
+import mitraGresik from "@/assets/mitra/semen-gresik.png";
+import mitraPadang from "@/assets/mitra/semen-padang.png";
+import mitraTonasa from "@/assets/mitra/semen-tonasa.png";
+import mitraDynamix from "@/assets/mitra/dynamix.png";
+import mitraBlesscon from "@/assets/mitra/blesscon.png";
+import mitraCiticon from "@/assets/mitra/citicon.png";
+import mitraAplus from "@/assets/mitra/aplus-pacific.png";
+import mitraGrand from "@/assets/mitra/grand-elephant.png";
 import { BlogCard } from "@/components/common/BlogCard";
 import { FeaturePill } from "@/components/common/FeaturePill";
 import { PromoBanner } from "@/components/common/PromoBanner";
@@ -30,22 +30,22 @@ import { BLOG_POSTS, CATEGORIES, FEATURED_PRODUCTS } from "@/data/catalog";
 import { getUser } from "@/lib/auth";
 
 const CERITA = [
-  { loc: "Gresik", img: cerita1.url },
-  { loc: "Surabaya", img: cerita2.url },
-  { loc: "Sidoarjo", img: cerita3.url },
-  { loc: "Pasuruan", img: cerita4.url },
+  { loc: "Gresik", img: cerita1 },
+  { loc: "Surabaya", img: cerita2 },
+  { loc: "Sidoarjo", img: cerita3 },
+  { loc: "Pasuruan", img: cerita4 },
 ];
 
 const MITRA = [
-  { name: "SIG", src: mitraSig.url },
-  { name: "Semen Gresik", src: mitraGresik.url },
-  { name: "Semen Padang", src: mitraPadang.url },
-  { name: "Semen Tonasa", src: mitraTonasa.url },
-  { name: "Dynamix", src: mitraDynamix.url },
-  { name: "Blesscon", src: mitraBlesscon.url },
-  { name: "Citicon", src: mitraCiticon.url },
-  { name: "Aplus Pacific", src: mitraAplus.url },
-  { name: "Grand Elephant", src: mitraGrand.url },
+  { name: "SIG", src: mitraSig },
+  { name: "Semen Gresik", src: mitraGresik },
+  { name: "Semen Padang", src: mitraPadang },
+  { name: "Semen Tonasa", src: mitraTonasa },
+  { name: "Dynamix", src: mitraDynamix },
+  { name: "Blesscon", src: mitraBlesscon },
+  { name: "Citicon", src: mitraCiticon },
+  { name: "Aplus Pacific", src: mitraAplus },
+  { name: "Grand Elephant", src: mitraGrand },
 ];
 
 export const Route = createFileRoute("/")({
@@ -156,11 +156,11 @@ function HomePage() {
       <section className="container mx-auto max-w-7xl px-4 py-12">
         <SectionTitle>Mengapa Belanja di Bahan Material?</SectionTitle>
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-5">
-          <FeaturePill image={pengirimanImg.url} label="Pengiriman Tepat Waktu" />
-          <FeaturePill image={hargaImg.url} label="Harga Terjangkau" />
-          <FeaturePill image={produkImg.url} label="Produk Lengkap & Berkualitas" />
-          <FeaturePill image={pemesananImg.url} label="Pemesanan Praktis" />
-          <FeaturePill image={layananImg.url} label="Layanan Terpercaya" />
+          <FeaturePill image={pengirimanImg} label="Pengiriman Tepat Waktu" />
+          <FeaturePill image={hargaImg} label="Harga Terjangkau" />
+          <FeaturePill image={produkImg} label="Produk Lengkap & Berkualitas" />
+          <FeaturePill image={pemesananImg} label="Pemesanan Praktis" />
+          <FeaturePill image={layananImg} label="Layanan Terpercaya" />
         </div>
       </section>
 

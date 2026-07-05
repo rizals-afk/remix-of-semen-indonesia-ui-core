@@ -21,6 +21,7 @@ import { Route as LupaPasswordRouteImport } from './routes/lupa-password'
 import { Route as KeranjangRouteImport } from './routes/keranjang'
 import { Route as GudangRouteImport } from './routes/gudang'
 import { Route as AkunRouteImport } from './routes/akun'
+import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password.index'
 import { Route as ProdukIndexRouteImport } from './routes/produk.index'
@@ -110,6 +111,11 @@ const GudangRoute = GudangRouteImport.update({
 const AkunRoute = AkunRouteImport.update({
   id: '/akun',
   path: '/akun',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivateRoute = ActivateRouteImport.update({
+  id: '/activate',
+  path: '/activate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -265,6 +271,7 @@ const AkunTransaksiIdRoute = AkunTransaksiIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/akun': typeof AkunRouteWithChildren
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
   '/lupa-password': typeof LupaPasswordRoute
@@ -353,6 +361,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activate': typeof ActivateRoute
   '/akun': typeof AkunRouteWithChildren
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
@@ -399,6 +408,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activate'
     | '/akun'
     | '/gudang'
     | '/keranjang'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activate'
     | '/gudang'
     | '/keranjang'
     | '/lupa-password'
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/activate'
     | '/akun'
     | '/gudang'
     | '/keranjang'
@@ -531,6 +543,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivateRoute: typeof ActivateRoute
   AkunRoute: typeof AkunRouteWithChildren
   GudangRoute: typeof GudangRoute
   KeranjangRoute: typeof KeranjangRoute
@@ -654,6 +667,13 @@ declare module '@tanstack/react-router' {
       path: '/akun'
       fullPath: '/akun'
       preLoaderRoute: typeof AkunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activate': {
+      id: '/activate'
+      path: '/activate'
+      fullPath: '/activate'
+      preLoaderRoute: typeof ActivateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -887,6 +907,7 @@ const AkunRouteWithChildren = AkunRoute._addFileChildren(AkunRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivateRoute: ActivateRoute,
   AkunRoute: AkunRouteWithChildren,
   GudangRoute: GudangRoute,
   KeranjangRoute: KeranjangRoute,
@@ -928,3 +949,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
