@@ -20,12 +20,12 @@ import { Route as MasukRouteImport } from './routes/masuk'
 import { Route as LupaPasswordRouteImport } from './routes/lupa-password'
 import { Route as KeranjangRouteImport } from './routes/keranjang'
 import { Route as GudangRouteImport } from './routes/gudang'
-import { Route as DaftarRouteImport } from './routes/daftar'
 import { Route as AkunRouteImport } from './routes/akun'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password.index'
 import { Route as ProdukIndexRouteImport } from './routes/produk.index'
 import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
+import { Route as DaftarIndexRouteImport } from './routes/daftar.index'
 import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AkunIndexRouteImport } from './routes/akun.index'
@@ -107,11 +107,6 @@ const GudangRoute = GudangRouteImport.update({
   path: '/gudang',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DaftarRoute = DaftarRouteImport.update({
-  id: '/daftar',
-  path: '/daftar',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AkunRoute = AkunRouteImport.update({
   id: '/akun',
   path: '/akun',
@@ -135,6 +130,11 @@ const ProdukIndexRoute = ProdukIndexRouteImport.update({
 const KategoriIndexRoute = KategoriIndexRouteImport.update({
   id: '/kategori/',
   path: '/kategori/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DaftarIndexRoute = DaftarIndexRouteImport.update({
+  id: '/daftar/',
+  path: '/daftar/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
@@ -198,19 +198,19 @@ const KategoriSlugRoute = KategoriSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DaftarCekEmailRoute = DaftarCekEmailRouteImport.update({
-  id: '/cek-email',
-  path: '/cek-email',
-  getParentRoute: () => DaftarRoute,
+  id: '/daftar/cek-email',
+  path: '/daftar/cek-email',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DaftarAktivasiSuksesRoute = DaftarAktivasiSuksesRouteImport.update({
-  id: '/aktivasi-sukses',
-  path: '/aktivasi-sukses',
-  getParentRoute: () => DaftarRoute,
+  id: '/daftar/aktivasi-sukses',
+  path: '/daftar/aktivasi-sukses',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DaftarAktivasiGagalRoute = DaftarAktivasiGagalRouteImport.update({
-  id: '/aktivasi-gagal',
-  path: '/aktivasi-gagal',
-  getParentRoute: () => DaftarRoute,
+  id: '/daftar/aktivasi-gagal',
+  path: '/daftar/aktivasi-gagal',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutVoucherRoute = CheckoutVoucherRouteImport.update({
   id: '/checkout/voucher',
@@ -266,7 +266,6 @@ const AkunTransaksiIdRoute = AkunTransaksiIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/akun': typeof AkunRouteWithChildren
-  '/daftar': typeof DaftarRouteWithChildren
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
   '/lupa-password': typeof LupaPasswordRoute
@@ -300,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/akun/': typeof AkunIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
+  '/daftar/': typeof DaftarIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/produk/': typeof ProdukIndexRoute
   '/reset-password/': typeof ResetPasswordIndexRoute
@@ -309,7 +309,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/daftar': typeof DaftarRouteWithChildren
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
   '/lupa-password': typeof LupaPasswordRoute
@@ -343,6 +342,7 @@ export interface FileRoutesByTo {
   '/akun': typeof AkunIndexRoute
   '/blog': typeof BlogIndexRoute
   '/checkout': typeof CheckoutIndexRoute
+  '/daftar': typeof DaftarIndexRoute
   '/kategori': typeof KategoriIndexRoute
   '/produk': typeof ProdukIndexRoute
   '/reset-password': typeof ResetPasswordIndexRoute
@@ -354,7 +354,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/akun': typeof AkunRouteWithChildren
-  '/daftar': typeof DaftarRouteWithChildren
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
   '/lupa-password': typeof LupaPasswordRoute
@@ -388,6 +387,7 @@ export interface FileRoutesById {
   '/akun/': typeof AkunIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/checkout/': typeof CheckoutIndexRoute
+  '/daftar/': typeof DaftarIndexRoute
   '/kategori/': typeof KategoriIndexRoute
   '/produk/': typeof ProdukIndexRoute
   '/reset-password/': typeof ResetPasswordIndexRoute
@@ -400,7 +400,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/akun'
-    | '/daftar'
     | '/gudang'
     | '/keranjang'
     | '/lupa-password'
@@ -434,6 +433,7 @@ export interface FileRouteTypes {
     | '/akun/'
     | '/blog/'
     | '/checkout/'
+    | '/daftar/'
     | '/kategori/'
     | '/produk/'
     | '/reset-password/'
@@ -443,7 +443,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/daftar'
     | '/gudang'
     | '/keranjang'
     | '/lupa-password'
@@ -477,6 +476,7 @@ export interface FileRouteTypes {
     | '/akun'
     | '/blog'
     | '/checkout'
+    | '/daftar'
     | '/kategori'
     | '/produk'
     | '/reset-password'
@@ -487,7 +487,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/akun'
-    | '/daftar'
     | '/gudang'
     | '/keranjang'
     | '/lupa-password'
@@ -521,6 +520,7 @@ export interface FileRouteTypes {
     | '/akun/'
     | '/blog/'
     | '/checkout/'
+    | '/daftar/'
     | '/kategori/'
     | '/produk/'
     | '/reset-password/'
@@ -532,7 +532,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AkunRoute: typeof AkunRouteWithChildren
-  DaftarRoute: typeof DaftarRouteWithChildren
   GudangRoute: typeof GudangRoute
   KeranjangRoute: typeof KeranjangRoute
   LupaPasswordRoute: typeof LupaPasswordRoute
@@ -550,6 +549,9 @@ export interface RootRouteChildren {
   CheckoutPembayaranRoute: typeof CheckoutPembayaranRoute
   CheckoutVerifikasiRoute: typeof CheckoutVerifikasiRoute
   CheckoutVoucherRoute: typeof CheckoutVoucherRoute
+  DaftarAktivasiGagalRoute: typeof DaftarAktivasiGagalRoute
+  DaftarAktivasiSuksesRoute: typeof DaftarAktivasiSuksesRoute
+  DaftarCekEmailRoute: typeof DaftarCekEmailRoute
   KategoriSlugRoute: typeof KategoriSlugRoute
   PanduanBelanjaRoute: typeof PanduanBelanjaRoute
   PanduanPembayaranRoute: typeof PanduanPembayaranRoute
@@ -561,6 +563,7 @@ export interface RootRouteChildren {
   ResetPasswordSuksesRoute: typeof ResetPasswordSuksesRoute
   BlogIndexRoute: typeof BlogIndexRoute
   CheckoutIndexRoute: typeof CheckoutIndexRoute
+  DaftarIndexRoute: typeof DaftarIndexRoute
   KategoriIndexRoute: typeof KategoriIndexRoute
   ProdukIndexRoute: typeof ProdukIndexRoute
   ResetPasswordIndexRoute: typeof ResetPasswordIndexRoute
@@ -646,13 +649,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GudangRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/daftar': {
-      id: '/daftar'
-      path: '/daftar'
-      fullPath: '/daftar'
-      preLoaderRoute: typeof DaftarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/akun': {
       id: '/akun'
       path: '/akun'
@@ -686,6 +682,13 @@ declare module '@tanstack/react-router' {
       path: '/kategori'
       fullPath: '/kategori/'
       preLoaderRoute: typeof KategoriIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daftar/': {
+      id: '/daftar/'
+      path: '/daftar'
+      fullPath: '/daftar/'
+      preLoaderRoute: typeof DaftarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/': {
@@ -774,24 +777,24 @@ declare module '@tanstack/react-router' {
     }
     '/daftar/cek-email': {
       id: '/daftar/cek-email'
-      path: '/cek-email'
+      path: '/daftar/cek-email'
       fullPath: '/daftar/cek-email'
       preLoaderRoute: typeof DaftarCekEmailRouteImport
-      parentRoute: typeof DaftarRoute
+      parentRoute: typeof rootRouteImport
     }
     '/daftar/aktivasi-sukses': {
       id: '/daftar/aktivasi-sukses'
-      path: '/aktivasi-sukses'
+      path: '/daftar/aktivasi-sukses'
       fullPath: '/daftar/aktivasi-sukses'
       preLoaderRoute: typeof DaftarAktivasiSuksesRouteImport
-      parentRoute: typeof DaftarRoute
+      parentRoute: typeof rootRouteImport
     }
     '/daftar/aktivasi-gagal': {
       id: '/daftar/aktivasi-gagal'
-      path: '/aktivasi-gagal'
+      path: '/daftar/aktivasi-gagal'
       fullPath: '/daftar/aktivasi-gagal'
       preLoaderRoute: typeof DaftarAktivasiGagalRouteImport
-      parentRoute: typeof DaftarRoute
+      parentRoute: typeof rootRouteImport
     }
     '/checkout/voucher': {
       id: '/checkout/voucher'
@@ -882,25 +885,9 @@ const AkunRouteChildren: AkunRouteChildren = {
 
 const AkunRouteWithChildren = AkunRoute._addFileChildren(AkunRouteChildren)
 
-interface DaftarRouteChildren {
-  DaftarAktivasiGagalRoute: typeof DaftarAktivasiGagalRoute
-  DaftarAktivasiSuksesRoute: typeof DaftarAktivasiSuksesRoute
-  DaftarCekEmailRoute: typeof DaftarCekEmailRoute
-}
-
-const DaftarRouteChildren: DaftarRouteChildren = {
-  DaftarAktivasiGagalRoute: DaftarAktivasiGagalRoute,
-  DaftarAktivasiSuksesRoute: DaftarAktivasiSuksesRoute,
-  DaftarCekEmailRoute: DaftarCekEmailRoute,
-}
-
-const DaftarRouteWithChildren =
-  DaftarRoute._addFileChildren(DaftarRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AkunRoute: AkunRouteWithChildren,
-  DaftarRoute: DaftarRouteWithChildren,
   GudangRoute: GudangRoute,
   KeranjangRoute: KeranjangRoute,
   LupaPasswordRoute: LupaPasswordRoute,
@@ -918,6 +905,9 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutPembayaranRoute: CheckoutPembayaranRoute,
   CheckoutVerifikasiRoute: CheckoutVerifikasiRoute,
   CheckoutVoucherRoute: CheckoutVoucherRoute,
+  DaftarAktivasiGagalRoute: DaftarAktivasiGagalRoute,
+  DaftarAktivasiSuksesRoute: DaftarAktivasiSuksesRoute,
+  DaftarCekEmailRoute: DaftarCekEmailRoute,
   KategoriSlugRoute: KategoriSlugRoute,
   PanduanBelanjaRoute: PanduanBelanjaRoute,
   PanduanPembayaranRoute: PanduanPembayaranRoute,
@@ -929,6 +919,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordSuksesRoute: ResetPasswordSuksesRoute,
   BlogIndexRoute: BlogIndexRoute,
   CheckoutIndexRoute: CheckoutIndexRoute,
+  DaftarIndexRoute: DaftarIndexRoute,
   KategoriIndexRoute: KategoriIndexRoute,
   ProdukIndexRoute: ProdukIndexRoute,
   ResetPasswordIndexRoute: ResetPasswordIndexRoute,
