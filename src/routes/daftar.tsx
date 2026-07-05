@@ -37,7 +37,7 @@ function SignUpPage() {
           className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
-            navigate({ to: "/akun/cek-email" });
+            navigate({ to: "/daftar/cek-email" });
           }}
         >
           <NotchedInput label="Nama Lengkap" id="nama" defaultValue="Auliya Gita Ananda" />
