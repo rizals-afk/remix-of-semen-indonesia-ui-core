@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Mail, ArrowRight } from "lucide-react";
 
-export const Route = createFileRoute("/akun/aktivasi-sukses")({
+export const Route = createFileRoute("/daftar/aktivasi-sukses")({
   head: () => ({ meta: [{ title: "Aktivasi Berhasil — BahanMaterial.com" }] }),
   component: ActivationSuccessPage,
 });

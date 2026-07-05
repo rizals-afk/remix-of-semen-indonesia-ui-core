@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { X, Clock, Mail } from "lucide-react";
 import { OtpDialog } from "@/components/auth/OtpDialog";
 
-export const Route = createFileRoute("/akun/aktivasi-gagal")({
+export const Route = createFileRoute("/daftar/aktivasi-gagal")({
   head: () => ({ meta: [{ title: "Aktivasi Gagal — BahanMaterial.com" }] }),
   component: ActivationFailedPage,
 });

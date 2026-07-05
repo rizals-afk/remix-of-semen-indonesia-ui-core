@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Mail, CheckCircle2, XCircle } from "lucide-react";
 
-export const Route = createFileRoute("/akun/cek-email")({
+export const Route = createFileRoute("/daftar/cek-email")({
   head: () => ({ meta: [{ title: "Cek Email Aktivasi — BahanMaterial.com" }] }),
   component: CheckEmailPage,
 });
