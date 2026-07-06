@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { AccountSidebar } from "@/components/account/AccountSidebar";
 import { getCurrentUser } from "@/lib/auth";
@@ -10,6 +10,12 @@ export const Route = createFileRoute("/akun")({
 });
 
 function AccountLayout() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isAuthStatusPage = [
+    "/akun/cek-email",
+    "/akun/aktivasi-sukses",
+    "/akun/aktivasi-gagal",
+  ].includes(pathname);
   const [user, setUser] = useState<{
     id: number;
     name: string;
@@ -32,6 +38,7 @@ function AccountLayout() {
   } | null>(null);
 
   useEffect(() => {
+    if (isAuthStatusPage) return;
     const fetchUser = async () => {
       try {
         const userData = await getCurrentUser<{
@@ -60,7 +67,11 @@ function AccountLayout() {
       }
     };
     fetchUser();
-  }, []);
+  }, [isAuthStatusPage]);
+
+  if (isAuthStatusPage) {
+    return <Outlet />;
+  }
 
   const userData = user || { name: "Guest", email: "" };
 

@@ -25,16 +25,16 @@ function ActivatePage() {
     const activate = async () => {
       // Redirect to failure page if no token is present
       if (!token) {
-        await navigate({ to: "/daftar/aktivasi-gagal" });
+        await navigate({ to: "/akun/aktivasi-gagal" });
         return;
       }
 
       try {
         await activateAccount({ token });
-        await navigate({ to: "/daftar/aktivasi-sukses" });
+        await navigate({ to: "/akun/aktivasi-sukses" });
       } catch (err) {
         console.error("[activate] failed:", err);
-        await navigate({ to: "/daftar/aktivasi-gagal" });
+        await navigate({ to: "/akun/aktivasi-gagal" });
       }
     };
 

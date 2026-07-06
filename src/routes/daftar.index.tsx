@@ -69,7 +69,7 @@ function SignUpPage() {
                 password_confirmation: passwordConfirmation,
               });
               toast.success("Pendaftaran berhasil! Silakan cek email Anda.");
-              await navigate({ to: "/daftar/cek-email" });
+              await navigate({ to: "/akun/cek-email" });
             } catch (err) {
               const message =
                 err instanceof ApiError

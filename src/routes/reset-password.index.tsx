@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
@@ -28,12 +28,14 @@ function ResetPasswordPage() {
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Redirect if token is missing
-  if (!token) {
-    toast.error("Token reset password tidak valid atau hilang.");
-    navigate({ to: "/lupa-password" });
-    return null;
-  }
+  useEffect(() => {
+    if (!token) {
+      toast.error("Token reset password tidak valid atau hilang.");
+      navigate({ to: "/lupa-password" });
+    }
+  }, [token, navigate]);
+
+  if (!token) return null;
 
   return (
     <AuthShell
