@@ -24,7 +24,6 @@ function SignUpPage() {
   const [show2, setShow2] = useState(false);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
-  const [nikKtp, setNikKtp] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +49,7 @@ function SignUpPage() {
             if (loading) return;
             
             // Client-side validation
-            if (!name || !nikKtp || !email || !phone || !password || !passwordConfirmation) {
+            if (!name || !email || !phone || !password || !passwordConfirmation) {
               toast.error("Mohon lengkapi semua field yang diperlukan.");
               return;
             }
@@ -64,7 +63,6 @@ function SignUpPage() {
             try {
               await signup({
                 name,
-                nik_ktp: nikKtp,
                 phone,
                 email,
                 password,
@@ -94,13 +92,6 @@ function SignUpPage() {
             id="nama"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required
-          />
-          <NotchedInput
-            label="No KTP"
-            id="ktp"
-            value={nikKtp}
-            onChange={(e) => setNikKtp(e.target.value)}
             required
           />
           <div className="grid gap-5 sm:grid-cols-2">

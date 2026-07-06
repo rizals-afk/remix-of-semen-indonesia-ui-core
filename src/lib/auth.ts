@@ -17,7 +17,7 @@ export interface ResetPasswordPayload {
 
 export interface SignupPayload {
   name: string;
-  nik_ktp: string;
+  nik_ktp?: string;
   phone: string;
   email: string;
   password: string;
