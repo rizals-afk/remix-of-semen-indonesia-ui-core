@@ -48,6 +48,7 @@ import { Route as CheckoutPembayaranRouteImport } from './routes/checkout.pembay
 import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google-callback'
 import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
 import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
@@ -248,6 +249,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google-callback',
+  path: '/auth/google-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AkunUbahPasswordRoute = AkunUbahPasswordRouteImport.update({
   id: '/ubah-password',
   path: '/ubah-password',
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
+  '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
@@ -329,6 +336,7 @@ export interface FileRoutesByTo {
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
+  '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
@@ -375,6 +383,7 @@ export interface FileRoutesById {
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
+  '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
@@ -422,6 +431,7 @@ export interface FileRouteTypes {
     | '/tentang'
     | '/wishlist'
     | '/akun/ubah-password'
+    | '/auth/google-callback'
     | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
@@ -466,6 +476,7 @@ export interface FileRouteTypes {
     | '/tentang'
     | '/wishlist'
     | '/akun/ubah-password'
+    | '/auth/google-callback'
     | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
@@ -511,6 +522,7 @@ export interface FileRouteTypes {
     | '/tentang'
     | '/wishlist'
     | '/akun/ubah-password'
+    | '/auth/google-callback'
     | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
@@ -556,6 +568,7 @@ export interface RootRouteChildren {
   SyaratRoute: typeof SyaratRoute
   TentangRoute: typeof TentangRoute
   WishlistRoute: typeof WishlistRoute
+  AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutAlamatRoute: typeof CheckoutAlamatRoute
   CheckoutGudangRoute: typeof CheckoutGudangRoute
@@ -858,6 +871,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/google-callback': {
+      id: '/auth/google-callback'
+      path: '/auth/google-callback'
+      fullPath: '/auth/google-callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/akun/ubah-password': {
       id: '/akun/ubah-password'
       path: '/ubah-password'
@@ -920,6 +940,7 @@ const rootRouteChildren: RootRouteChildren = {
   SyaratRoute: SyaratRoute,
   TentangRoute: TentangRoute,
   WishlistRoute: WishlistRoute,
+  AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutAlamatRoute: CheckoutAlamatRoute,
   CheckoutGudangRoute: CheckoutGudangRoute,

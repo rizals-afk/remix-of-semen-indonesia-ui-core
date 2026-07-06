@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { loginWithGoogle } from "@/lib/auth";
 
 /**
  * Two-column shell used for every authentication screen:
@@ -119,16 +120,17 @@ export function SocialAuthRow({ mode = "login" }: { mode?: "login" | "signup" })
         <span className="h-px flex-1 bg-border" />
       </div>
       <div className="grid grid-cols-1 gap-3">
-        <SocialButton label="Google" icon={<GoogleIcon />} />
+        <SocialButton label="Google" icon={<GoogleIcon />} onClick={() => loginWithGoogle()} />
       </div>
     </div>
   );
 }
 
-function SocialButton({ label, icon }: { label: string; icon: ReactNode }) {
+function SocialButton({ label, icon, onClick }: { label: string; icon: ReactNode; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-border bg-background text-sm font-semibold text-foreground hover:bg-muted"
     >
       {icon}

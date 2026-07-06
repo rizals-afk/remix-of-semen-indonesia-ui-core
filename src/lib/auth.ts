@@ -153,3 +153,9 @@ export function getUser<T = unknown>(): T | null {
 export async function getCurrentUser<T = unknown>(): Promise<T> {
   return await apiFetch<T>("/me");
 }
+
+export function loginWithGoogle() {
+  if (typeof window === "undefined") return;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://8d1b-182-8-100-75.ngrok-free.app/api";
+  window.location.href = `${baseUrl}/auth/google`;
+}
