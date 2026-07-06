@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Mail, CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Mail, XCircle } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 
-export const Route = createFileRoute("/daftar/cek-email")({
+export const Route = createFileRoute("/akun/cek-email")({
   head: () => ({ meta: [{ title: "Cek Email Aktivasi — BahanMaterial.com" }] }),
-  component: CheckEmailPage,
+  component: AccountCheckEmailPage,
 });
 
-function CheckEmailPage() {
+function AccountCheckEmailPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="px-6 pt-8 md:px-12">
@@ -33,7 +33,7 @@ function CheckEmailPage() {
           </h1>
           <p className="max-w-md text-sm leading-relaxed text-muted-foreground md:text-base">
             Kami telah mengirim link aktivasi ke email Anda. Silakan cek inbox
-            (atau folder spam) dan klik link tersebut untuk mengaktifkan akun.
+            atau folder spam, lalu klik link tersebut untuk mengaktifkan akun.
           </p>
 
           <div className="mt-10 w-full max-w-md space-y-3">

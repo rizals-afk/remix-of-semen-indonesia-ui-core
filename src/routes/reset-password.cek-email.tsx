@@ -41,7 +41,8 @@ function ResetCheckEmailPage() {
               Simulasi klik link dari email
             </p>
             <Link
-              to="/reset-password"
+              to="/reset-password/"
+              search={{ token: "demo-token" }}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-600"
             >
               <KeyRound className="h-5 w-5" />
