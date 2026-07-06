@@ -26,7 +26,7 @@ const GROUPS: MenuGroup[] = [
     items: [
       { to: "/akun", label: "Profil Pengguna", icon: User },
       { to: "/akun/ubah-password", label: "Ubah Password", icon: Lock },
-      { to: "/checkout/alamat", label: "Alamat Pengiriman", icon: MapPin },
+      { to: "/akun/alamat", label: "Alamat Pengiriman", icon: MapPin },
     ],
   },
   {

@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { User, Mail, Phone, MapPin, Pencil } from "lucide-react";
+import { User } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/akun/")({
   head: () => ({ meta: [{ title: "Profil Saya — BahanMaterial.com" }] }),
@@ -9,6 +11,11 @@ export const Route = createFileRoute("/akun/")({
 });
 
 function ProfilePage() {
+  const [identity, setIdentity] = useState<"NIK" | "NPWP">("NIK");
+  const [name, setName] = useState("");
+  const [nik, setNik] = useState("");
+  const [npwp1, setNpwp1] = useState("");
+  const [npwp2, setNpwp2] = useState("");
   const [user, setUser] = useState<{
     id: number;
     name: string;
@@ -57,6 +64,8 @@ function ProfilePage() {
         }>();
         console.log("User data received:", userData);
         setUser(userData);
+        setName(userData.name || "");
+        setNik(userData.nik_ktp || "");
       } catch (err) {
         console.error("Failed to fetch user:", err);
       }
@@ -64,77 +73,128 @@ function ProfilePage() {
     fetchUser();
   }, []);
 
-  const userData = user || { name: "Guest", email: "", phone: null, created_at: "", role: "" };
-
-  const joinedDate = userData.created_at
-    ? new Date(userData.created_at).toLocaleDateString("id-ID", { month: "long", year: "numeric" })
-    : "-";
+  const userData = user || { name: "", email: "", phone: null };
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="grid h-20 w-20 place-items-center rounded-full bg-primary-soft text-primary">
-              <User className="h-10 w-10" />
-            </span>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">{userData.name}</h2>
-              <p className="text-sm text-muted-foreground">Bergabung sejak {joinedDate}</p>
-            </div>
+    <section className="rounded-2xl border border-border bg-card p-6 md:p-8">
+      <h2 className="text-lg font-bold text-foreground">
+        Profil Pengguna (Personal atau Perusahaan)
+      </h2>
+
+      <div className="mt-6 grid gap-8 md:grid-cols-[200px_1fr]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="grid h-36 w-36 place-items-center rounded-full bg-primary text-primary-foreground">
+            <User className="h-20 w-20" />
           </div>
-          <button className="inline-flex items-center gap-2 rounded-md border-2 border-primary px-4 py-2 text-sm font-bold text-primary hover:bg-primary/5">
-            <Pencil className="h-4 w-4" /> Ubah Foto
+          <button
+            type="button"
+            className="rounded-md border border-border px-4 py-1.5 text-sm font-semibold text-foreground hover:bg-muted"
+          >
+            Pilih Gambar
           </button>
         </div>
-      </section>
 
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-foreground">Informasi Pribadi</h3>
-          <button className="text-sm font-semibold text-primary hover:underline">Edit Profil</button>
-        </div>
-        <dl className="mt-5 grid gap-5 sm:grid-cols-2">
-          <Field icon={User} label="Nama Lengkap" value={userData.name} />
-          <Field icon={Mail} label="Email" value={userData.email} />
-          <Field icon={Phone} label="Nomor HP" value={userData.phone || "-"} />
-          <Field icon={MapPin} label="Role" value={userData.role || "-"} />
-        </dl>
-      </section>
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="space-y-5"
+        >
+          <FormRow label="Nama Pengguna">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-11"
+            />
+          </FormRow>
 
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <h3 className="text-base font-bold text-foreground">Keamanan Akun</h3>
-        <div className="mt-4 space-y-3">
-          <Row label="Kata Sandi" value="Terakhir diubah 2 bulan lalu" action="Ubah" />
-          <Row label="Verifikasi Nomor HP" value="Terverifikasi" action="Ganti Nomor" />
-        </div>
-      </section>
-    </div>
+          <FormRow label="Email">
+            <p className="pt-2 text-sm text-foreground">{userData.email || "-"}</p>
+          </FormRow>
+
+          <FormRow label="Nomor Telepon">
+            <p className="pt-2 text-sm text-foreground">{userData.phone || "-"}</p>
+          </FormRow>
+
+          <FormRow label="Pilih Identitas">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIdentity("NIK")}
+                aria-pressed={identity === "NIK"}
+                className={
+                  "grid h-6 w-6 place-items-center rounded border-2 " +
+                  (identity === "NIK"
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-border bg-background")
+                }
+              >
+                {identity === "NIK" ? "✓" : ""}
+              </button>
+              <div className="flex h-10 min-w-24 items-center rounded-md border border-input px-3 text-sm">
+                NIK
+              </div>
+              <button
+                type="button"
+                onClick={() => setIdentity("NPWP")}
+                aria-pressed={identity === "NPWP"}
+                className={
+                  "ml-3 grid h-6 w-6 place-items-center rounded border-2 " +
+                  (identity === "NPWP"
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-border bg-background")
+                }
+              >
+                {identity === "NPWP" ? "✓" : ""}
+              </button>
+              <div className="flex h-10 min-w-24 items-center rounded-md border border-input px-3 text-sm">
+                NPWP
+              </div>
+            </div>
+          </FormRow>
+
+          {identity === "NIK" ? (
+            <FormRow label={<>NIK<span className="text-destructive">*</span></>}>
+              <Input
+                value={nik}
+                onChange={(e) => setNik(e.target.value)}
+                className="h-11"
+                placeholder="357830000000000"
+              />
+            </FormRow>
+          ) : (
+            <>
+              <FormRow label={<>NPWP 1<span className="text-destructive">*</span></>}>
+                <Input
+                  value={npwp1}
+                  onChange={(e) => setNpwp1(e.target.value)}
+                  className="h-11"
+                />
+              </FormRow>
+              <FormRow label="NPWP 2 (Jika ada)">
+                <Input
+                  value={npwp2}
+                  onChange={(e) => setNpwp2(e.target.value)}
+                  className="h-11"
+                />
+              </FormRow>
+            </>
+          )}
+
+          <div className="flex justify-end pt-2">
+            <Button type="submit" className="h-11 px-8 text-sm font-bold">
+              Simpan
+            </Button>
+          </div>
+        </form>
+      </div>
+    </section>
   );
 }
 
-function Field({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string }) {
+function FormRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 grid h-8 w-8 place-items-center rounded-md bg-muted text-muted-foreground">
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="min-w-0">
-        <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
-        <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
-      </div>
-    </div>
-  );
-}
-
-function Row({ label, value, action }: { label: string; value: string; action: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-md border border-border px-4 py-3">
-      <div>
-        <p className="text-sm font-semibold text-foreground">{label}</p>
-        <p className="text-xs text-muted-foreground">{value}</p>
-      </div>
-      <button className="text-sm font-semibold text-primary hover:underline">{action}</button>
+    <div className="grid items-start gap-2 sm:grid-cols-[160px_1fr] sm:gap-6">
+      <label className="pt-2.5 text-sm font-medium text-foreground">{label}</label>
+      <div>{children}</div>
     </div>
   );
 }
