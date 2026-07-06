@@ -50,6 +50,9 @@ import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google-callback'
 import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
+import { Route as AkunCekEmailRouteImport } from './routes/akun.cek-email'
+import { Route as AkunAktivasiSuksesRouteImport } from './routes/akun.aktivasi-sukses'
+import { Route as AkunAktivasiGagalRouteImport } from './routes/akun.aktivasi-gagal'
 import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
 import { Route as AkunTransaksiIdRouteImport } from './routes/akun.transaksi.$id'
@@ -259,6 +262,21 @@ const AkunUbahPasswordRoute = AkunUbahPasswordRouteImport.update({
   path: '/ubah-password',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunCekEmailRoute = AkunCekEmailRouteImport.update({
+  id: '/cek-email',
+  path: '/cek-email',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunAktivasiSuksesRoute = AkunAktivasiSuksesRouteImport.update({
+  id: '/aktivasi-sukses',
+  path: '/aktivasi-sukses',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunAktivasiGagalRoute = AkunAktivasiGagalRouteImport.update({
+  id: '/aktivasi-gagal',
+  path: '/aktivasi-gagal',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunTransaksiIndexRoute = AkunTransaksiIndexRouteImport.update({
   id: '/transaksi/',
   path: '/transaksi/',
@@ -290,6 +308,9 @@ export interface FileRoutesByFullPath {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
+  '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -335,6 +356,9 @@ export interface FileRoutesByTo {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
+  '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -382,6 +406,9 @@ export interface FileRoutesById {
   '/syarat': typeof SyaratRoute
   '/tentang': typeof TentangRoute
   '/wishlist': typeof WishlistRoute
+  '/akun/aktivasi-gagal': typeof AkunAktivasiGagalRoute
+  '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
+  '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -430,6 +457,9 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/akun/aktivasi-gagal'
+    | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/auth/google-callback'
     | '/blog/$slug'
@@ -475,6 +505,9 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/akun/aktivasi-gagal'
+    | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/auth/google-callback'
     | '/blog/$slug'
@@ -521,6 +554,9 @@ export interface FileRouteTypes {
     | '/syarat'
     | '/tentang'
     | '/wishlist'
+    | '/akun/aktivasi-gagal'
+    | '/akun/aktivasi-sukses'
+    | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/auth/google-callback'
     | '/blog/$slug'
@@ -885,6 +921,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunUbahPasswordRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/cek-email': {
+      id: '/akun/cek-email'
+      path: '/cek-email'
+      fullPath: '/akun/cek-email'
+      preLoaderRoute: typeof AkunCekEmailRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/aktivasi-sukses': {
+      id: '/akun/aktivasi-sukses'
+      path: '/aktivasi-sukses'
+      fullPath: '/akun/aktivasi-sukses'
+      preLoaderRoute: typeof AkunAktivasiSuksesRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/aktivasi-gagal': {
+      id: '/akun/aktivasi-gagal'
+      path: '/aktivasi-gagal'
+      fullPath: '/akun/aktivasi-gagal'
+      preLoaderRoute: typeof AkunAktivasiGagalRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/transaksi/': {
       id: '/akun/transaksi/'
       path: '/transaksi'
@@ -910,6 +967,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AkunRouteChildren {
+  AkunAktivasiGagalRoute: typeof AkunAktivasiGagalRoute
+  AkunAktivasiSuksesRoute: typeof AkunAktivasiSuksesRoute
+  AkunCekEmailRoute: typeof AkunCekEmailRoute
   AkunUbahPasswordRoute: typeof AkunUbahPasswordRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunTransaksiIdRoute: typeof AkunTransaksiIdRoute
@@ -917,6 +977,9 @@ interface AkunRouteChildren {
 }
 
 const AkunRouteChildren: AkunRouteChildren = {
+  AkunAktivasiGagalRoute: AkunAktivasiGagalRoute,
+  AkunAktivasiSuksesRoute: AkunAktivasiSuksesRoute,
+  AkunCekEmailRoute: AkunCekEmailRoute,
   AkunUbahPasswordRoute: AkunUbahPasswordRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunTransaksiIdRoute: AkunTransaksiIdRoute,
