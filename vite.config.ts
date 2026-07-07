@@ -14,7 +14,7 @@ export default defineConfig({
   },
   vite: {
     server: {
-      allowedHosts: ['f2b6-182-8-100-75.ngrok-free.app'],
+      allowedHosts: ['f2b6-182-8-100-75.ngrok-free.app', '73ac-182-8-99-17.ngrok-free.app'],
       proxy: {
         '/api': {
           target: 'https://2d4gssn7-8000.asse.devtunnels.ms',

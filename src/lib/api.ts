@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "https://8d1b-182-8-100-75.ngrok-free.app/api";
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "https://52c2-182-8-99-17.ngrok-free.app/api";
 
 export const TOKEN_STORAGE_KEY = "bm_auth_token";
 export const USER_STORAGE_KEY = "bm_auth_user";
