@@ -6,7 +6,10 @@ import { Pagination } from "@/components/common/Pagination";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterSidebar } from "@/components/product/FilterSidebar";
 import { ProductCard } from "@/components/product/ProductCard";
-import { ALL_PRODUCTS, CATEGORIES } from "@/data/catalog";
+import { fetchCategories, buildCategoryTree } from "@/lib/api/product-category";
+import { fetchProducts, transformProductToCard } from "@/lib/api/product";
+import type { CategoryNode } from "@/lib/api/product-category";
+import { useWarehouse } from "@/store/warehouse";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -31,55 +34,116 @@ const PAGE_SIZE = 9;
 function ProductListingPage() {
   const { q = "", page = 1, sort = "terbaru", category } = Route.useSearch();
   const navigate = useNavigate({ from: "/produk/" });
+  const { selectedWarehouse } = useWarehouse();
 
+  const [categories, setCategories] = useState<CategoryNode[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
-  const [priceMin, setPriceMin] = useState(0);
-  const [priceMax, setPriceMax] = useState(1_000_000);
-  const [appliedPrice, setAppliedPrice] = useState({ min: 0, max: 1_000_000 });
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Initialize selected categories from URL
+  // Fetch categories on mount
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await fetchCategories({ per_page: 999, page: 1 });
+        const categoryTree = buildCategoryTree(response.data);
+        setCategories(categoryTree);
+      } catch (error) {
+        console.error("Failed to load categories:", error);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // Fetch products when filters change
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchProducts({
+          page,
+          per_page: PAGE_SIZE,
+          product_category_id: selectedCats.length > 0 ? selectedCats[0] : undefined,
+          branch_id: selectedWarehouse?.id,
+        });
+        
+        console.log("Product List - API response:", response);
+        console.log("Product List - first product media:", response.data[0]?.media);
+        
+        const transformedProducts = response.data.map((product) =>
+          transformProductToCard(product, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
+        );
+        
+        setProducts(transformedProducts);
+        setTotalPages(Math.max(1, Math.ceil(response.total / PAGE_SIZE)));
+      } catch (error) {
+        console.error("Failed to load products:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [page, selectedCats, selectedWarehouse]);
+
+  // Initialize selected categories from URL and expand parent
   useEffect(() => {
     if (category && !selectedCats.includes(category)) {
       setSelectedCats([category]);
+      // Find and expand parent category
+      const findAndExpandParent = (nodes: CategoryNode[]): boolean => {
+        for (const node of nodes) {
+          if (node.children.some(child => child.id === category)) {
+            setExpandedCategories(prev => new Set([...prev, node.id]));
+            return true;
+          }
+          if (findAndExpandParent(node.children)) {
+            return true;
+          }
+        }
+        return false;
+      };
+      findAndExpandParent(categories);
     } else if (!category && selectedCats.length > 0) {
       setSelectedCats([]);
+      setExpandedCategories(new Set());
     }
-  }, [category]);
+  }, [category, categories]);
 
   // Sync category selection changes to URL
-  const handleToggleCategory = (slug: string) => {
-    const newSelected = selectedCats.includes(slug)
-      ? selectedCats.filter((s) => s !== slug)
-      : [...selectedCats, slug];
+  const handleToggleCategory = (id: string) => {
+    const newSelected = selectedCats.includes(id)
+      ? selectedCats.filter((s) => s !== id)
+      : [...selectedCats, id];
     
     setSelectedCats(newSelected);
     
     // Update URL - use the first selected category or clear if none
     navigate({
-      search: (prev: z.infer<typeof searchSchema>) => ({
+      search: (prev: z.infer<typeof searchSchema>) => (({
         ...prev,
-        category: newSelected.length > 0 ? newSelected[0] : undefined,
+        category: newSelected.length > 0 ? String(newSelected[0]) : undefined,
         page: 1,
-      }),
+      })),
     });
   };
 
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    let items = ALL_PRODUCTS.filter((p) => {
-      if (term && !p.name.toLowerCase().includes(term)) return false;
-      if (p.price < appliedPrice.min || p.price > appliedPrice.max) return false;
-      if (selectedCats.length > 0 && !selectedCats.includes(p.categorySlug || "")) return false;
-      return true;
+  // Toggle category expand/collapse
+  const handleToggleExpand = (id: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
     });
-    if (sort === "termurah") items = [...items].sort((a, b) => a.price - b.price);
-    if (sort === "termahal") items = [...items].sort((a, b) => b.price - a.price);
-    return items;
-  }, [q, sort, appliedPrice, selectedCats]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const start = (page - 1) * PAGE_SIZE;
-  const pageItems = filtered.slice(start, start + PAGE_SIZE);
+  };
 
   return (
     <MainLayout user={{ name: "Auliya Gita Ananda" }}>
@@ -88,21 +152,22 @@ function ProductListingPage() {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
           <FilterSidebar
-            categories={CATEGORIES}
+            categories={categories}
             selected={selectedCats}
             onToggleCategory={handleToggleCategory}
-            priceMin={priceMin}
-            priceMax={priceMax}
-            onPriceMinChange={setPriceMin}
-            onPriceMaxChange={setPriceMax}
-            onApply={() => setAppliedPrice({ min: priceMin, max: priceMax })}
+            priceMin={0}
+            priceMax={0}
+            onPriceMinChange={() => {}}
+            onPriceMaxChange={() => {}}
+            onApply={() => {}}
+            expandedCategories={expandedCategories}
+            onToggleExpand={handleToggleExpand}
           />
 
           <section>
             <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
               <p className="text-sm text-muted-foreground">
-                Menampilkan {pageItems.length} dari {filtered.length} produk
-                {q ? ` untuk "${q}"` : ""}
+                {loading ? "Memuat produk..." : `Menampilkan ${products.length} produk`}
               </p>
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
                 Urutkan:
@@ -128,13 +193,19 @@ function ProductListingPage() {
               </label>
             </div>
 
-            {pageItems.length === 0 ? (
+            {loading ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="aspect-square rounded-xl border border-border bg-muted animate-pulse" />
+                ))}
+              </div>
+            ) : products.length === 0 ? (
               <div className="grid place-items-center rounded-xl border border-dashed border-border py-20 text-sm text-muted-foreground">
                 Tidak ada produk yang cocok dengan filter Anda.
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {pageItems.map((p) => (
+                {products.map((p: any) => (
                   <ProductCard key={p.id} product={p} compact />
                 ))}
               </div>

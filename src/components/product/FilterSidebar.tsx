@@ -1,21 +1,25 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { formatRupiah } from "@/lib/format";
+import type { CategoryNode } from "@/lib/api/product-category";
 
 export interface FilterCategory {
-  slug: string;
-  label: string;
+  id: string;
+  name: string;
+  parent_id: string | null;
 }
 
 interface FilterSidebarProps {
-  categories: FilterCategory[];
+  categories: CategoryNode[];
   selected: string[];
-  onToggleCategory: (slug: string) => void;
+  onToggleCategory: (id: string) => void;
   priceMin: number;
   priceMax: number;
   onPriceMinChange: (n: number) => void;
   onPriceMaxChange: (n: number) => void;
   onApply: () => void;
+  expandedCategories?: Set<string>;
+  onToggleExpand?: (id: string) => void;
 }
 
 /** Listing sidebar with category accordion + price range, matching "Cari Produk" screen. */
@@ -28,6 +32,8 @@ export function FilterSidebar({
   onPriceMinChange,
   onPriceMaxChange,
   onApply,
+  expandedCategories = new Set<string>(),
+  onToggleExpand = () => {},
 }: FilterSidebarProps) {
   const [open, setOpen] = useState(true);
   return (
@@ -44,24 +50,17 @@ export function FilterSidebar({
         </button>
         {open ? (
           <ul className="mt-3 space-y-2">
-            {categories.map((c) => {
-              const isOn = selected.includes(c.slug);
-              return (
-                <li key={c.slug}>
-                  <label className="flex cursor-pointer items-center justify-between gap-2 rounded-md py-1.5 text-sm text-foreground/90 hover:text-primary">
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={isOn}
-                        onChange={() => onToggleCategory(c.slug)}
-                        className="h-4 w-4 accent-primary"
-                      />
-                      {c.label}
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
+            {categories.map((category) => (
+              <CategoryItem
+                key={category.id}
+                category={category}
+                selected={selected}
+                onToggleCategory={onToggleCategory}
+                expandedCategories={expandedCategories}
+                onToggleExpand={onToggleExpand}
+                level={0}
+              />
+            ))}
           </ul>
         ) : null}
       </div>
@@ -80,6 +79,79 @@ export function FilterSidebar({
         </div>
       </div>
     </aside>
+  );
+}
+
+interface CategoryItemProps {
+  category: CategoryNode;
+  selected: string[];
+  onToggleCategory: (id: string) => void;
+  expandedCategories: Set<string>;
+  onToggleExpand: (id: string) => void;
+  level: number;
+}
+
+function CategoryItem({
+  category,
+  selected,
+  onToggleCategory,
+  expandedCategories,
+  onToggleExpand,
+  level,
+}: CategoryItemProps) {
+  const isExpanded = expandedCategories.has(category.id);
+  const hasChildren = category.children.length > 0;
+  const isChild = category.parent_id !== null;
+  const isSelected = selected.includes(category.id);
+
+  return (
+    <li>
+      <div
+        className={`flex items-center justify-between rounded-md py-1.5 text-sm text-foreground/90 hover:text-primary ${
+          level > 0 ? "ml-4" : ""
+        }`}
+      >
+        <span className="flex items-center gap-2">
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() => onToggleExpand(category.id)}
+              className="flex items-center gap-1 font-semibold"
+            >
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
+              />
+              {category.name}
+            </button>
+          ) : (
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onToggleCategory(category.id)}
+                className="h-4 w-4 accent-primary"
+              />
+              {category.name}
+            </label>
+          )}
+        </span>
+      </div>
+      {hasChildren && isExpanded && (
+        <ul className="mt-1 space-y-1">
+          {category.children.map((child) => (
+            <CategoryItem
+              key={child.id}
+              category={child}
+              selected={selected}
+              onToggleCategory={onToggleCategory}
+              expandedCategories={expandedCategories}
+              onToggleExpand={onToggleExpand}
+              level={level + 1}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
 

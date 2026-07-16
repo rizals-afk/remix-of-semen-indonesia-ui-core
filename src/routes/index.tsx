@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 import heroImage from "@/assets/hero-construction.jpg";
 import pengirimanImg from "@/assets/mengapa/pengiriman-tepat-waktu.png";
 import hargaImg from "@/assets/mengapa/harga-terjangkau.png";
@@ -26,8 +27,10 @@ import { SectionTitle } from "@/components/common/SectionTitle";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { CategoryTile } from "@/components/product/CategoryTile";
 import { ProductCard } from "@/components/product/ProductCard";
-import { BLOG_POSTS, CATEGORIES, FEATURED_PRODUCTS } from "@/data/catalog";
+import { BLOG_POSTS, FEATURED_PRODUCTS } from "@/data/catalog";
 import { getUser } from "@/lib/auth";
+import { fetchCategories, getChildCategories } from "@/lib/api/product-category";
+import type { ProductCategory } from "@/lib/api/product-category";
 
 const CERITA = [
   { loc: "Gresik", img: cerita1 },
@@ -68,6 +71,24 @@ const TABS = ["Terlaris", "Promo Spesial", "Baru Masuk"] as const;
 
 function HomePage() {
   const user = getUser<{ name: string }>();
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await fetchCategories({ per_page: 999, page: 1 });
+        const childCategories = getChildCategories(response.data);
+        setCategories(childCategories);
+      } catch (error) {
+        console.error("Failed to load categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   return (
     <MainLayout user={user}>
@@ -105,11 +126,23 @@ function HomePage() {
       {/* KATEGORI PRODUK */}
       <section className="container mx-auto max-w-7xl px-4 py-12">
         <SectionTitle>Kategori Produk</SectionTitle>
-        <div className="mt-8 grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9">
-          {CATEGORIES.map((cat) => (
-            <CategoryTile key={cat.slug} category={cat} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="mt-8 grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+              <div key={i} className="aspect-square rounded-xl border border-border bg-muted animate-pulse" />
+            ))}
+          </div>
+        ) : categories.length > 0 ? (
+          <div className="mt-8 grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9">
+            {categories.map((cat) => (
+              <CategoryTile key={cat.id} category={cat} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 text-center text-sm text-muted-foreground">
+            Tidak ada kategori tersedia.
+          </div>
+        )}
       </section>
 
       {/* PROMO BANNERS */}
