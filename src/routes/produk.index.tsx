@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { z } from "zod";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { Pagination } from "@/components/common/Pagination";
@@ -12,6 +12,7 @@ const searchSchema = z.object({
   q: z.string().optional(),
   page: z.coerce.number().int().min(1).optional(),
   sort: z.enum(["terbaru", "termurah", "termahal", "terlaris"]).optional(),
+  category: z.string().optional(),
 });
 
 export const Route = createFileRoute("/produk/")({
@@ -28,25 +29,53 @@ export const Route = createFileRoute("/produk/")({
 const PAGE_SIZE = 9;
 
 function ProductListingPage() {
-  const { q = "", page = 1, sort = "terbaru" } = Route.useSearch();
-  const navigate = useNavigate({ from: "/produk" });
+  const { q = "", page = 1, sort = "terbaru", category } = Route.useSearch();
+  const navigate = useNavigate({ from: "/produk/" });
 
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [priceMin, setPriceMin] = useState(0);
   const [priceMax, setPriceMax] = useState(1_000_000);
   const [appliedPrice, setAppliedPrice] = useState({ min: 0, max: 1_000_000 });
 
+  // Initialize selected categories from URL
+  useEffect(() => {
+    if (category && !selectedCats.includes(category)) {
+      setSelectedCats([category]);
+    } else if (!category && selectedCats.length > 0) {
+      setSelectedCats([]);
+    }
+  }, [category]);
+
+  // Sync category selection changes to URL
+  const handleToggleCategory = (slug: string) => {
+    const newSelected = selectedCats.includes(slug)
+      ? selectedCats.filter((s) => s !== slug)
+      : [...selectedCats, slug];
+    
+    setSelectedCats(newSelected);
+    
+    // Update URL - use the first selected category or clear if none
+    navigate({
+      search: (prev: z.infer<typeof searchSchema>) => ({
+        ...prev,
+        category: newSelected.length > 0 ? newSelected[0] : undefined,
+        page: 1,
+      }),
+    });
+  };
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     let items = ALL_PRODUCTS.filter((p) => {
       if (term && !p.name.toLowerCase().includes(term)) return false;
       if (p.price < appliedPrice.min || p.price > appliedPrice.max) return false;
+      if (selectedCats.length > 0 && !selectedCats.includes(p.categorySlug || "")) return false;
       return true;
     });
     if (sort === "termurah") items = [...items].sort((a, b) => a.price - b.price);
     if (sort === "termahal") items = [...items].sort((a, b) => b.price - a.price);
     return items;
-  }, [q, sort, appliedPrice]);
+  }, [q, sort, appliedPrice, selectedCats]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const start = (page - 1) * PAGE_SIZE;
@@ -61,11 +90,7 @@ function ProductListingPage() {
           <FilterSidebar
             categories={CATEGORIES}
             selected={selectedCats}
-            onToggleCategory={(slug) =>
-              setSelectedCats((cur) =>
-                cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug],
-              )
-            }
+            onToggleCategory={handleToggleCategory}
             priceMin={priceMin}
             priceMax={priceMax}
             onPriceMinChange={setPriceMin}

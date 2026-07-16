@@ -37,13 +37,14 @@ export const FEATURED_PRODUCTS: Product[] = [
     image: PLACEHOLDER,
     warehouse: "Gudang Gresik",
     rating: 4.8,
+    categorySlug: "semen",
   },
-  { id: "bata-ringan", name: "Bata Ringan", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.7 },
-  { id: "mortar-perekat", name: "Mortar Perekat", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.6 },
-  { id: "atap-upvc", name: "Atap UPVC", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.5 },
-  { id: "kanal-c", name: "Kanal C", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.4 },
-  { id: "besi", name: "Besi", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.6 },
-  { id: "semen-merdeka", name: "Semen Merdeka", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.7 },
+  { id: "bata-ringan", name: "Bata Ringan", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.7, categorySlug: "bata-ringan" },
+  { id: "mortar-perekat", name: "Mortar Perekat", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.6, categorySlug: "mortar" },
+  { id: "atap-upvc", name: "Atap UPVC", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.5, categorySlug: "produk-atap" },
+  { id: "kanal-c", name: "Kanal C", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.4, categorySlug: "baja-ringan" },
+  { id: "besi", name: "Besi", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.6, categorySlug: "besi" },
+  { id: "semen-merdeka", name: "Semen Merdeka", price: 100000, image: PLACEHOLDER, warehouse: "Gudang Gresik", rating: 4.7, categorySlug: "semen" },
 ];
 
 const WAREHOUSES = [

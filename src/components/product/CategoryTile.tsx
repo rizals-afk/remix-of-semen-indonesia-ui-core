@@ -13,8 +13,8 @@ export interface Category {
 export function CategoryTile({ category }: { category: Category }) {
   return (
     <Link
-      to="/kategori/$slug"
-      params={{ slug: category.slug }}
+      to="/produk"
+      search={{ category: category.slug }}
       className="group flex flex-col items-center gap-2 text-center"
     >
       <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-xl border border-border bg-card p-3 transition-shadow group-hover:shadow-md">

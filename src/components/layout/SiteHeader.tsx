@@ -1,8 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Bell, Heart, MapPin, MessageSquare, ShoppingCart, User } from "lucide-react";
+import { Bell, Building2, Heart, MapPin, MessageSquare, ShoppingCart, User } from "lucide-react";
+import { useState } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { SearchBar } from "@/components/search/SearchBar";
 import { useCart } from "@/store/cart";
+import { useWarehouse } from "@/store/warehouse";
+import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
 
 interface SiteHeaderProps {
   /** When provided, header renders the signed-in icon set (notifications + wishlist + cart + user). */
@@ -19,6 +22,11 @@ interface SiteHeaderProps {
 export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: SiteHeaderProps) {
   const cart = useCart();
   const cartBadge = cart.totalQty > 0 ? cart.totalQty : undefined;
+  
+  // Warehouse selector state
+  const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const userLocation = "Jl. Veteran, Kebomas Gresik";
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background">
       <div className="container mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:gap-6 lg:py-4">
@@ -81,12 +89,38 @@ export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: Site
       </div>
 
       <div className="border-t border-border/60 bg-background">
-        <div className="container mx-auto flex max-w-7xl items-center justify-end gap-2 px-4 py-2.5 text-sm text-foreground">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Kirim ke:</span>
-          <span className="font-medium">{shipTo}</span>
+        <div className="container mx-auto max-w-7xl px-4 py-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 text-sm text-foreground">
+            {/* Shipping Address */}
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Kirim ke:</span>
+              <span className="font-medium">{shipTo}</span>
+            </div>
+            
+            {/* Warehouse Selector */}
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Gudang Terdekat:</span>
+              <button
+                onClick={() => setIsWarehouseModalOpen(true)}
+                className="font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+              >
+                {selectedWarehouse?.name || "Pilih Gudang"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Warehouse Selector Modal */}
+      <WarehouseSelectorModal
+        open={isWarehouseModalOpen}
+        onOpenChange={setIsWarehouseModalOpen}
+        selectedWarehouse={selectedWarehouse}
+        onSelectWarehouse={setSelectedWarehouse}
+        userLocation={userLocation}
+      />
     </header>
   );
 }

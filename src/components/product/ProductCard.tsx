@@ -11,6 +11,7 @@ export interface Product {
   image: string;
   warehouse: string;
   rating?: number;
+  categorySlug?: string;
 }
 
 interface ProductCardProps {
