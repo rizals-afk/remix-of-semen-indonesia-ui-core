@@ -147,15 +147,13 @@ export function WarehouseSelectorModal({
         <div className="overflow-y-auto" style={{ maxHeight: "calc(90vh - 73px)" }}>
           {/* Leaflet Map - Client Only */}
           <div className="relative h-48">
-            <WarehouseMap>
-              <LeafletMap
-                warehouses={filteredWarehouses}
-                selectedWarehouse={selectedWarehouse}
-                highlightedWarehouseId={highlightedWarehouseId}
-                onWarehouseSelect={handleMapWarehouseSelect}
-                onWarehouseHighlight={handleMapWarehouseHighlight}
-              />
-            </WarehouseMap>
+            <WarehouseMap
+              warehouses={filteredWarehouses}
+              selectedWarehouse={selectedWarehouse}
+              highlightedWarehouseId={highlightedWarehouseId}
+              onWarehouseSelect={handleMapWarehouseSelect}
+              onWarehouseHighlight={handleMapWarehouseHighlight}
+            />
           </div>
 
           {/* Current Location Section */}
