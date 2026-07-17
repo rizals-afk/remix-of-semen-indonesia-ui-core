@@ -130,64 +130,90 @@ export function getProductPrice(
  * 2. Product media
  * 3. Placeholder
  */
-export function getProductImages(product: Product, variantId?: string): string[] {
-  console.log("getProductImages - product:", product);
-  console.log("getProductImages - variantId:", variantId);
-  
-  if (!product) return ["https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70"];
+/**
+ * Get product images with priority:
+ * 1. Selected variant media
+ * 2. Product media
+ * 3. Placeholder
+ */
+export function getProductImages(
+  product: Product,
+  variantId?: string
+): string[] {
+  const PLACEHOLDER =
+    "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70";
 
+  if (!product) {
+    return [PLACEHOLDER];
+  }
+
+  // Selected variant (or first variant)
   const variant = variantId
-    ? product.variants.find((v) => v.id === variantId)
-    : product.variants[0];
+    ? product.variants?.find((v) => String(v.id) === String(variantId))
+    : product.variants?.[0];
 
-  console.log("getProductImages - selected variant:", variant);
-  console.log("getProductImages - variant.media:", variant?.media);
+  console.log("Product:", product);
+  console.log("Variant:", variant);
 
-  // If variant has media, use it
-  if (variant && variant.media && variant.media.length > 0) {
-    const variantImages = variant.media.filter((m) => m.type === "image").map((m) => m.url);
-    console.log("getProductImages - returning variant images:", variantImages);
-    return variantImages;
+  // 1. Variant media
+  if (variant?.media?.length) {
+    const variantImages = variant.media
+      .map((media) => media.url)
+      .filter((url): url is string => Boolean(url));
+
+    console.log("Variant Images:", variantImages);
+
+    if (variantImages.length > 0) {
+      return variantImages;
+    }
   }
 
-  console.log("getProductImages - product.media:", product.media);
+  // 2. Product media
+  if (product.media?.length) {
+    const productImages = product.media
+      .map((media) => media.url)
+      .filter((url): url is string => Boolean(url));
 
-  // Otherwise use product media
-  if (product.media && product.media.length > 0) {
-    const productImages = product.media.filter((m) => m.type === "image").map((m) => m.url);
-    console.log("getProductImages - returning product images:", productImages);
-    return productImages;
+    console.log("Product Images:", productImages);
+
+    if (productImages.length > 0) {
+      return productImages;
+    }
   }
 
-  console.log("getProductImages - using placeholder");
-  // Fallback to placeholder
-  return ["https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70"];
+  // 3. Placeholder
+  console.log("Using placeholder");
+
+  return [PLACEHOLDER];
 }
 
 /**
  * Get first product image (for product card)
  * For product list: always use product media (not variant media)
  */
-export function getProductImage(product: Product, variantId?: string): string {
-  // For product list, always use product media (not variant media)
-  console.log("getProductImage - product.media:", product.media);
-  
-  if (product.media && product.media.length > 0) {
-    const imageMedia = product.media.filter((m) => m.type === "image");
-    console.log("getProductImage - imageMedia:", imageMedia);
-    
-    if (imageMedia.length > 0) {
-      // Use first image
-      const imageUrl = imageMedia[0].url;
-      console.log("getProductImage - returning:", imageUrl);
-      return imageUrl;
+/**
+ * Get first product image (used by Product Card)
+ * Product List always uses product.media
+ */
+export function getProductImage(product: Product): string {
+  const PLACEHOLDER =
+    "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70";
+
+  console.log("Product Media:", product.media);
+
+  if (product?.media?.length) {
+    const image = product.media.find((media) => !!media.url);
+
+    if (image?.url) {
+      console.log("Using image:", image.url);
+      return image.url;
     }
   }
 
-  console.log("getProductImage - using placeholder");
-  return "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70";
-}
+  console.log("Using placeholder");
 
+  return PLACEHOLDER;
+}
 /**
  * Transform API Product to ProductCard-compatible format
  */
@@ -213,7 +239,7 @@ export function transformProductToCard(
   branchId?: string
 ): ProductCardData {
   const price = getProductPrice(product, variantId, branchId);
-  const image = getProductImage(product, variantId);
+  const image = getProductImage(product);
 
   return {
     id: product.id,
