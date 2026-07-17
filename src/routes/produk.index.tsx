@@ -68,6 +68,7 @@ function ProductListingPage() {
           per_page: PAGE_SIZE,
           product_category_id: selectedCats.length > 0 ? selectedCats[0] : undefined,
           branch_id: selectedWarehouse?.id,
+          search: q || undefined,
         });
         
         console.log("Product List - API response:", response);
@@ -88,12 +89,15 @@ function ProductListingPage() {
     };
 
     loadProducts();
-  }, [page, selectedCats, selectedWarehouse]);
+  }, [page, selectedCats, selectedWarehouse, q]);
 
   // Initialize selected categories from URL and expand parent
   useEffect(() => {
-    if (category && !selectedCats.includes(category)) {
-      setSelectedCats([category]);
+    if (category) {
+      // URL has a category, ensure it's selected
+      if (!selectedCats.includes(category)) {
+        setSelectedCats([category]);
+      }
       // Find and expand parent category
       const findAndExpandParent = (nodes: CategoryNode[]): boolean => {
         for (const node of nodes) {
@@ -108,27 +112,33 @@ function ProductListingPage() {
         return false;
       };
       findAndExpandParent(categories);
-    } else if (!category && selectedCats.length > 0) {
-      setSelectedCats([]);
-      setExpandedCategories(new Set());
+    } else {
+      // URL has no category, ensure nothing is selected
+      if (selectedCats.length > 0) {
+        setSelectedCats([]);
+        setExpandedCategories(new Set());
+      }
     }
   }, [category, categories]);
 
   // Sync category selection changes to URL
   const handleToggleCategory = (id: string) => {
-    const newSelected = selectedCats.includes(id)
-      ? selectedCats.filter((s) => s !== id)
-      : [...selectedCats, id];
+    // Calculate new selection based on current URL state
+    const isCurrentlySelected = category === id;
+    const newCategory = isCurrentlySelected ? undefined : id;
     
-    setSelectedCats(newSelected);
-    
-    // Update URL - use the first selected category or clear if none
+    // Update URL - let useEffect handle state synchronization
     navigate({
-      search: (prev: z.infer<typeof searchSchema>) => (({
-        ...prev,
-        category: newSelected.length > 0 ? String(newSelected[0]) : undefined,
-        page: 1,
-      })),
+      search: (prev: z.infer<typeof searchSchema>) => {
+        const newSearch = { ...prev };
+        if (newCategory) {
+          newSearch.category = newCategory;
+        } else {
+          delete newSearch.category;
+        }
+        newSearch.page = 1;
+        return newSearch;
+      },
     });
   };
 

@@ -61,10 +61,11 @@ export interface FetchProductsParams {
   per_page?: number;
   product_category_id?: string;
   branch_id?: string; // Prepared for future use
+  search?: string;
 }
 
 export async function fetchProducts(params: FetchProductsParams = {}): Promise<ProductListResponse> {
-  const { page = 1, per_page = 9, product_category_id, branch_id } = params;
+  const { page = 1, per_page = 9, product_category_id, branch_id, search } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
@@ -76,6 +77,10 @@ export async function fetchProducts(params: FetchProductsParams = {}): Promise<P
 
   if (branch_id) {
     queryParams.append("branch_id", branch_id);
+  }
+
+  if (search) {
+    queryParams.append("search", search);
   }
 
   return apiFetch<ProductListResponse>(`/products?${queryParams.toString()}`);
