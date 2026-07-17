@@ -15,7 +15,7 @@ const searchSchema = z.object({
   q: z.string().optional(),
   page: z.coerce.number().int().min(1).optional(),
   sort: z.enum(["terbaru", "termurah", "termahal", "terlaris"]).optional(),
-  category: z.string().optional(),
+  category: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
 });
 
 export const Route = createFileRoute("/produk/")({
@@ -38,7 +38,6 @@ function ProductListingPage() {
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
@@ -66,7 +65,7 @@ function ProductListingPage() {
         const response = await fetchProducts({
           page,
           per_page: PAGE_SIZE,
-          product_category_id: selectedCats.length > 0 ? selectedCats[0] : undefined,
+          product_category_id: category,
           branch_id: selectedWarehouse?.id,
           search: q || undefined,
         });
@@ -89,15 +88,11 @@ function ProductListingPage() {
     };
 
     loadProducts();
-  }, [page, selectedCats, selectedWarehouse, q]);
+  }, [page, category, selectedWarehouse, q]);
 
-  // Initialize selected categories from URL and expand parent
+  // Expand parent category when category is selected
   useEffect(() => {
     if (category) {
-      // URL has a category, ensure it's selected
-      if (!selectedCats.includes(category)) {
-        setSelectedCats([category]);
-      }
       // Find and expand parent category
       const findAndExpandParent = (nodes: CategoryNode[]): boolean => {
         for (const node of nodes) {
@@ -113,21 +108,18 @@ function ProductListingPage() {
       };
       findAndExpandParent(categories);
     } else {
-      // URL has no category, ensure nothing is selected
-      if (selectedCats.length > 0) {
-        setSelectedCats([]);
-        setExpandedCategories(new Set());
-      }
+      // URL has no category, collapse all
+      setExpandedCategories(new Set());
     }
   }, [category, categories]);
 
   // Sync category selection changes to URL
   const handleToggleCategory = (id: string) => {
     // Calculate new selection based on current URL state
-    const isCurrentlySelected = category === id;
-    const newCategory = isCurrentlySelected ? undefined : id;
+    const isCurrentlySelected = String(category) === String(id);
+    const newCategory = isCurrentlySelected ? undefined : String(id);
     
-    // Update URL - let useEffect handle state synchronization
+    // Update URL
     navigate({
       search: (prev: z.infer<typeof searchSchema>) => {
         const newSearch = { ...prev };
@@ -163,7 +155,7 @@ function ProductListingPage() {
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
           <FilterSidebar
             categories={categories}
-            selected={selectedCats}
+            selected={category ? [String(category)] : []}
             onToggleCategory={handleToggleCategory}
             priceMin={0}
             priceMax={0}
