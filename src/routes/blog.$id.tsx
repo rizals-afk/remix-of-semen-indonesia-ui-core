@@ -75,6 +75,10 @@ function BlogDetailPage() {
 
         <Link
           to="/blog"
+          search={{
+            q: undefined,
+            page: 1,
+          }}
           className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80"
         >
           <ArrowLeft className="h-4 w-4" />
