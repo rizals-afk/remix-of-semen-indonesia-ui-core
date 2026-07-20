@@ -5,6 +5,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { BlogListCard } from "@/components/blog/BlogListCard";
 import { Pagination } from "@/components/common/Pagination";
 import { BLOG_POSTS } from "@/data/blog";
+import { getUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({ meta: [{ title: "Blog & Inspirasi — BahanMaterial.com" }] }),
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/blog/")({
 const PAGE_SIZE = 6;
 
 function BlogIndexPage() {
+  const user = getUser<{ name: string }>();
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
 
@@ -29,7 +31,7 @@ function BlogIndexPage() {
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+    <MainLayout user={user}>
       <section className="container mx-auto max-w-7xl px-4 py-10">
         <header className="mx-auto max-w-2xl text-center">
           <h1 className="text-3xl font-extrabold text-primary md:text-4xl">Blog &amp; Inspirasi</h1>

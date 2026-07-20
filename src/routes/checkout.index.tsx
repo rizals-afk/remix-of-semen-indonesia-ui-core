@@ -8,6 +8,7 @@ import { useCart } from "@/store/cart";
 import { useCheckout, type FulfillmentMode } from "@/store/checkout";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
+import { getUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/checkout/")({
   head: () => ({ meta: [{ title: "Checkout — BahanMaterial.com" }] }),
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/checkout/")({
 });
 
 function CheckoutPage() {
+  const user = getUser<{ name: string }>();
   const cart = useCart();
   const checkout = useCheckout();
   const navigate = useNavigate();
@@ -36,7 +38,7 @@ function CheckoutPage() {
 
   if (groups.length === 0) {
     return (
-      <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+      <MainLayout user={user}>
         <div className="container mx-auto max-w-3xl px-4 py-12 text-center">
           <h1 className="text-xl font-bold text-foreground">Belum ada produk dipilih</h1>
           <p className="mt-2 text-sm text-muted-foreground">Kembali ke keranjang untuk memilih produk.</p>
@@ -49,7 +51,7 @@ function CheckoutPage() {
   }
 
   return (
-    <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+    <MainLayout user={user}>
       <div className="border-b border-border bg-card">
         <div className="container mx-auto flex max-w-7xl items-center gap-4 px-4 py-5">
           <h1 className="text-2xl font-bold text-primary">Checkout</h1>

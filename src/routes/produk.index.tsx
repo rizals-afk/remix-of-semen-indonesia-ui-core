@@ -10,6 +10,7 @@ import { fetchCategories, buildCategoryTree } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import type { CategoryNode } from "@/lib/api/product-category";
 import { useWarehouse } from "@/store/warehouse";
+import { getUser } from "@/lib/auth";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -35,6 +36,7 @@ function ProductListingPage() {
   const { q = "", page = 1, sort = "terbaru", category } = Route.useSearch();
   const navigate = useNavigate({ from: "/produk/" });
   const { selectedWarehouse } = useWarehouse();
+  const user = getUser<{ name: string }>();
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -148,7 +150,7 @@ function ProductListingPage() {
   };
 
   return (
-    <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+    <MainLayout user={user}>
       <div className="container mx-auto max-w-7xl px-4 py-6">
         <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Produk" }]} />
 
