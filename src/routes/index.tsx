@@ -27,10 +27,11 @@ import { SectionTitle } from "@/components/common/SectionTitle";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { CategoryTile } from "@/components/product/CategoryTile";
 import { ProductCard } from "@/components/product/ProductCard";
-import { BLOG_POSTS, FEATURED_PRODUCTS } from "@/data/catalog";
+import { FEATURED_PRODUCTS } from "@/data/catalog";
 import { getUser } from "@/lib/auth";
 import { fetchCategories, getChildCategories } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
+import { fetchBlogs } from "@/lib/api/blog";
 import type { ProductCategory } from "@/lib/api/product-category";
 import { useWarehouse } from "@/store/warehouse";
 
@@ -76,14 +77,16 @@ function HomePage() {
   const { selectedWarehouse } = useWarehouse();
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [categoriesResponse, productsResponse] = await Promise.all([
+        const [categoriesResponse, productsResponse, blogsResponse] = await Promise.all([
           fetchCategories({ per_page: 999, page: 1 }),
           fetchProducts({ page: 1, per_page: 6, sort: "terlaris" }),
+          fetchBlogs({ page: 1, per_page: 3 }),
         ]);
         
         const childCategories = getChildCategories(categoriesResponse.data);
@@ -93,6 +96,8 @@ function HomePage() {
           transformProductToCard(product, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
         );
         setFeaturedProducts(transformedProducts);
+        
+        setBlogs(blogsResponse.data);
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
@@ -272,11 +277,26 @@ function HomePage() {
 
       {/* BLOG */}
       <section className="container mx-auto max-w-7xl px-4 py-12">
-        <SectionTitle>Blog & Inspirasi</SectionTitle>
+        <div className="flex items-center justify-between">
+          <SectionTitle>Blog & Inspirasi</SectionTitle>
+          <Link to="/blog" className="text-sm font-semibold text-primary hover:text-primary/80">
+            Selengkapnya →
+          </Link>
+        </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {BLOG_POSTS.map((post) => (
-            <BlogCard key={post.id} post={post} />
-          ))}
+          {loading ? (
+            [1, 2, 3].map((i) => (
+              <div key={i} className="aspect-[16/10] rounded-xl border border-border bg-muted animate-pulse" />
+            ))
+          ) : blogs.length > 0 ? (
+            blogs.map((blog) => (
+              <BlogCard key={blog.id} post={blog} />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-sm text-muted-foreground">
+              Tidak ada blog tersedia.
+            </div>
+          )}
         </div>
       </section>
     </MainLayout>

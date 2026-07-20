@@ -1,34 +1,72 @@
-import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { BlogListCard } from "@/components/blog/BlogListCard";
 import { Pagination } from "@/components/common/Pagination";
-import { BLOG_POSTS } from "@/data/blog";
+import { fetchBlogs } from "@/lib/api/blog";
 import { getUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/blog/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    q: typeof search.q === "string" ? search.q : undefined,
+    page: typeof search.page === "number" ? search.page : 1,
+  }),
   head: () => ({ meta: [{ title: "Blog & Inspirasi — BahanMaterial.com" }] }),
   component: BlogIndexPage,
 });
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 10;
 
 function BlogIndexPage() {
+  const { q = "", page = 1 } = Route.useSearch();
+  const navigate = useNavigate({ from: "/blog/" });
   const user = getUser<{ name: string }>();
-  const [q, setQ] = useState("");
-  const [page, setPage] = useState(1);
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const filtered = useMemo(() => {
-    if (!q.trim()) return BLOG_POSTS;
-    const k = q.toLowerCase();
-    return BLOG_POSTS.filter(
-      (p) => p.title.toLowerCase().includes(k) || p.excerpt.toLowerCase().includes(k),
-    );
-  }, [q]);
+  useEffect(() => {
+    const loadBlogs = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchBlogs({
+          page,
+          per_page: PAGE_SIZE,
+          search: q || undefined,
+        });
+        setBlogs(response.data);
+        setTotalPages(Math.max(1, Math.ceil(response.total / PAGE_SIZE)));
+      } catch (error) {
+        console.error("Failed to load blogs:", error);
+        setBlogs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    loadBlogs();
+  }, [page, q]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        q: q || undefined,
+        page: 1,
+      }),
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        page: newPage,
+      }),
+    });
+  };
 
   return (
     <MainLayout user={user}>
@@ -41,15 +79,21 @@ function BlogIndexPage() {
           </p>
 
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setPage(1);
-            }}
+            onSubmit={handleSearch}
             className="mt-6 flex w-full max-w-xl mx-auto overflow-hidden rounded-md border border-border bg-background"
           >
             <input
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    q: value || undefined,
+                    page: 1,
+                  }),
+                });
+              }}
               placeholder="Cari inspirasi material Anda"
               className="flex-1 px-4 py-3 text-sm focus:outline-none"
             />
@@ -64,14 +108,24 @@ function BlogIndexPage() {
         </header>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {pageItems.map((p) => (
-            <BlogListCard key={p.slug} post={p} />
-          ))}
+          {loading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-[16/10] rounded-2xl border border-border bg-muted animate-pulse" />
+            ))
+          ) : blogs.length > 0 ? (
+            blogs.map((blog) => (
+              <BlogListCard key={blog.id} post={blog} />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-sm text-muted-foreground">
+              {q ? "Tidak ada blog yang cocok dengan pencarian Anda." : "Tidak ada blog tersedia."}
+            </div>
+          )}
         </div>
 
-        {totalPages > 1 ? (
+        {!loading && totalPages > 1 ? (
           <div className="mt-10">
-            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+            <Pagination page={page} totalPages={totalPages} onChange={handlePageChange} />
           </div>
         ) : null}
       </section>
