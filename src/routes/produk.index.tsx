@@ -10,12 +10,13 @@ import { fetchCategories, buildCategoryTree } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import type { CategoryNode } from "@/lib/api/product-category";
 import { useWarehouse } from "@/store/warehouse";
+import { getUser } from "@/lib/auth";
 
 const searchSchema = z.object({
   q: z.string().optional(),
   page: z.coerce.number().int().min(1).optional(),
   sort: z.enum(["terbaru", "termurah", "termahal", "terlaris"]).optional(),
-  category: z.string().optional(),
+  category: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
 });
 
 export const Route = createFileRoute("/produk/")({
@@ -35,10 +36,10 @@ function ProductListingPage() {
   const { q = "", page = 1, sort = "terbaru", category } = Route.useSearch();
   const navigate = useNavigate({ from: "/produk/" });
   const { selectedWarehouse } = useWarehouse();
+  const user = getUser<{ name: string }>();
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [selectedCats, setSelectedCats] = useState<string[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
@@ -66,8 +67,10 @@ function ProductListingPage() {
         const response = await fetchProducts({
           page,
           per_page: PAGE_SIZE,
-          product_category_id: selectedCats.length > 0 ? selectedCats[0] : undefined,
+          product_category_id: category,
           branch_id: selectedWarehouse?.id,
+          search: q || undefined,
+          sort,
         });
         
         console.log("Product List - API response:", response);
@@ -88,12 +91,11 @@ function ProductListingPage() {
     };
 
     loadProducts();
-  }, [page, selectedCats, selectedWarehouse]);
+  }, [page, category, selectedWarehouse, q, sort]);
 
-  // Initialize selected categories from URL and expand parent
+  // Expand parent category when category is selected
   useEffect(() => {
-    if (category && !selectedCats.includes(category)) {
-      setSelectedCats([category]);
+    if (category) {
       // Find and expand parent category
       const findAndExpandParent = (nodes: CategoryNode[]): boolean => {
         for (const node of nodes) {
@@ -108,27 +110,30 @@ function ProductListingPage() {
         return false;
       };
       findAndExpandParent(categories);
-    } else if (!category && selectedCats.length > 0) {
-      setSelectedCats([]);
+    } else {
+      // URL has no category, collapse all
       setExpandedCategories(new Set());
     }
   }, [category, categories]);
 
   // Sync category selection changes to URL
   const handleToggleCategory = (id: string) => {
-    const newSelected = selectedCats.includes(id)
-      ? selectedCats.filter((s) => s !== id)
-      : [...selectedCats, id];
+    // Calculate new selection based on current URL state
+    const isCurrentlySelected = String(category) === String(id);
+    const newCategory = isCurrentlySelected ? undefined : String(id);
     
-    setSelectedCats(newSelected);
-    
-    // Update URL - use the first selected category or clear if none
+    // Update URL
     navigate({
-      search: (prev: z.infer<typeof searchSchema>) => (({
-        ...prev,
-        category: newSelected.length > 0 ? String(newSelected[0]) : undefined,
-        page: 1,
-      })),
+      search: (prev: z.infer<typeof searchSchema>) => {
+        const newSearch = { ...prev };
+        if (newCategory) {
+          newSearch.category = newCategory;
+        } else {
+          delete newSearch.category;
+        }
+        newSearch.page = 1;
+        return newSearch;
+      },
     });
   };
 
@@ -146,14 +151,14 @@ function ProductListingPage() {
   };
 
   return (
-    <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+    <MainLayout user={user}>
       <div className="container mx-auto max-w-7xl px-4 py-6">
         <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Produk" }]} />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
           <FilterSidebar
             categories={categories}
-            selected={selectedCats}
+            selected={category ? [String(category)] : []}
             onToggleCategory={handleToggleCategory}
             priceMin={0}
             priceMax={0}

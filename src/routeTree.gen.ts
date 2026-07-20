@@ -48,6 +48,7 @@ import { Route as CheckoutPembayaranRouteImport } from './routes/checkout.pembay
 import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
 import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as BlogIdRouteImport } from './routes/blog.$id'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google-callback'
 import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
 import { Route as AkunCekEmailRouteImport } from './routes/akun.cek-email'
@@ -253,6 +254,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogIdRoute = BlogIdRouteImport.update({
+  id: '/blog/$id',
+  path: '/blog/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   id: '/auth/google-callback',
   path: '/auth/google-callback',
@@ -320,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
+  '/blog/$id': typeof BlogIdRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
@@ -369,6 +376,7 @@ export interface FileRoutesByTo {
   '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
+  '/blog/$id': typeof BlogIdRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/akun/cek-email': typeof AkunCekEmailRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
+  '/blog/$id': typeof BlogIdRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/checkout/alamat': typeof CheckoutAlamatRoute
   '/checkout/gudang': typeof CheckoutGudangRoute
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/auth/google-callback'
+    | '/blog/$id'
     | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
@@ -521,6 +531,7 @@ export interface FileRouteTypes {
     | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/auth/google-callback'
+    | '/blog/$id'
     | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
@@ -571,6 +582,7 @@ export interface FileRouteTypes {
     | '/akun/cek-email'
     | '/akun/ubah-password'
     | '/auth/google-callback'
+    | '/blog/$id'
     | '/blog/$slug'
     | '/checkout/alamat'
     | '/checkout/gudang'
@@ -617,6 +629,7 @@ export interface RootRouteChildren {
   TentangRoute: typeof TentangRoute
   WishlistRoute: typeof WishlistRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
+  BlogIdRoute: typeof BlogIdRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CheckoutAlamatRoute: typeof CheckoutAlamatRoute
   CheckoutGudangRoute: typeof CheckoutGudangRoute
@@ -919,6 +932,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$id': {
+      id: '/blog/$id'
+      path: '/blog/$id'
+      fullPath: '/blog/$id'
+      preLoaderRoute: typeof BlogIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/google-callback': {
       id: '/auth/google-callback'
       path: '/auth/google-callback'
@@ -1025,6 +1045,7 @@ const rootRouteChildren: RootRouteChildren = {
   TentangRoute: TentangRoute,
   WishlistRoute: WishlistRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
+  BlogIdRoute: BlogIdRoute,
   BlogSlugRoute: BlogSlugRoute,
   CheckoutAlamatRoute: CheckoutAlamatRoute,
   CheckoutGudangRoute: CheckoutGudangRoute,

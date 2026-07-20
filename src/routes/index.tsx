@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import heroImage from "@/assets/hero-construction.jpg";
@@ -27,10 +27,13 @@ import { SectionTitle } from "@/components/common/SectionTitle";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { CategoryTile } from "@/components/product/CategoryTile";
 import { ProductCard } from "@/components/product/ProductCard";
-import { BLOG_POSTS, FEATURED_PRODUCTS } from "@/data/catalog";
+import { FEATURED_PRODUCTS } from "@/data/catalog";
 import { getUser } from "@/lib/auth";
 import { fetchCategories, getChildCategories } from "@/lib/api/product-category";
+import { fetchProducts, transformProductToCard } from "@/lib/api/product";
+import { fetchBlogs } from "@/lib/api/blog";
 import type { ProductCategory } from "@/lib/api/product-category";
+import { useWarehouse } from "@/store/warehouse";
 
 const CERITA = [
   { loc: "Gresik", img: cerita1 },
@@ -71,24 +74,39 @@ const TABS = ["Terlaris", "Promo Spesial", "Baru Masuk"] as const;
 
 function HomePage() {
   const user = getUser<{ name: string }>();
+  const { selectedWarehouse } = useWarehouse();
   const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadData = async () => {
       try {
-        const response = await fetchCategories({ per_page: 999, page: 1 });
-        const childCategories = getChildCategories(response.data);
+        const [categoriesResponse, productsResponse, blogsResponse] = await Promise.all([
+          fetchCategories({ per_page: 999, page: 1 }),
+          fetchProducts({ page: 1, per_page: 6, sort: "terlaris" }),
+          fetchBlogs({ page: 1, per_page: 3 }),
+        ]);
+        
+        const childCategories = getChildCategories(categoriesResponse.data);
         setCategories(childCategories);
+        
+        const transformedProducts = productsResponse.data.map((product) =>
+          transformProductToCard(product, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
+        );
+        setFeaturedProducts(transformedProducts);
+        
+        setBlogs(blogsResponse.data);
       } catch (error) {
-        console.error("Failed to load categories:", error);
+        console.error("Failed to load data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadCategories();
-  }, []);
+    loadData();
+  }, [selectedWarehouse]);
 
   return (
     <MainLayout user={user}>
@@ -161,7 +179,16 @@ function HomePage() {
 
       {/* MATERIAL PILIHAN */}
       <section className="container mx-auto max-w-7xl px-4 py-12">
-        <SectionTitle>Material Pilihan</SectionTitle>
+        <div className="flex items-center justify-between">
+          <SectionTitle>Material Pilihan</SectionTitle>
+          <Link
+            to="/produk"
+            search={{ sort: "terlaris" }}
+            className="text-sm font-semibold text-primary hover:text-primary/80"
+          >
+            Lihat Selengkapnya →
+          </Link>
+        </div>
         <div className="mt-6 flex items-center justify-center gap-8 border-b border-border">
           {TABS.map((tab, i) => (
             <button
@@ -179,9 +206,19 @@ function HomePage() {
           ))}
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURED_PRODUCTS.slice(0, 6).map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+          {loading ? (
+            [1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="aspect-[4/3] rounded-xl border border-border bg-muted animate-pulse" />
+            ))
+          ) : featuredProducts.length > 0 ? (
+            featuredProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-sm text-muted-foreground">
+              Tidak ada produk tersedia.
+            </div>
+          )}
         </div>
       </section>
 
@@ -240,11 +277,26 @@ function HomePage() {
 
       {/* BLOG */}
       <section className="container mx-auto max-w-7xl px-4 py-12">
-        <SectionTitle>Blog & Inspirasi</SectionTitle>
+        <div className="flex items-center justify-between">
+          <SectionTitle>Blog & Inspirasi</SectionTitle>
+          <Link to="/blog" className="text-sm font-semibold text-primary hover:text-primary/80">
+            Selengkapnya →
+          </Link>
+        </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {BLOG_POSTS.map((post) => (
-            <BlogCard key={post.id} post={post} />
-          ))}
+          {loading ? (
+            [1, 2, 3].map((i) => (
+              <div key={i} className="aspect-[16/10] rounded-xl border border-border bg-muted animate-pulse" />
+            ))
+          ) : blogs.length > 0 ? (
+            blogs.map((blog) => (
+              <BlogCard key={blog.id} post={blog} />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-sm text-muted-foreground">
+              Tidak ada blog tersedia.
+            </div>
+          )}
         </div>
       </section>
     </MainLayout>

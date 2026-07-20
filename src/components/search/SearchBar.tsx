@@ -1,6 +1,6 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -19,19 +19,45 @@ export function SearchBar({
 }: SearchBarProps) {
   const navigate = useNavigate();
   const [q, setQ] = useState(defaultValue);
+  
+  // Try to get search params from current route if on product page
+  try {
+    const search = useSearch({ from: "/produk/" });
+    useEffect(() => {
+      if (search && typeof search === 'object' && 'q' in search) {
+        setQ(search.q || "");
+      }
+    }, [search]);
+  } catch {
+    // Not on product page, use default value
+  }
+  
   return (
     <form
       role="search"
       onSubmit={(e) => {
         e.preventDefault();
-        navigate({ to: "/produk", search: { q } });
+        navigate({ 
+          to: "/produk", 
+          search: q ? { q } : undefined 
+        });
       }}
       className={`flex w-full items-stretch overflow-hidden rounded-md border border-border bg-background ${className}`}
     >
       <input
         type="search"
         value={q}
-        onChange={(e) => setQ(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          setQ(value);
+          // Immediately navigate when search becomes empty
+          if (!value) {
+            navigate({ 
+              to: "/produk", 
+              search: undefined 
+            });
+          }
+        }}
         placeholder={placeholder}
         className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
       />
