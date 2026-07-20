@@ -70,6 +70,7 @@ function ProductListingPage() {
           product_category_id: category,
           branch_id: selectedWarehouse?.id,
           search: q || undefined,
+          sort,
         });
         
         console.log("Product List - API response:", response);
@@ -90,7 +91,7 @@ function ProductListingPage() {
     };
 
     loadProducts();
-  }, [page, category, selectedWarehouse, q]);
+  }, [page, category, selectedWarehouse, q, sort]);
 
   // Expand parent category when category is selected
   useEffect(() => {
