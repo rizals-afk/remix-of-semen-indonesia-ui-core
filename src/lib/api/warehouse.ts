@@ -19,10 +19,12 @@ export interface FetchWarehousesParams {
   search?: string;
   per_page?: number;
   page?: number;
+  is_default?: boolean;
+  is_active?: boolean;
 }
 
 export async function fetchWarehouses(params: FetchWarehousesParams = {}): Promise<BranchListResponse> {
-  const { search = "", per_page = 999, page = 1 } = params;
+  const { search = "", per_page = 999, page = 1, is_default, is_active } = params;
   const queryParams = new URLSearchParams({
     per_page: per_page.toString(),
     page: page.toString(),
@@ -30,6 +32,14 @@ export async function fetchWarehouses(params: FetchWarehousesParams = {}): Promi
   
   if (search) {
     queryParams.append("search", search);
+  }
+
+  if (is_default !== undefined) {
+    queryParams.append("is_default", is_default.toString());
+  }
+
+  if (is_active !== undefined) {
+    queryParams.append("is_active", is_active.toString());
   }
 
   return apiFetch<BranchListResponse>(`/branches?${queryParams.toString()}`);
