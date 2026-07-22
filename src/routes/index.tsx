@@ -28,7 +28,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { CategoryTile } from "@/components/product/CategoryTile";
 import { ProductCard } from "@/components/product/ProductCard";
 import { FEATURED_PRODUCTS } from "@/data/catalog";
-import { getUser } from "@/lib/auth";
+import { getCurrentUserFromStorage } from "@/lib/auth";
 import { fetchCategories, getChildCategories } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import { fetchBlogs } from "@/lib/api/blog";
@@ -73,7 +73,7 @@ export const Route = createFileRoute("/")({
 const TABS = ["Terlaris", "Promo Spesial", "Baru Masuk"] as const;
 
 function HomePage() {
-  const user = getUser<{ name: string }>();
+  const user = getCurrentUserFromStorage();
   const { selectedWarehouse } = useWarehouse();
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);

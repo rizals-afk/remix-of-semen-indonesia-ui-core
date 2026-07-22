@@ -5,7 +5,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { BlogListCard } from "@/components/blog/BlogListCard";
 import { Pagination } from "@/components/common/Pagination";
 import { fetchBlogs } from "@/lib/api/blog";
-import { getUser } from "@/lib/auth";
+import { getCurrentUserFromStorage } from "@/lib/auth";
 
 export const Route = createFileRoute("/blog/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -21,7 +21,7 @@ const PAGE_SIZE = 10;
 function BlogIndexPage() {
   const { q = "", page = 1 } = Route.useSearch();
   const navigate = useNavigate({ from: "/blog/" });
-  const user = getUser<{ name: string }>();
+  const user = getCurrentUserFromStorage();
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);

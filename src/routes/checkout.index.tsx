@@ -8,7 +8,7 @@ import { useCart } from "@/store/cart";
 import { useCheckout, type FulfillmentMode } from "@/store/checkout";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
-import { getUser } from "@/lib/auth";
+import { getCurrentUserFromStorage } from "@/lib/auth";
 
 export const Route = createFileRoute("/checkout/")({
   head: () => ({ meta: [{ title: "Checkout — BahanMaterial.com" }] }),
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/checkout/")({
 });
 
 function CheckoutPage() {
-  const user = getUser<{ name: string }>();
+  const user = getCurrentUserFromStorage();
   const cart = useCart();
   const checkout = useCheckout();
   const navigate = useNavigate();

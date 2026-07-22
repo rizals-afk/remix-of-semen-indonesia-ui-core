@@ -18,6 +18,7 @@ import { fetchProductById, getProductPrice, getProductImages, transformProductTo
 import { fetchProducts } from "@/lib/api/product";
 import type { Product } from "@/lib/api/product";
 import { formatRupiah } from "@/lib/format";
+import { getCurrentUserFromStorage } from "@/lib/auth";
 
 export const Route = createFileRoute("/produk/$slug")({
   component: ProductDetailPage,
@@ -29,6 +30,7 @@ type Tab = (typeof TABS)[number];
 function ProductDetailPage() {
   const { slug } = Route.useParams();
   const { selectedWarehouse } = useWarehouse();
+  const user = getCurrentUserFromStorage();
   const [tab, setTab] = useState<Tab>("Deskripsi");
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [qty, setQty] = useState(200);
@@ -104,7 +106,7 @@ function ProductDetailPage() {
 
   if (loading || !product) {
     return (
-      <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+      <MainLayout user={user}>
         <div className="container mx-auto max-w-7xl px-4 py-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
             <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
@@ -123,7 +125,7 @@ function ProductDetailPage() {
   }
 
   return (
-    <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+    <MainLayout user={user}>
       <div className="container mx-auto max-w-7xl px-4 py-6">
         <Breadcrumbs
           items={[

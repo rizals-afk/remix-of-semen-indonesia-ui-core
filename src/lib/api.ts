@@ -34,9 +34,15 @@ export async function apiFetch<T = unknown>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
+  const url = `${API_BASE_URL}${path}`;
+  console.log(`[API] ${init.method || "GET"} ${url}`);
+  if (init.body) {
+    console.log(`[API] Body:`, init.body);
+  }
+
   let res: Response;
   try {
-    res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+    res = await fetch(url, { ...init, headers });
   } catch (err) {
     throw new ApiError(
       "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.",
@@ -54,6 +60,8 @@ export async function apiFetch<T = unknown>(
       data = text;
     }
   }
+
+  console.log(`[API] Response ${res.status}:`, data);
 
   if (!res.ok) {
     let message: string | undefined;
