@@ -37,7 +37,7 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchWarehouses({ per_page: 999, page: 1 });
+        const response = await fetchWarehouses({ per_page: 999, page: 1, is_active: true });
         setWarehouses(response.data);
         setFilteredWarehouses(response.data);
       } catch (err) {
@@ -62,7 +62,8 @@ export function WarehouseSelectorModal({
         const response = await fetchWarehouses({ 
           search: searchQuery, 
           per_page: 999, 
-          page: 1 
+          page: 1,
+          is_active: true
         });
         setFilteredWarehouses(response.data);
       } catch (err) {
@@ -91,7 +92,7 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchWarehouses({ per_page: 999, page: 1, search: searchQuery });
+        const response = await fetchWarehouses({ per_page: 999, page: 1, search: searchQuery, is_active: true });
         setWarehouses(response.data);
         setFilteredWarehouses(response.data);
       } catch (err) {
