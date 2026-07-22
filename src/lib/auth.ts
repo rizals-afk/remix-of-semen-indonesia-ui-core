@@ -22,6 +22,7 @@ export interface SignupPayload {
   email: string;
   password: string;
   password_confirmation: string;
+  customer_type: string;
 }
 
 export interface ActivateAccountPayload {

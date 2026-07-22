@@ -36,7 +36,7 @@ function AccountCheckEmailPage() {
             atau folder spam, lalu klik link tersebut untuk mengaktifkan akun.
           </p>
 
-          <div className="mt-10 w-full max-w-md space-y-3">
+          {/*<div className="mt-10 w-full max-w-md space-y-3">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Simulasi klik link dari email
             </p>
@@ -54,7 +54,7 @@ function AccountCheckEmailPage() {
               <XCircle className="h-5 w-5" />
               Aktivasi Gagal / Expired
             </Link>
-          </div>
+          </div>*/}
         </div>
       </div>
     </div>

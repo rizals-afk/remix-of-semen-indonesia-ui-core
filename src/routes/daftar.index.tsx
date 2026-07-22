@@ -67,6 +67,7 @@ function SignUpPage() {
                 email,
                 password,
                 password_confirmation: passwordConfirmation,
+                customer_type: "standart",
               });
               toast.success("Pendaftaran berhasil! Silakan cek email Anda.");
               await navigate({ to: "/akun/cek-email" });

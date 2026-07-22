@@ -36,7 +36,7 @@ function ResetCheckEmailPage() {
             membuat password baru.
           </p>
 
-          <div className="mt-10 w-full max-w-md space-y-3">
+          {/*<div className="mt-10 w-full max-w-md space-y-3">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Simulasi klik link dari email
             </p>
@@ -48,7 +48,7 @@ function ResetCheckEmailPage() {
               <KeyRound className="h-5 w-5" />
               Buat Password Baru
             </Link>
-          </div>
+          </div>*/}
         </div>
       </div>
     </div>

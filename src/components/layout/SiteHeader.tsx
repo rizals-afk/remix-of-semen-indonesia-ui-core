@@ -67,9 +67,6 @@ export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: Site
               <IconButton label="Notifikasi" to="/notifikasi">
                 <Bell className="h-5 w-5" />
               </IconButton>
-              <IconButton label="Pesan" to="/pesan">
-                <MessageSquare className="h-5 w-5" />
-              </IconButton>
               <div className="hidden h-6 w-px bg-border lg:block" />
               <Link
                 to="/masuk"
