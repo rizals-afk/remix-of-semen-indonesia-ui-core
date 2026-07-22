@@ -160,3 +160,10 @@ export function loginWithGoogle() {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://52c2-182-8-99-17.ngrok-free.app/api";
   window.location.href = `${baseUrl}/auth/google`;
 }
+
+/**
+ * Get current user from localStorage
+ */
+export function getCurrentUserFromStorage(): { name: string } | null {
+  return getUser<{ name: string }>();
+}
