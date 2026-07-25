@@ -6,6 +6,7 @@ export interface Warehouse {
   address: string;
   lat?: number;
   long?: number;
+  is_default?: boolean;
 }
 
 export interface BranchListResponse {

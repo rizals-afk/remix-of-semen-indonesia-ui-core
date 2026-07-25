@@ -85,7 +85,7 @@ function HomePage() {
       try {
         const [categoriesResponse, productsResponse, blogsResponse] = await Promise.all([
           fetchCategories({ per_page: 999, page: 1 }),
-          fetchProducts({ page: 1, per_page: 6, sort: "terlaris" }),
+          fetchProducts({ page: 1, per_page: 6, sort: "terlaris", branch_id: selectedWarehouse?.id }),
           fetchBlogs({ page: 1, per_page: 3 }),
         ]);
         
