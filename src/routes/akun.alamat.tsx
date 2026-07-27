@@ -8,11 +8,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { ADDRESSES, type Address } from "@/data/shopping";
 
-const AddressMap = lazy(() => import("@/components/account/AddressMap"));
+const SearchableAddressMap = lazy(() => import("@/components/account/SearchableAddressMap"));
 
 export const Route = createFileRoute("/akun/alamat")({
   head: () => ({ meta: [{ title: "Alamat Pengiriman — BahanMaterial.com" }] }),
@@ -161,12 +162,12 @@ function AlamatPage() {
       </ul>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b border-border">
             <DialogTitle>{form.id ? "Ubah Alamat" : "Alamat Baru"}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-sm font-medium">Nama Lengkap</label>
@@ -212,25 +213,31 @@ function AlamatPage() {
                 {mapReady ? (
                   <Suspense
                     fallback={
-                      <div className="grid h-[260px] place-items-center text-sm text-muted-foreground">
+                      <div className="grid h-56 place-items-center text-sm text-muted-foreground">
                         Memuat peta…
                       </div>
                     }
                   >
-                    <AddressMap
+                    <SearchableAddressMap
+                      height="240px"
                       lat={form.lat}
                       lng={form.lng}
-                      onChange={(lat, lng) => setForm((f) => ({ ...f, lat, lng }))}
+                      onChange={(lat: number, lng: number, address?: string) => {
+                        setForm((f) => ({ ...f, lat, lng }));
+                        if (address) {
+                          setForm((f) => ({ ...f, street: address }));
+                        }
+                      }}
                     />
                   </Suspense>
                 ) : (
-                  <div className="grid h-[260px] place-items-center text-sm text-muted-foreground">
+                  <div className="grid h-56 place-items-center text-sm text-muted-foreground">
                     Memuat peta…
                   </div>
                 )}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Klik atau geser pin untuk menyesuaikan titik.
+                Klik, geser pin, atau cari lokasi untuk menyesuaikan titik.
               </p>
             </div>
 
@@ -241,13 +248,20 @@ function AlamatPage() {
                 onCheckedChange={(v) => setForm({ ...form, isPrimary: v })}
               />
             </div>
-
-            <div className="flex justify-end pt-2">
-              <Button onClick={save} className="h-11 px-8 text-sm font-bold">
-                Simpan
-              </Button>
-            </div>
           </div>
+
+          <DialogFooter className="px-6 py-4 border-t border-border">
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              className="h-11 px-6 text-sm font-bold"
+            >
+              Batal
+            </Button>
+            <Button onClick={save} className="h-11 px-8 text-sm font-bold">
+              Simpan
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </section>
