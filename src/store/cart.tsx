@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { DEMO_CART, type CartProduct } from "@/data/shopping";
+import { fetchCart, addToCart, fetchCartCount, type CartItem } from "@/lib/api/cart";
+import { getToken } from "@/lib/auth";
 
 export interface CartWarehouseGroup {
   warehouse: string;
@@ -20,7 +22,8 @@ interface CartContextValue {
   totalSelected: number;
   subTotal: number;
   totalTonase: number;
-  addItem: (item: CartProduct) => void;
+  cartCount: number;
+  addItem: (item: CartProduct, productId?: number, variantId?: number, branchId?: number) => Promise<void>;
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
   toggleSelect: (id: string) => void;
@@ -33,9 +36,25 @@ const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "bm_cart_v2";
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartProduct[]>(DEMO_CART);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(DEMO_CART.map((i) => i.id)));
+  const [items, setItems] = useState<CartProduct[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [cartCount, setCartCount] = useState<number>(0);
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
+  // Transform API cart item to CartProduct format
+  const transformApiItemToCartProduct = (item: CartItem): CartProduct => ({
+    id: String(item.id),
+    name: item.product.name,
+    price: item.price,
+    qty: item.qty,
+    warehouse: item.branch.name,
+    image: item.product.photo || "",
+    weightKg: parseFloat(item.product_variant.weight) || 0,
+    unit: "Sak", // Default unit
+    variant: item.product_variant.variant_name,
+  });
+
+  // Load cart from localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -46,6 +65,48 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (parsed.selected) setSelectedIds(new Set(parsed.selected));
       }
     } catch { /* ignore */ }
+    setHasLoadedFromStorage(true);
+  }, []);
+
+  // Load cart from API when user is authenticated
+  useEffect(() => {
+    if (!hasLoadedFromStorage) return;
+
+    const loadCartFromApi = async () => {
+      const token = getToken();
+      if (!token) return;
+
+      try {
+        const response = await fetchCart({ page: 1, per_page: 100 });
+        const cartItems = response.data.map(transformApiItemToCartProduct);
+        setItems(cartItems);
+        setSelectedIds(new Set(cartItems.map((i) => i.id)));
+      } catch (error) {
+        console.error("Failed to load cart from API:", error);
+        // Fall back to demo cart if API fails
+        setItems(DEMO_CART);
+        setSelectedIds(new Set(DEMO_CART.map((i) => i.id)));
+      }
+    };
+
+    loadCartFromApi();
+  }, [hasLoadedFromStorage]);
+
+  // Load cart count from API
+  useEffect(() => {
+    const loadCartCount = async () => {
+      const token = getToken();
+      if (!token) return;
+
+      try {
+        const response = await fetchCartCount();
+        setCartCount(response.count);
+      } catch (error) {
+        console.error("Failed to load cart count from API:", error);
+      }
+    };
+
+    loadCartCount();
   }, []);
 
   useEffect(() => {
@@ -53,13 +114,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, selected: Array.from(selectedIds) }));
   }, [items, selectedIds]);
 
-  const addItem = useCallback((item: CartProduct) => {
+  const addItem = useCallback(async (item: CartProduct, productId?: number, variantId?: number, branchId?: number) => {
+    // Update local state immediately for responsiveness
     setItems((prev) => {
       const existing = prev.find((p) => p.id === item.id);
       if (existing) return prev.map((p) => (p.id === item.id ? { ...p, qty: p.qty + item.qty } : p));
       return [...prev, item];
     });
     setSelectedIds((s) => new Set(s).add(item.id));
+
+    // Call API if user is authenticated and required params are provided
+    const token = getToken();
+    if (token && productId && variantId) {
+      try {
+        await addToCart({
+          product_id: productId,
+          product_variant_id: variantId,
+          branch_id: branchId,
+          qty: item.qty,
+        });
+      } catch (error) {
+        console.error("Failed to add item to cart via API:", error);
+      }
+    }
   }, []);
 
   const removeItem = useCallback((id: string) => {
@@ -125,6 +202,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       totalSelected: selectedItems.length,
       subTotal: selectedItems.reduce((s, i) => s + i.qty * i.price, 0),
       totalTonase: selectedItems.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0) / 1000,
+      cartCount,
       addItem, removeItem, updateQty, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected,
     };
   }, [items, selectedIds, addItem, removeItem, updateQty, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected]);

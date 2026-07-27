@@ -21,7 +21,7 @@ interface SiteHeaderProps {
  */
 export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: SiteHeaderProps) {
   const cart = useCart();
-  const cartBadge = cart.totalQty > 0 ? cart.totalQty : undefined;
+  const cartBadge = cart.cartCount > 0 ? cart.cartCount : undefined;
   
   // Warehouse selector state
   const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();

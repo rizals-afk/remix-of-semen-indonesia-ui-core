@@ -5,6 +5,7 @@ import { CartWarehouseGroupCard } from "@/components/cart/CartWarehouseGroupCard
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useCart } from "@/store/cart";
 import { formatRupiah } from "@/lib/format";
+import { getCurrentUserFromStorage } from "@/lib/auth";
 
 export const Route = createFileRoute("/keranjang")({
   head: () => ({ meta: [{ title: "Keranjang Belanja — BahanMaterial.com" }] }),
@@ -14,10 +15,11 @@ export const Route = createFileRoute("/keranjang")({
 function CartPage() {
   const cart = useCart();
   const navigate = useNavigate();
+  const user = getCurrentUserFromStorage();
   const allSelected = cart.items.length > 0 && cart.selectedIds.size === cart.items.length;
 
   return (
-    <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+    <MainLayout user={user}>
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-2xl font-bold text-primary">Keranjang</h1>
 

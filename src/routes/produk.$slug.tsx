@@ -89,9 +89,9 @@ function ProductDetailPage() {
   const images = product ? getProductImages(product, selectedVariantId) : [];
   const subTotal = price ? qty * price : 0;
 
-  const addToCart = () => {
+  const addToCart = async () => {
     if (!product || !price) return;
-    cart.addItem({
+    await cart.addItem({
       id: product.id,
       name: product.name + (selectedVariant?.name ? ` ${selectedVariant.name}` : ""),
       price,
@@ -99,7 +99,7 @@ function ProductDetailPage() {
       warehouse: selectedWarehouse?.name || "Gudang Utama",
       qty,
       unit: "Sak",
-    });
+    }, parseInt(product.id), selectedVariantId ? parseInt(selectedVariantId) : undefined, selectedWarehouse?.id ? parseInt(selectedWarehouse.id) : undefined);
   };
 
   const buyNow = () => { addToCart(); navigate({ to: "/keranjang" }); };

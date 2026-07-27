@@ -10,7 +10,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { ADDRESSES, type Address } from "@/data/shopping";
+import { type Address } from "@/data/shopping";
+import {
+  fetchCustomerLocations,
+  createCustomerLocation,
+  updateCustomerLocation,
+  deleteCustomerLocation,
+  type CustomerLocation,
+} from "@/lib/api/customer-location";
+import { getToken } from "@/lib/auth";
 
 const AddressMap = lazy(() => import("@/components/account/AddressMap"));
 
@@ -41,11 +49,46 @@ const EMPTY_FORM: AddressForm = {
 };
 
 function AlamatPage() {
-  const [addresses, setAddresses] = useState<Address[]>(ADDRESSES);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<AddressForm>(EMPTY_FORM);
   const [mapReady, setMapReady] = useState(false);
+
+  // Transform CustomerLocation to Address format
+  const transformToAddress = (loc: CustomerLocation): Address => ({
+    id: loc.id,
+    label: loc.name || "Alamat",
+    recipient: loc.name,
+    phone: loc.phone,
+    address: loc.address,
+    city: "",
+    isPrimary: loc.is_default,
+  });
+
+  // Load addresses from API
+  useEffect(() => {
+    const loadAddresses = async () => {
+      const token = getToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetchCustomerLocations({ page: 1, per_page: 100 });
+        const transformed = response.data.map(transformToAddress);
+        setAddresses(transformed);
+      } catch (error) {
+        console.error("Failed to load addresses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAddresses();
+  }, []);
 
   useEffect(() => {
     if (open) setMapReady(true);
@@ -81,26 +124,52 @@ function AlamatPage() {
     setOpen(true);
   };
 
-  const save = () => {
-    setAddresses((prev) => {
-      const next: Address = {
-        id: form.id ?? `addr-${Date.now()}`,
-        label: form.recipient || "Alamat",
-        recipient: form.recipient,
-        phone: form.phone,
-        address: form.street,
-        city: form.region,
-        isPrimary: form.isPrimary,
-      };
-      let list = form.id
-        ? prev.map((a) => (a.id === form.id ? next : a))
-        : [...prev, next];
-      if (form.isPrimary) {
-        list = list.map((a) => ({ ...a, isPrimary: a.id === next.id }));
+  const save = async () => {
+    try {
+      if (form.id) {
+        // Update existing
+        await updateCustomerLocation(form.id, {
+          name: form.recipient,
+          phone: form.phone,
+          address: form.street,
+          is_default: form.isPrimary,
+          lat: form.lat,
+          long: form.lng,
+        });
+      } else {
+        // Create new
+        await createCustomerLocation({
+          name: form.recipient,
+          phone: form.phone,
+          address: form.street,
+          is_default: form.isPrimary,
+          lat: form.lat,
+          long: form.lng,
+        });
       }
-      return list;
-    });
-    setOpen(false);
+
+      // Reload addresses after save
+      const response = await fetchCustomerLocations({ page: 1, per_page: 100 });
+      const transformed = response.data.map(transformToAddress);
+      setAddresses(transformed);
+      setOpen(false);
+    } catch (error) {
+      console.error("Failed to save address:", error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus alamat ini?")) return;
+
+    try {
+      await deleteCustomerLocation(id);
+      // Reload addresses after delete
+      const response = await fetchCustomerLocations({ page: 1, per_page: 100 });
+      const transformed = response.data.map(transformToAddress);
+      setAddresses(transformed);
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+    }
   };
 
   return (
@@ -126,7 +195,11 @@ function AlamatPage() {
       </div>
 
       <ul className="mt-6 divide-y divide-border">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <li className="py-10 text-center text-sm text-muted-foreground">
+            Memuat alamat...
+          </li>
+        ) : filtered.length === 0 ? (
           <li className="py-10 text-center text-sm text-muted-foreground">
             Tidak ada alamat yang cocok.
           </li>
@@ -148,13 +221,22 @@ function AlamatPage() {
                   </span>
                 ) : null}
               </div>
-              <button
-                type="button"
-                onClick={() => openEdit(a)}
-                className="shrink-0 text-sm font-bold text-primary hover:underline"
-              >
-                Ubah
-              </button>
+              <div className="flex shrink-0 gap-3">
+                <button
+                  type="button"
+                  onClick={() => openEdit(a)}
+                  className="text-sm font-bold text-primary hover:underline"
+                >
+                  Ubah
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(a.id)}
+                  className="text-sm font-bold text-destructive hover:underline"
+                >
+                  Hapus
+                </button>
+              </div>
             </li>
           ))
         )}
