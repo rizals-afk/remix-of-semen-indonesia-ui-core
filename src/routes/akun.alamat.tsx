@@ -1,26 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, Trash2, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { type Address } from "@/data/shopping";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useCustomerLocation } from "@/store/customer-location";
+import type { CustomerLocation } from "@/lib/api/customer-location";
 import {
-  fetchCustomerLocations,
-  createCustomerLocation,
-  updateCustomerLocation,
   deleteCustomerLocation,
-  type CustomerLocation,
+  fetchCustomerLocations,
 } from "@/lib/api/customer-location";
-import { getToken } from "@/lib/auth";
-
-const AddressMap = lazy(() => import("@/components/account/AddressMap"));
+import { toast } from "sonner";
+import { AddressModal } from "@/components/account/AddressModal";
 
 export const Route = createFileRoute("/akun/alamat")({
   head: () => ({ meta: [{ title: "Alamat Pengiriman — BahanMaterial.com" }] }),
@@ -49,127 +49,90 @@ const EMPTY_FORM: AddressForm = {
 };
 
 function AlamatPage() {
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { locations, isLoading, refreshLocations, selectedLocation, setSelectedLocation } = useCustomerLocation();
   const [query, setQuery] = useState("");
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<AddressForm>(EMPTY_FORM);
-  const [mapReady, setMapReady] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [addressToEdit, setAddressToEdit] = useState<CustomerLocation | null>(null);
+  const [searchResults, setSearchResults] = useState<CustomerLocation[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState<CustomerLocation | null>(null);
 
-  // Transform CustomerLocation to Address format
-  const transformToAddress = (loc: CustomerLocation): Address => ({
-    id: loc.id,
-    label: loc.name || "Alamat",
-    recipient: loc.name,
-    phone: loc.phone,
-    address: loc.address,
-    city: "",
-    isPrimary: loc.is_default,
-  });
-
-  // Load addresses from API
+  // Debounced search
   useEffect(() => {
-    const loadAddresses = async () => {
-      const token = getToken();
-      if (!token) {
-        setLoading(false);
+    const timer = setTimeout(async () => {
+      if (!query.trim()) {
+        setSearchResults(locations);
         return;
       }
 
+      setIsSearching(true);
       try {
-        const response = await fetchCustomerLocations({ page: 1, per_page: 100 });
-        const transformed = response.data.map(transformToAddress);
-        setAddresses(transformed);
+        const response = await fetchCustomerLocations({ search: query, per_page: 999, page: 1 });
+        setSearchResults(response.data);
       } catch (error) {
-        console.error("Failed to load addresses:", error);
+        console.error("Search error:", error);
+        setSearchResults([]);
       } finally {
-        setLoading(false);
+        setIsSearching(false);
       }
-    };
+    }, 400);
 
-    loadAddresses();
-  }, []);
+    return () => clearTimeout(timer);
+  }, [query, locations]);
 
+  // Initialize search results with all locations
   useEffect(() => {
-    if (open) setMapReady(true);
-  }, [open]);
+    setSearchResults(locations);
+  }, [locations]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return addresses;
-    return addresses.filter((a) =>
-      [a.label, a.recipient, a.phone, a.address, a.city]
-        .join(" ")
-        .toLowerCase()
-        .includes(q),
-    );
-  }, [addresses, query]);
+    if (!query.trim()) return locations;
+    return searchResults;
+  }, [query, searchResults, locations]);
 
   const openCreate = () => {
-    setForm(EMPTY_FORM);
-    setOpen(true);
+    setAddressToEdit(null);
+    setModalOpen(true);
   };
 
-  const openEdit = (a: Address) => {
-    setForm({
-      id: a.id,
-      recipient: a.recipient,
-      phone: a.phone,
-      region: a.city,
-      street: a.address,
-      lat: -7.2504,
-      lng: 112.7688,
-      isPrimary: !!a.isPrimary,
-    });
-    setOpen(true);
-  };
-
-  const save = async () => {
-    try {
-      if (form.id) {
-        // Update existing
-        await updateCustomerLocation(form.id, {
-          name: form.recipient,
-          phone: form.phone,
-          address: form.street,
-          is_default: form.isPrimary,
-          lat: form.lat,
-          long: form.lng,
-        });
-      } else {
-        // Create new
-        await createCustomerLocation({
-          name: form.recipient,
-          phone: form.phone,
-          address: form.street,
-          is_default: form.isPrimary,
-          lat: form.lat,
-          long: form.lng,
-        });
-      }
-
-      // Reload addresses after save
-      const response = await fetchCustomerLocations({ page: 1, per_page: 100 });
-      const transformed = response.data.map(transformToAddress);
-      setAddresses(transformed);
-      setOpen(false);
-    } catch (error) {
-      console.error("Failed to save address:", error);
-    }
+  const openEdit = (a: CustomerLocation) => {
+    setAddressToEdit(a);
+    setModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus alamat ini?")) return;
+    const address = locations.find((a) => a.id === id);
+    if (address) {
+      setAddressToDelete(address);
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!addressToDelete) return;
 
     try {
-      await deleteCustomerLocation(id);
-      // Reload addresses after delete
-      const response = await fetchCustomerLocations({ page: 1, per_page: 100 });
-      const transformed = response.data.map(transformToAddress);
-      setAddresses(transformed);
+      await deleteCustomerLocation(addressToDelete.id);
+      toast.success("Alamat berhasil dihapus");
+      
+      // If the deleted address was currently selected, select default or first
+      if (selectedLocation?.id === addressToDelete.id) {
+        await refreshLocations();
+      } else {
+        await refreshLocations();
+      }
+      
+      setDeleteDialogOpen(false);
+      setAddressToDelete(null);
     } catch (error) {
-      console.error("Failed to delete address:", error);
+      console.error("Delete error:", error);
+      toast.error("Gagal menghapus alamat");
     }
+  };
+
+  const save = async () => {
+    // This is now handled by AddressModal
   };
 
   return (
@@ -195,33 +158,43 @@ function AlamatPage() {
       </div>
 
       <ul className="mt-6 divide-y divide-border">
-        {loading ? (
+        {isLoading ? (
           <li className="py-10 text-center text-sm text-muted-foreground">
-            Memuat alamat...
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Memuat alamat...</span>
+            </div>
           </li>
         ) : filtered.length === 0 ? (
           <li className="py-10 text-center text-sm text-muted-foreground">
-            Tidak ada alamat yang cocok.
+            {query ? (
+              <p>Tidak ada alamat yang cocok dengan pencarian.</p>
+            ) : (
+              <div className="space-y-3">
+                <p>Belum ada alamat tersimpan.</p>
+                <Button onClick={openCreate} className="h-9 px-4 text-sm">
+                  Tambah Alamat
+                </Button>
+              </div>
+            )}
           </li>
         ) : (
           filtered.map((a) => (
             <li key={a.id} className="flex items-start justify-between gap-4 py-5">
               <div className="min-w-0">
                 <p className="text-sm">
-                  <span className="font-bold text-foreground">{a.recipient}</span>
+                  <span className="font-bold text-foreground">{a.name}</span>
                   <span className="mx-2 text-muted-foreground">|</span>
                   <span className="text-foreground">{a.phone}</span>
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {a.address}, {a.city}
-                </p>
-                {a.isPrimary ? (
+                <p className="mt-1 text-sm text-muted-foreground">{a.address}</p>
+                {a.is_default ? (
                   <span className="mt-2 inline-block rounded bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary">
-                    Utama
+                    Alamat Utama
                   </span>
                 ) : null}
               </div>
-              <div className="flex shrink-0 gap-3">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => openEdit(a)}
@@ -234,7 +207,7 @@ function AlamatPage() {
                   onClick={() => handleDelete(a.id)}
                   className="text-sm font-bold text-destructive hover:underline"
                 >
-                  Hapus
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </li>
@@ -242,96 +215,28 @@ function AlamatPage() {
         )}
       </ul>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{form.id ? "Ubah Alamat" : "Alamat Baru"}</DialogTitle>
-          </DialogHeader>
+      <AddressModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        addressToEdit={addressToEdit}
+        onSuccess={refreshLocations}
+      />
 
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium">Nama Lengkap</label>
-                <Input
-                  value={form.recipient}
-                  onChange={(e) => setForm({ ...form, recipient: e.target.value })}
-                  className="h-11"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">Nomor Telepon</label>
-                <Input
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="h-11"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">
-                Provinsi, Kota, Kecamatan, Kode Pos
-              </label>
-              <Input
-                value={form.region}
-                onChange={(e) => setForm({ ...form, region: e.target.value })}
-                className="h-11"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">Nama Jalan, Gedung</label>
-              <Input
-                value={form.street}
-                onChange={(e) => setForm({ ...form, street: e.target.value })}
-                className="h-11"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium">Titik Lokasi</label>
-              <div className="overflow-hidden rounded-md border border-border">
-                {mapReady ? (
-                  <Suspense
-                    fallback={
-                      <div className="grid h-[260px] place-items-center text-sm text-muted-foreground">
-                        Memuat peta…
-                      </div>
-                    }
-                  >
-                    <AddressMap
-                      lat={form.lat}
-                      lng={form.lng}
-                      onChange={(lat, lng) => setForm((f) => ({ ...f, lat, lng }))}
-                    />
-                  </Suspense>
-                ) : (
-                  <div className="grid h-[260px] place-items-center text-sm text-muted-foreground">
-                    Memuat peta…
-                  </div>
-                )}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Klik atau geser pin untuk menyesuaikan titik.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-sm font-medium">Atur sebagai Alamat Utama</span>
-              <Switch
-                checked={form.isPrimary}
-                onCheckedChange={(v) => setForm({ ...form, isPrimary: v })}
-              />
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <Button onClick={save} className="h-11 px-8 text-sm font-bold">
-                Simpan
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Alamat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus alamat ini?
+              Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Hapus</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

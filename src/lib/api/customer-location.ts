@@ -5,82 +5,67 @@ export interface CustomerLocation {
   name: string;
   phone: string;
   address: string;
+  lat: number;
+  long: number;
   is_default: boolean;
-  lat?: number;
-  long?: number;
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface CustomerLocationResponse {
-  current_page: number;
+export interface CustomerLocationListResponse {
   data: CustomerLocation[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: Array<{
-    url: string | null;
-    label: string;
-    page: number | null;
-    active: boolean;
-  }>;
-  next_page_url: string | null;
-  path: string;
+  current_page: number;
   per_page: number;
-  prev_page_url: string | null;
-  to: number;
   total: number;
 }
 
 export interface FetchCustomerLocationsParams {
-  page?: number;
+  search?: string;
   per_page?: number;
+  page?: number;
 }
 
-export async function fetchCustomerLocations(params: FetchCustomerLocationsParams = {}): Promise<CustomerLocationResponse> {
-  const { page = 1, per_page = 15 } = params;
-  const queryParams = new URLSearchParams({
-    page: page.toString(),
-    per_page: per_page.toString(),
-  });
-
-  return apiFetch<CustomerLocationResponse>(`/customer-locations?${queryParams.toString()}`);
-}
-
-export async function fetchCustomerLocationById(id: string): Promise<CustomerLocation> {
-  return apiFetch<CustomerLocation>(`/customer-locations/${id}`);
-}
-
-export interface CreateCustomerLocationPayload {
-  name?: string;
-  phone?: string;
+export interface CreateCustomerLocationRequest {
+  name: string;
+  phone: string;
   address: string;
-  is_default?: boolean;
-  lat?: number;
-  long?: number;
+  lat: number;
+  long: number;
+  is_default: boolean;
 }
 
-export async function createCustomerLocation(payload: CreateCustomerLocationPayload): Promise<CustomerLocation> {
-  return apiFetch<CustomerLocation>("/customer-locations", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-export interface UpdateCustomerLocationPayload {
+export interface UpdateCustomerLocationRequest {
   name?: string;
   phone?: string;
   address?: string;
-  is_default?: boolean;
   lat?: number;
   long?: number;
+  is_default?: boolean;
 }
 
-export async function updateCustomerLocation(id: string, payload: UpdateCustomerLocationPayload): Promise<CustomerLocation> {
+export async function fetchCustomerLocations(params: FetchCustomerLocationsParams = {}): Promise<CustomerLocationListResponse> {
+  const { search = "", per_page = 999, page = 1 } = params;
+  const queryParams = new URLSearchParams({
+    per_page: per_page.toString(),
+    page: page.toString(),
+  });
+  
+  if (search) {
+    queryParams.append("search", search);
+  }
+
+  return apiFetch<CustomerLocationListResponse>(`/customer-locations?${queryParams.toString()}`);
+}
+
+export async function createCustomerLocation(data: CreateCustomerLocationRequest): Promise<CustomerLocation> {
+  return apiFetch<CustomerLocation>("/customer-locations", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCustomerLocation(id: string, data: UpdateCustomerLocationRequest): Promise<CustomerLocation> {
   return apiFetch<CustomerLocation>(`/customer-locations/${id}`, {
     method: "PUT",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(data),
   });
 }
 

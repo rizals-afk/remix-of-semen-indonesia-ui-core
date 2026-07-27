@@ -5,18 +5,16 @@ import { SiteHeader } from "./SiteHeader";
 
 interface MainLayoutProps {
   children: ReactNode;
-  user?: { name: string } | null;
-  shipTo?: string;
 }
 
 /**
  * Standard page chrome: header on top, footer at the bottom,
  * a floating WhatsApp button bottom-right (matches every uploaded screen).
  */
-export function MainLayout({ children, user, shipTo }: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader user={user} shipTo={shipTo} />
+      <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <a
