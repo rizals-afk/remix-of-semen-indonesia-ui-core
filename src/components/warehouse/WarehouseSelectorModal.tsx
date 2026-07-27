@@ -160,16 +160,6 @@ export function WarehouseSelectorModal({
           {/* Current Location Section */}
           <div className="border-b border-border px-6 py-4">
             <h3 className="text-sm font-semibold text-foreground mb-3">Pilih Gudang Terdekat</h3>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Lokasi Anda:</span>
-                <span className="text-sm font-medium text-foreground">{userLocation}</span>
-              </div>
-              <button className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
-                Ubah
-              </button>
-            </div>
           </div>
 
           {/* Search Field */}

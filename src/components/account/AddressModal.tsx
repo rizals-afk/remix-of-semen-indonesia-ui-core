@@ -156,17 +156,6 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Provinsi, Kota, Kecamatan, Kode Pos
-            </label>
-            <Input
-              value={form.region}
-              onChange={(e) => setForm({ ...form, region: e.target.value })}
-              className="h-11"
-            />
-          </div>
-
-          <div>
             <label className="mb-1 block text-sm font-medium">Nama Jalan, Gedung</label>
             <Input
               value={form.street}
