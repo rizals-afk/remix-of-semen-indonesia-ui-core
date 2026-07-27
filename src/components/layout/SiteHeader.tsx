@@ -5,21 +5,17 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { SearchBar } from "@/components/search/SearchBar";
 import { useCart } from "@/store/cart";
 import { useWarehouse } from "@/store/warehouse";
+import { useCustomerLocation } from "@/store/customer-location";
+import { useUser } from "@/store/user";
 import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
-
-interface SiteHeaderProps {
-  /** When provided, header renders the signed-in icon set (notifications + wishlist + cart + user). */
-  user?: { name: string } | null;
-  /** Shipping address shown in the right-hand "Kirim ke" slot. */
-  shipTo?: string;
-}
 
 /**
  * Site header used on every page.
  * Top row: logo, search bar, action icons, sign-in CTAs (or user name when logged in).
  * Bottom row: shipping location only.
  */
-export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: SiteHeaderProps) {
+export function SiteHeader() {
+  const { user } = useUser();
   const cart = useCart();
   const cartBadge = cart.totalQty > 0 ? cart.totalQty : undefined;
   
@@ -27,6 +23,9 @@ export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: Site
   const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
   const userLocation = "Jl. Veteran, Kebomas Gresik";
+  
+  // Customer location state
+  const { selectedLocation } = useCustomerLocation();
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background">
       <div className="container mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:gap-6 lg:py-4">
@@ -92,7 +91,7 @@ export function SiteHeader({ user = null, shipTo = "Jl. Veteran, Gresik" }: Site
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">Kirim ke:</span>
-              <span className="font-medium">{shipTo}</span>
+              <span className="font-medium">{selectedLocation?.name || "Pilih Alamat"}</span>
             </div>
             
             {/* Warehouse Selector */}

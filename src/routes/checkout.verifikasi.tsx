@@ -40,7 +40,7 @@ function VerifikasiPage() {
   }, [checkout, cart.selectedGroups, navigate]);
 
   return (
-    <MainLayout user={{ name: "Auliya Gita Ananda" }}>
+    <MainLayout>
       <div className="border-b border-border bg-card">
         <div className="container mx-auto max-w-3xl px-4 py-5 text-center">
           <h1 className="text-2xl font-bold text-primary">Status Pesanan</h1>

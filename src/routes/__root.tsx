@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CartProvider } from "@/store/cart";
 import { CheckoutProvider } from "@/store/checkout";
 import { WarehouseProvider } from "@/store/warehouse";
+import { CustomerLocationProvider } from "@/store/customer-location";
+import { UserProvider } from "@/store/user";
 import { Toaster } from "@/components/ui/sonner";
 import {
   Outlet,
@@ -123,13 +125,17 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <WarehouseProvider>
-        <CartProvider>
-          <CheckoutProvider>
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-            <Toaster richColors position="top-center" />
-          </CheckoutProvider>
-        </CartProvider>
+        <CustomerLocationProvider>
+          <UserProvider>
+            <CartProvider>
+              <CheckoutProvider>
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+                <Toaster richColors position="top-center" />
+              </CheckoutProvider>
+            </CartProvider>
+          </UserProvider>
+        </CustomerLocationProvider>
       </WarehouseProvider>
     </QueryClientProvider>
   );
