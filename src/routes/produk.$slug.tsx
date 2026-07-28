@@ -221,8 +221,8 @@ function ProductDetailPage() {
         <Breadcrumbs
           items={[
             { label: "Home", to: "/" },
-            { label: "Kategori", to: "/kategori" },
-            { label: product.category_name || "Umum" },
+            { label: "Produk", to: "/produk" },
+            //{ label: product.category_id.name || "Umum" },
             { label: product.name },
           ]}
         />

@@ -115,3 +115,20 @@ export interface CartCountResponse {
 export async function fetchCartCount(): Promise<CartCountResponse> {
   return apiFetch<CartCountResponse>("/cart/count");
 }
+
+export interface UpdateCartQuantityPayload {
+  qty: number;
+}
+
+export async function updateCartQuantity(cartId: number, payload: UpdateCartQuantityPayload): Promise<CartResponse> {
+  return apiFetch<CartResponse>(`/cart/${cartId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCartItem(cartId: number): Promise<CartResponse> {
+  return apiFetch<CartResponse>(`/cart/${cartId}`, {
+    method: "DELETE",
+  });
+}

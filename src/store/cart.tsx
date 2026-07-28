@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { DEMO_CART, type CartProduct } from "@/data/shopping";
-import { fetchCart, addToCart, fetchCartCount, type CartItem } from "@/lib/api/cart";
+import { fetchCart, addToCart, fetchCartCount, updateCartQuantity, deleteCartItem, type CartItem } from "@/lib/api/cart";
 import { getToken } from "@/lib/auth";
+import { toast } from "sonner";
 
 export interface CartWarehouseGroup {
   warehouse: string;
@@ -24,12 +25,14 @@ interface CartContextValue {
   totalTonase: number;
   cartCount: number;
   addItem: (item: CartProduct, productId?: number, variantId?: number, branchId?: number) => Promise<void>;
-  removeItem: (id: string) => void;
-  updateQty: (id: string, qty: number) => void;
+  removeItem: (id: string) => Promise<void>;
+  updateQty: (id: string, qty: number) => Promise<void>;
   toggleSelect: (id: string) => void;
   toggleSelectAll: (select: boolean) => void;
   toggleSelectGroup: (warehouse: string, select: boolean) => void;
   clearSelected: () => void;
+  updatingIds: Set<string>;
+  deletingIds: Set<string>;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -40,6 +43,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [cartCount, setCartCount] = useState<number>(0);
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
   // Transform API cart item to CartProduct format
   const transformApiItemToCartProduct = (item: CartItem): CartProduct => ({
@@ -114,6 +119,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, selected: Array.from(selectedIds) }));
   }, [items, selectedIds]);
 
+  // Refresh cart count from API
+  const refreshCartCount = useCallback(async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const response = await fetchCartCount();
+      setCartCount(response.count);
+    } catch (error) {
+      console.error("Failed to refresh cart count:", error);
+    }
+  }, []);
+
   const addItem = useCallback(async (item: CartProduct, productId?: number, variantId?: number, branchId?: number) => {
     // Update local state immediately for responsiveness
     setItems((prev) => {
@@ -133,20 +151,75 @@ export function CartProvider({ children }: { children: ReactNode }) {
           branch_id: branchId,
           qty: item.qty,
         });
+        // Refresh cart count after successful add
+        await refreshCartCount();
       } catch (error) {
         console.error("Failed to add item to cart via API:", error);
       }
     }
-  }, []);
+  }, [refreshCartCount]);
 
-  const removeItem = useCallback((id: string) => {
+  const removeItem = useCallback(async (id: string) => {
+    const token = getToken();
+    const cartId = parseInt(id);
+    
+    // Optimistically update UI
+    setDeletingIds((prev) => new Set(prev).add(id));
+    const previousItems = items;
     setItems((prev) => prev.filter((p) => p.id !== id));
     setSelectedIds((s) => { const n = new Set(s); n.delete(id); return n; });
-  }, []);
 
-  const updateQty = useCallback((id: string, qty: number) => {
-    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, qty: Math.max(1, qty) } : p)));
-  }, []);
+    // Call API if authenticated
+    if (token && !isNaN(cartId)) {
+      try {
+        await deleteCartItem(cartId);
+        // Refresh cart count after successful delete
+        await refreshCartCount();
+      } catch (error) {
+        console.error("Failed to delete cart item:", error);
+        // Rollback on error
+        setItems(previousItems);
+        setSelectedIds((s) => new Set(s).add(id));
+        toast.error("Failed to remove item from cart. Please try again.");
+      } finally {
+        setDeletingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      }
+    } else {
+      setDeletingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    }
+  }, [items, refreshCartCount]);
+
+  const updateQty = useCallback(async (id: string, qty: number) => {
+    // Prevent duplicate requests
+    if (updatingIds.has(id)) return;
+    
+    const token = getToken();
+    const cartId = parseInt(id);
+    const newQty = Math.max(1, qty);
+    
+    // Optimistically update UI
+    setUpdatingIds((prev) => new Set(prev).add(id));
+    const previousItems = items;
+    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, qty: newQty } : p)));
+
+    // Call API if authenticated
+    if (token && !isNaN(cartId)) {
+      try {
+        await updateCartQuantity(cartId, { qty: newQty });
+        // Refresh cart count after successful update
+        await refreshCartCount();
+      } catch (error) {
+        console.error("Failed to update cart quantity:", error);
+        // Rollback on error
+        setItems(previousItems);
+        toast.error("Failed to update cart quantity. Please try again.");
+      } finally {
+        setUpdatingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      }
+    } else {
+      setUpdatingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+    }
+  }, [items, updatingIds, refreshCartCount]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -204,6 +277,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       totalTonase: selectedItems.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0) / 1000,
       cartCount,
       addItem, removeItem, updateQty, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected,
+      updatingIds,
+      deletingIds,
     };
   }, [items, selectedIds, addItem, removeItem, updateQty, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected]);
 

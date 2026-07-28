@@ -44,6 +44,8 @@ function CartPage() {
                 key={g.warehouse}
                 group={g}
                 selectedIds={cart.selectedIds}
+                updatingIds={cart.updatingIds}
+                deletingIds={cart.deletingIds}
                 onToggleItem={cart.toggleSelect}
                 onToggleGroup={cart.toggleSelectGroup}
                 onQtyChange={cart.updateQty}
