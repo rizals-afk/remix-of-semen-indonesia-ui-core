@@ -32,6 +32,13 @@ export interface ProductPricelist {
   branch_id: string;
   branch_price_max: number;
   branch_price_min?: number;
+  branch?: {
+    id: string;
+    name: string;
+    address?: string;
+    lat?: number;
+    long?: number;
+  };
 }
 
 export interface Brand {

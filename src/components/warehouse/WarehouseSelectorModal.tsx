@@ -13,6 +13,7 @@ interface WarehouseSelectorModalProps {
   selectedWarehouse: Warehouse | null;
   onSelectWarehouse: (warehouse: Warehouse) => void;
   userLocation: string;
+  warehouses?: Warehouse[]; // Optional: provide custom warehouse list instead of fetching from API
 }
 
 export function WarehouseSelectorModal({
@@ -21,6 +22,7 @@ export function WarehouseSelectorModal({
   selectedWarehouse,
   onSelectWarehouse,
   userLocation,
+  warehouses: externalWarehouses,
 }: WarehouseSelectorModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -29,10 +31,17 @@ export function WarehouseSelectorModal({
   const [error, setError] = useState<string | null>(null);
   const [highlightedWarehouseId, setHighlightedWarehouseId] = useState<string | null>(null);
 
-  // Fetch warehouses on mount
+  // Fetch warehouses on mount (only if not provided externally)
   useEffect(() => {
     if (!open) return;
     
+    // If external warehouses are provided, use them
+    if (externalWarehouses) {
+      setWarehouses(externalWarehouses);
+      setFilteredWarehouses(externalWarehouses);
+      return;
+    }
+
     const loadWarehouses = async () => {
       setLoading(true);
       setError(null);
@@ -49,10 +58,24 @@ export function WarehouseSelectorModal({
     };
 
     loadWarehouses();
-  }, [open]);
+  }, [open, externalWarehouses]);
 
-  // Debounced search
+  // Debounced search (only if not using external warehouses)
   useEffect(() => {
+    // If external warehouses are provided, filter locally
+    if (externalWarehouses) {
+      if (searchQuery) {
+        const filtered = externalWarehouses.filter(w => 
+          w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          w.address?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredWarehouses(filtered);
+      } else {
+        setFilteredWarehouses(externalWarehouses);
+      }
+      return;
+    }
+
     const timer = setTimeout(async () => {
       if (!open) return;
       
@@ -75,7 +98,7 @@ export function WarehouseSelectorModal({
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, open]);
+  }, [searchQuery, open, externalWarehouses]);
 
   const handleSelectWarehouse = (warehouse: Warehouse) => {
     onSelectWarehouse(warehouse);
@@ -88,6 +111,9 @@ export function WarehouseSelectorModal({
   };
 
   const handleRetry = () => {
+    // No retry needed if using external warehouses
+    if (externalWarehouses) return;
+
     const loadWarehouses = async () => {
       setLoading(true);
       setError(null);

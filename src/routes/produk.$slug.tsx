@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bookmark, Heart, MapPin, Share2, Star, Truck } from "lucide-react";
+import { Bookmark, Heart, MapPin, Share2, Star, Truck, Building2 } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useWarehouse } from "@/store/warehouse";
 import { useState, useEffect } from "react";
@@ -14,6 +14,8 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import { SpecsTable } from "@/components/product/SpecsTable";
 import { ReviewItem } from "@/components/review/ReviewItem";
 import { ReviewSummary } from "@/components/review/ReviewSummary";
+import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
+import type { Warehouse } from "@/lib/api/warehouse";
 import { fetchProductById, getProductPrice, getProductImages, getProductStock, transformProductToCard } from "@/lib/api/product";
 import { fetchProducts } from "@/lib/api/product";
 import type { Product } from "@/lib/api/product";
@@ -28,14 +30,18 @@ type Tab = (typeof TABS)[number];
 
 function ProductDetailPage() {
   const { slug } = Route.useParams();
-  const { selectedWarehouse } = useWarehouse();
+  const { selectedWarehouse: headerWarehouse } = useWarehouse();
   const [tab, setTab] = useState<Tab>("Deskripsi");
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
+  const [selectedBranchId, setSelectedBranchId] = useState<string | undefined>();
   const [qty, setQty] = useState(1);
   const [reviewPage, setReviewPage] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [warehouseModalOpen, setWarehouseModalOpen] = useState(false);
+  const [availableWarehouses, setAvailableWarehouses] = useState<Warehouse[]>([]);
+  const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
   const cart = useCart();
   const navigate = useNavigate();
 
@@ -44,7 +50,7 @@ function ProductDetailPage() {
     const loadProduct = async () => {
       setLoading(true);
       try {
-        const data = await fetchProductById(slug, selectedWarehouse?.id);
+        const data = await fetchProductById(slug, headerWarehouse?.id);
         console.log("Product Detail - API response:", data);
         console.log("Product Detail - product.media:", data.media);
         console.log("Product Detail - product.variants:", data.variants);
@@ -52,6 +58,10 @@ function ProductDetailPage() {
         // Set first variant as default
         if (data.variants.length > 0) {
           setSelectedVariantId(data.variants[0].id);
+        }
+        // Initialize selectedBranchId from header warehouse
+        if (headerWarehouse?.id) {
+          setSelectedBranchId(headerWarehouse.id);
         }
       } catch (error) {
         console.error("Failed to load product:", error);
@@ -61,17 +71,51 @@ function ProductDetailPage() {
     };
 
     loadProduct();
-  }, [slug, selectedWarehouse]);
+  }, [slug, headerWarehouse]);
+
+  // Extract available warehouses from product pricelists
+  useEffect(() => {
+    if (!product) return;
+
+    const warehousesMap = new Map<string, Warehouse>();
+    
+    product.variants.forEach(variant => {
+      variant.pricelists?.forEach(pricelist => {
+        if (pricelist.branch) {
+          warehousesMap.set(pricelist.branch.id, pricelist.branch);
+        }
+      });
+    });
+
+    const warehouses = Array.from(warehousesMap.values());
+    setAvailableWarehouses(warehouses);
+
+    // Set selected warehouse based on selectedBranchId
+    if (selectedBranchId) {
+      const found = warehouses.find(w => w.id === selectedBranchId);
+      if (found) {
+        setSelectedWarehouse(found);
+      } else if (warehouses.length > 0) {
+        // Fallback to first available warehouse
+        setSelectedWarehouse(warehouses[0]);
+        setSelectedBranchId(warehouses[0].id);
+      }
+    } else if (warehouses.length > 0) {
+      // Initialize with first available warehouse
+      setSelectedWarehouse(warehouses[0]);
+      setSelectedBranchId(warehouses[0].id);
+    }
+  }, [product, selectedBranchId]);
 
   // Fetch related products
   useEffect(() => {
     const loadRelated = async () => {
       if (!product) return;
       try {
-        const response = await fetchProducts({ page: 1, per_page: 5, branch_id: selectedWarehouse?.id });
+        const response = await fetchProducts({ page: 1, per_page: 5, branch_id: headerWarehouse?.id });
         const filtered = response.data.filter((p) => p.id !== product.id).slice(0, 5);
         const transformed = filtered.map((p) =>
-          transformProductToCard(p, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
+          transformProductToCard(p, headerWarehouse?.name, undefined, headerWarehouse?.id)
         );
         setRelatedProducts(transformed);
       } catch (error) {
@@ -80,12 +124,12 @@ function ProductDetailPage() {
     };
 
     loadRelated();
-  }, [product, selectedWarehouse]);
+  }, [product, headerWarehouse]);
 
   const selectedVariant = product?.variants.find((v) => v.id === selectedVariantId) || product?.variants[0];
-  const price = product ? getProductPrice(product, selectedVariantId, selectedWarehouse?.id) : null;
+  const price = product ? getProductPrice(product, selectedVariantId, selectedBranchId) : null;
   const images = product ? getProductImages(product, selectedVariantId) : [];
-  const stock = product ? getProductStock(product, selectedVariantId, selectedWarehouse?.id) : 0;
+  const stock = product ? getProductStock(product, selectedVariantId, selectedBranchId) : 0;
   const subTotal = price ? qty * price : 0;
 
   // Build specs from API data
@@ -105,7 +149,7 @@ function ProductDetailPage() {
       warehouse: selectedWarehouse?.name || "Gudang Utama",
       qty,
       unit: "Sak",
-    }, parseInt(product.id), selectedVariantId ? parseInt(selectedVariantId) : undefined, selectedWarehouse?.id ? parseInt(selectedWarehouse.id) : undefined);
+    }, parseInt(product.id), selectedVariantId ? parseInt(selectedVariantId) : undefined, selectedBranchId ? parseInt(selectedBranchId) : undefined);
   };
 
   const buyNow = () => { addToCart(); navigate({ to: "/keranjang" }); };
@@ -195,21 +239,24 @@ function ProductDetailPage() {
                   </div>
                 ) : null}
 
-                {product.shippingFrom ? (
+                {selectedWarehouse ? (
                   <div className="rounded-lg border border-border p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex gap-3">
-                        <MapPin className="mt-0.5 h-5 w-5 text-primary" />
+                        <Building2 className="mt-0.5 h-5 w-5 text-primary" />
                         <div>
                           <p className="font-semibold text-foreground">
-                            Dikirim dari {product.shippingFrom}
+                            Dikirim dari {selectedWarehouse.name}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Jarak: {product.shippingDistanceKm || 0}km dari lokasimu
+                            {selectedWarehouse.address || "Gudang tersedia"}
                           </p>
                         </div>
                       </div>
-                      <button className="text-sm font-semibold text-primary hover:underline">
+                      <button 
+                        onClick={() => setWarehouseModalOpen(true)}
+                        className="text-sm font-semibold text-primary hover:underline"
+                      >
                         Ubah &gt;
                       </button>
                     </div>
@@ -238,7 +285,7 @@ function ProductDetailPage() {
               <QuantityStepper value={qty} onChange={setQty} min={1} />
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              Stok Tersedia: <span className="font-semibold text-foreground">{Math.floor(stock)}</span>
+              Stok Online: <span className="font-semibold text-foreground">{Math.floor(stock)}</span>
             </p>
             <div className="mt-5">
               <p className="text-sm font-semibold text-foreground">Sub Total</p>
@@ -311,6 +358,19 @@ function ProductDetailPage() {
           </div>
         </section>
       </div>
+      
+      {/* Warehouse Selector Modal */}
+      <WarehouseSelectorModal
+        open={warehouseModalOpen}
+        onOpenChange={setWarehouseModalOpen}
+        selectedWarehouse={selectedWarehouse}
+        onSelectWarehouse={(warehouse) => {
+          setSelectedWarehouse(warehouse);
+          setSelectedBranchId(warehouse.id);
+        }}
+        userLocation=""
+        warehouses={availableWarehouses}
+      />
     </MainLayout>
   );
 }
