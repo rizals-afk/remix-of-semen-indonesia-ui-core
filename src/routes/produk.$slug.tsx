@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bookmark, Heart, MapPin, Share2, Star, Truck, Building2 } from "lucide-react";
+import { Bookmark, Heart, MapPin, Share2, Star, Truck, Building2, Loader2 } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useWarehouse } from "@/store/warehouse";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { Pagination } from "@/components/common/Pagination";
 import { QuantityStepper } from "@/components/common/QuantityStepper";
@@ -42,6 +43,8 @@ function ProductDetailPage() {
   const [warehouseModalOpen, setWarehouseModalOpen] = useState(false);
   const [availableWarehouses, setAvailableWarehouses] = useState<Warehouse[]>([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const cart = useCart();
   const navigate = useNavigate();
 
@@ -82,7 +85,14 @@ function ProductDetailPage() {
     product.variants.forEach(variant => {
       variant.pricelists?.forEach(pricelist => {
         if (pricelist.branch) {
-          warehousesMap.set(pricelist.branch.id, pricelist.branch);
+          const warehouse: Warehouse = {
+            id: pricelist.branch.id,
+            name: pricelist.branch.name,
+            address: pricelist.branch.address || "Alamat tidak tersedia",
+            lat: pricelist.branch.lat,
+            long: pricelist.branch.long,
+          };
+          warehousesMap.set(warehouse.id, warehouse);
         }
       });
     });
@@ -130,7 +140,10 @@ function ProductDetailPage() {
   const price = product ? getProductPrice(product, selectedVariantId, selectedBranchId) : null;
   const images = product ? getProductImages(product, selectedVariantId) : [];
   const stock = product ? getProductStock(product, selectedVariantId, selectedBranchId) : 0;
-  const subTotal = price ? qty * price : 0;
+  
+  // Check if selected variant has a pricelist for the selected branch
+  const hasPrice = selectedVariant?.pricelists?.some(p => p.branch_id === selectedBranchId) ?? false;
+  const subTotal = (hasPrice && price) ? qty * price : 0;
 
   // Build specs from API data
   const specs = product ? [
@@ -140,19 +153,47 @@ function ProductDetailPage() {
   ] : [];
 
   const addToCart = async () => {
-    if (!product || !price) return;
-    await cart.addItem({
-      id: product.id,
-      name: product.name + (selectedVariant?.name ? ` ${selectedVariant.name}` : ""),
-      price,
-      image: images[0] || "",
-      warehouse: selectedWarehouse?.name || "Gudang Utama",
-      qty,
-      unit: "Sak",
-    }, parseInt(product.id), selectedVariantId ? parseInt(selectedVariantId) : undefined, selectedBranchId ? parseInt(selectedBranchId) : undefined);
+    if (!product || !price) {
+      toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
+      return;
+    }
+    if (!hasPrice) {
+      toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
+      return;
+    }
+    
+    setIsAddingToCart(true);
+    setIsAnimating(true);
+    
+    // Reset animation after it completes
+    setTimeout(() => setIsAnimating(false), 500);
+    
+    try {
+      await cart.addItem({
+        id: product.id,
+        name: product.name + (selectedVariant?.name ? ` ${selectedVariant.name}` : ""),
+        price,
+        image: images[0] || "",
+        warehouse: selectedWarehouse?.name || "Gudang Utama",
+        qty,
+        unit: "Sak",
+      }, parseInt(product.id), selectedVariantId ? parseInt(selectedVariantId) : undefined, selectedBranchId ? parseInt(selectedBranchId) : undefined);
+      toast.success("Produk berhasil ditambahkan ke keranjang.");
+    } catch (error) {
+      toast.error("Gagal menambahkan produk ke keranjang. Silakan coba lagi.");
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
-  const buyNow = () => { addToCart(); navigate({ to: "/keranjang" }); };
+  const buyNow = async () => {
+    if (!hasPrice) {
+      toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
+      return;
+    }
+    await addToCart();
+    navigate({ to: "/keranjang" });
+  };
 
   if (loading || !product) {
     return (
@@ -190,11 +231,13 @@ function ProductDetailPage() {
           {/* Gallery + summary */}
           <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
             <div className="grid gap-6 md:grid-cols-2">
-              <ProductGallery
-                images={images}
-                alt={product.name}
-                ribbon={product.variants?.map((v) => v.name).join(" & ")}
-              />
+              <div className={isAnimating ? "animate-fly-to-cart" : ""}>
+                <ProductGallery
+                  images={images}
+                  alt={product.name}
+                  ribbon={product.variants?.map((v) => v.name).join(" & ")}
+                />
+              </div>
               <div className="space-y-4">
                 <h1 className="text-2xl font-bold text-foreground md:text-3xl">{product.name}</h1>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -209,10 +252,10 @@ function ProductDetailPage() {
                 </div>
 
                 <div className="space-y-2">
-                  {price ? (
+                  {hasPrice && price ? (
                     <p className="text-3xl font-bold text-accent">{formatRupiah(price)}</p>
                   ) : (
-                    <p className="text-3xl font-bold text-muted-foreground">Harga tidak tersedia</p>
+                    <p className="text-3xl font-bold text-muted-foreground">Harga tidak tersedia untuk gudang ini</p>
                   )}
                 </div>
 
@@ -292,11 +335,26 @@ function ProductDetailPage() {
               <p className="text-2xl font-bold text-accent">{formatRupiah(subTotal)}</p>
             </div>
             <div className="mt-5 space-y-2">
-              <button onClick={buyNow} className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+              <button 
+                onClick={buyNow} 
+                disabled={!hasPrice || isAddingToCart}
+                className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
+              >
                 Beli Sekarang
               </button>
-              <button onClick={addToCart} className="w-full rounded-md border border-primary py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5">
-                Masukkan Keranjang
+              <button 
+                onClick={addToCart} 
+                disabled={!hasPrice || isAddingToCart}
+                className="w-full rounded-md border border-primary py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background flex items-center justify-center gap-2"
+              >
+                {isAddingToCart ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Menambahkan...
+                  </>
+                ) : (
+                  "Masukkan Keranjang"
+                )}
               </button>
             </div>
             <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
