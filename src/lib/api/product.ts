@@ -59,7 +59,7 @@ export interface ProductListResponse {
 export interface FetchProductsParams {
   page?: number;
   per_page?: number;
-  product_category_id?: string;
+  product_category_id?: number | string;
   branch_id?: string; // Prepared for future use
   search?: string;
   sort?: "terbaru" | "termurah" | "termahal" | "terlaris";
@@ -73,7 +73,7 @@ export async function fetchProducts(params: FetchProductsParams = {}): Promise<P
   });
 
   if (product_category_id) {
-    queryParams.append("product_category_id", product_category_id);
+    queryParams.append("product_category_id", String(product_category_id));
   }
 
   if (branch_id) {
@@ -87,6 +87,8 @@ export async function fetchProducts(params: FetchProductsParams = {}): Promise<P
   if (sort) {
     queryParams.append("sort", sort);
   }
+
+  console.log("Query Params:", queryParams.toString());
 
   return apiFetch<ProductListResponse>(`/products?${queryParams.toString()}`);
 }

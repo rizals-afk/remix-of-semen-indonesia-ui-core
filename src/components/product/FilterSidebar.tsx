@@ -116,11 +116,18 @@ function CategoryItem({
             <button
               type="button"
               onClick={() => onToggleExpand(category.id)}
-              className="flex items-center gap-1 font-semibold"
+              className="flex items-center gap-2 font-semibold"
             >
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
               />
+              {/* <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onToggleCategory(category.id)}
+                className="h-4 w-4 accent-primary"
+                onClick={(e) => e.stopPropagation()}
+              /> */}
               {category.name}
             </button>
           ) : (

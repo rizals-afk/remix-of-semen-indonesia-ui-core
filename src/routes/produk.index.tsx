@@ -10,7 +10,6 @@ import { fetchCategories, buildCategoryTree } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import type { CategoryNode } from "@/lib/api/product-category";
 import { useWarehouse } from "@/store/warehouse";
-import { getCurrentUserFromStorage } from "@/lib/auth";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -36,13 +35,20 @@ function ProductListingPage() {
   const { q = "", page = 1, sort = "terbaru", category } = Route.useSearch();
   const navigate = useNavigate({ from: "/produk/" });
   const { selectedWarehouse } = useWarehouse();
-  const user = getCurrentUserFromStorage();
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Initialize selectedCategories from URL on mount only
+  useEffect(() => {
+    if (category) {
+      setSelectedCategories([String(category)]);
+    }
+  }, []);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -64,22 +70,20 @@ function ProductListingPage() {
     const loadProducts = async () => {
       setLoading(true);
       try {
+        const categoryId = selectedCategories.length > 0 ? parseInt(selectedCategories[0]) : undefined;
         const response = await fetchProducts({
           page,
           per_page: PAGE_SIZE,
-          product_category_id: category,
+          product_category_id: categoryId,
           branch_id: selectedWarehouse?.id,
           search: q || undefined,
           sort,
         });
-        
-        console.log("Product List - API response:", response);
-        console.log("Product List - first product media:", response.data[0]?.media);
-        
+
         const transformedProducts = response.data.map((product) =>
           transformProductToCard(product, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
         );
-        
+
         setProducts(transformedProducts);
         setTotalPages(Math.max(1, Math.ceil(response.total / PAGE_SIZE)));
       } catch (error) {
@@ -91,7 +95,7 @@ function ProductListingPage() {
     };
 
     loadProducts();
-  }, [page, category, selectedWarehouse, q, sort]);
+  }, [page, selectedCategories, selectedWarehouse, q, sort]);
 
   // Expand parent category when category is selected
   useEffect(() => {
@@ -118,11 +122,19 @@ function ProductListingPage() {
 
   // Sync category selection changes to URL
   const handleToggleCategory = (id: string) => {
-    // Calculate new selection based on current URL state
-    const isCurrentlySelected = String(category) === String(id);
-    const newCategory = isCurrentlySelected ? undefined : String(id);
-    
-    // Update URL
+    // Calculate new selection based on current state
+    const isCurrentlySelected = selectedCategories.includes(id);
+    const newSelected = isCurrentlySelected
+      ? selectedCategories.filter(catId => catId !== id)
+      : [...selectedCategories, id];
+
+    console.log("New Selected:", newSelected, isCurrentlySelected, id);
+
+    // Update local state immediately for UI responsiveness
+    setSelectedCategories(newSelected);
+
+    // Update URL with single category selection
+    const newCategory = newSelected.length > 0 ? newSelected[0] : undefined;
     navigate({
       search: (prev: z.infer<typeof searchSchema>) => {
         const newSearch = { ...prev };
@@ -151,14 +163,14 @@ function ProductListingPage() {
   };
 
   return (
-    <MainLayout user={user}>
+    <MainLayout>
       <div className="container mx-auto max-w-7xl px-4 py-6">
         <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Produk" }]} />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
           <FilterSidebar
             categories={categories}
-            selected={category ? [String(category)] : []}
+            selected={selectedCategories}
             onToggleCategory={handleToggleCategory}
             priceMin={0}
             priceMax={0}
