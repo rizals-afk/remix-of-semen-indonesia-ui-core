@@ -11,9 +11,20 @@ export interface ProductMedia {
 export interface ProductVariant {
   id: string;
   name: string;
+  variant_name?: string;
   sku: string;
+  weight?: string;
   media: ProductMedia[];
   pricelists?: ProductPricelist[];
+  online_stock?: number;
+  stocks?: ProductVariantStock[];
+}
+
+export interface ProductVariantStock {
+  branch_id: string;
+  online_stock: number;
+  stock_physical?: number;
+  stock_reserved?: number;
 }
 
 export interface ProductPricelist {
@@ -23,13 +34,25 @@ export interface ProductPricelist {
   branch_price_min?: number;
 }
 
+export interface Brand {
+  id: string;
+  name: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   description: string;
   category_id: string;
+  category?: Category;
   category_name?: string;
   brand_id?: string;
+  brand?: Brand;
   brand_name?: string;
   sku?: string;
   media: ProductMedia[];
@@ -105,7 +128,7 @@ export async function fetchProductById(id: string, branchId?: string): Promise<P
 
 /**
  * Get product price based on variant and branch
- * 
+ *
  * Current implementation: First variant → First pricelist → branch_price_max
  * Future implementation: Selected variant → Match pricelist by branch_id → branch_price_max
  */
@@ -134,6 +157,47 @@ export function getProductPrice(
   if (!pricelist) return null;
 
   return pricelist.branch_price_max;
+}
+
+/**
+ * Get online stock for a variant in a specific branch
+ *
+ * Priority:
+ * 1. variant.stocks array → find by branch_id → online_stock
+ * 2. variant.online_stock (direct field)
+ * 3. product.stock (fallback)
+ */
+export function getProductStock(
+  product: Product,
+  variantId?: string,
+  branchId?: string
+): number {
+  if (!product || !product.variants || product.variants.length === 0) {
+    return product?.stock || 0;
+  }
+
+  // Get the variant (first if not specified)
+  const variant = variantId
+    ? product.variants.find((v) => v.id === variantId)
+    : product.variants[0];
+
+  if (!variant) return product?.stock || 0;
+
+  // 1. Check stocks array grouped by branch
+  if (variant.stocks && variant.stocks.length > 0 && branchId) {
+    const branchStock = variant.stocks.find((s) => s.branch_id === branchId);
+    if (branchStock) {
+      return branchStock.online_stock;
+    }
+  }
+
+  // 2. Check direct online_stock field
+  if (variant.online_stock !== undefined) {
+    return variant.online_stock;
+  }
+
+  // 3. Fallback to product stock
+  return product?.stock || 0;
 }
 
 /**

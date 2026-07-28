@@ -14,11 +14,10 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import { SpecsTable } from "@/components/product/SpecsTable";
 import { ReviewItem } from "@/components/review/ReviewItem";
 import { ReviewSummary } from "@/components/review/ReviewSummary";
-import { fetchProductById, getProductPrice, getProductImages, transformProductToCard } from "@/lib/api/product";
+import { fetchProductById, getProductPrice, getProductImages, getProductStock, transformProductToCard } from "@/lib/api/product";
 import { fetchProducts } from "@/lib/api/product";
 import type { Product } from "@/lib/api/product";
 import { formatRupiah } from "@/lib/format";
-import { getCurrentUserFromStorage } from "@/lib/auth";
 
 export const Route = createFileRoute("/produk/$slug")({
   component: ProductDetailPage,
@@ -30,10 +29,9 @@ type Tab = (typeof TABS)[number];
 function ProductDetailPage() {
   const { slug } = Route.useParams();
   const { selectedWarehouse } = useWarehouse();
-  const user = getCurrentUserFromStorage();
   const [tab, setTab] = useState<Tab>("Deskripsi");
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
-  const [qty, setQty] = useState(200);
+  const [qty, setQty] = useState(1);
   const [reviewPage, setReviewPage] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
@@ -87,7 +85,15 @@ function ProductDetailPage() {
   const selectedVariant = product?.variants.find((v) => v.id === selectedVariantId) || product?.variants[0];
   const price = product ? getProductPrice(product, selectedVariantId, selectedWarehouse?.id) : null;
   const images = product ? getProductImages(product, selectedVariantId) : [];
+  const stock = product ? getProductStock(product, selectedVariantId, selectedWarehouse?.id) : 0;
   const subTotal = price ? qty * price : 0;
+
+  // Build specs from API data
+  const specs = product ? [
+    { label: "Weight", value: selectedVariant?.weight || "-" },
+    { label: "Brand", value: product.brand?.name || product.brand_name || "-" },
+    { label: "Category", value: product.category?.name || product.category_name || "-" },
+  ] : [];
 
   const addToCart = async () => {
     if (!product || !price) return;
@@ -106,7 +112,7 @@ function ProductDetailPage() {
 
   if (loading || !product) {
     return (
-      <MainLayout user={user}>
+      <MainLayout>
         <div className="container mx-auto max-w-7xl px-4 py-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
             <div className="rounded-2xl border border-border bg-card p-5 md:p-6">
@@ -125,7 +131,7 @@ function ProductDetailPage() {
   }
 
   return (
-    <MainLayout user={user}>
+    <MainLayout>
       <div className="container mx-auto max-w-7xl px-4 py-6">
         <Breadcrumbs
           items={[
@@ -167,22 +173,25 @@ function ProductDetailPage() {
                 </div>
 
                 {product.variants && product.variants.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {product.variants.map((v) => (
-                      <button
-                        key={v.id}
-                        type="button"
-                        onClick={() => setSelectedVariantId(v.id)}
-                        className={
-                          "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors " +
-                          (v.id === selectedVariantId
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-background text-foreground hover:border-primary")
-                        }
-                      >
-                        {v.name}
-                      </button>
-                    ))}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">Variant</label>
+                    <div className="flex flex-wrap gap-2">
+                      {product.variants.map((v) => (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => setSelectedVariantId(v.id)}
+                          className={
+                            "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors " +
+                            (v.id === selectedVariantId
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-background text-foreground hover:border-primary")
+                          }
+                        >
+                          {v.variant_name || v.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
 
@@ -229,7 +238,7 @@ function ProductDetailPage() {
               <QuantityStepper value={qty} onChange={setQty} min={1} />
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              Stok Tersedia: <span className="font-semibold text-foreground">{product.stock || 0} Sak</span>
+              Stok Tersedia: <span className="font-semibold text-foreground">{Math.floor(stock)}</span>
             </p>
             <div className="mt-5">
               <p className="text-sm font-semibold text-foreground">Sub Total</p>
@@ -266,7 +275,7 @@ function ProductDetailPage() {
                 {product.description}
               </div>
             )}
-            {tab === "Spesifikasi" && <SpecsTable items={product.specs || []} />}
+            {tab === "Spesifikasi" && <SpecsTable items={specs} />}
             {tab === "Ulasan" && (
               <div>
                 <div className="flex items-center justify-between">
