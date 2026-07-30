@@ -139,6 +139,10 @@ export interface CartProduct extends Product {
   variant?: string;
   /** Weight per single unit in kg. Used to compute tonase. */
   weightKg?: number;
+  /** Variant ID for order submission */
+  variant_id?: number;
+  /** Branch ID for order submission */
+  branch_id?: number;
 }
 
 export const DEMO_CART: CartProduct[] = [

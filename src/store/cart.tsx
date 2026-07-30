@@ -58,6 +58,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     weightKg: parseFloat(item.product_variant.weight) || 0,
     unit: "Sak", // Default unit
     variant: item.product_variant.variant_name,
+    variant_id: item.product_variant_id,
+    branch_id: item.branch_id,
   });
 
   // Load cart from localStorage

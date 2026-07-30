@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, MapPin, Ticket, Truck, Store, Check, Building2 } from "lucide-react";
+import { ChevronLeft, MapPin, Ticket, Truck, Store, Check, Building2, Loader2 } from "lucide-react";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { OrderProductGroup } from "@/components/checkout/OrderProductGroup";
@@ -11,6 +11,9 @@ import { useUser } from "@/store/user";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
 import type { CartWarehouseGroup } from "@/store/cart";
+import { createTrx, type CreateTrxRequest } from "@/lib/api/trx";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export const Route = createFileRoute("/checkout/")({
   head: () => ({ meta: [{ title: "Checkout — BahanMaterial.com" }] }),
@@ -29,6 +32,8 @@ function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
     weightKg: item.weightKg,
     unit: "Sak",
     variant: item.variantName,
+    variant_id: parseInt(item.variantId),
+    branch_id: parseInt(item.branchId),
   };
   
   return {
@@ -48,6 +53,7 @@ function CheckoutPage() {
   const checkout = useCheckout();
   const customerLocation = useCustomerLocation();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Use buyNowItem if set, otherwise use cart groups
   const groups = checkout.buyNowItem 
@@ -62,14 +68,64 @@ function CheckoutPage() {
   const discount = checkout.voucher?.discount ?? 0;
   const total = subtotalPesanan + subtotalShipping - discount;
 
-  const submit = () => {
-    const warehouses = groups.map((g) => g.warehouse);
-    checkout.submitOrder(warehouses);
-    // Clear buyNowItem after order submission
-    if (checkout.buyNowItem) {
-      checkout.clearBuyNowItem();
+  const submit = async () => {
+    if (!customerLocation.selectedLocation) {
+      toast.error("Silakan pilih alamat pengiriman terlebih dahulu.");
+      return;
     }
-    navigate({ to: "/checkout/verifikasi" });
+
+    setIsSubmitting(true);
+
+    try {
+      // Build order lines from groups
+      const lines = groups.flatMap((group) =>
+        group.selectedItems.map((item) => ({
+          product_variant_id: checkout.buyNowItem 
+            ? parseInt(checkout.buyNowItem.variantId) 
+            : (item.variant_id || 0),
+          product_id: parseInt(item.id),
+          price: item.price,
+          qty: item.qty,
+          subtotal: item.price * item.qty,
+        }))
+      );
+
+      // Get branch_id from buyNowItem or first item
+      const branchId = checkout.buyNowItem
+        ? parseInt(checkout.buyNowItem.branchId)
+        : (groups[0].selectedItems[0].branch_id || 0);
+
+      const payload: CreateTrxRequest = {
+        customer_location_id: parseInt(customerLocation.selectedLocation.id),
+        trx_type: "order",
+        subtotal: subtotalPesanan,
+        shipping_cost: subtotalShipping,
+        total: total,
+        branch_id: branchId,
+        shipping_address: customerLocation.selectedLocation.address,
+        shipping_phone: customerLocation.selectedLocation.phone,
+        lines,
+      };
+
+      const response = await createTrx(payload);
+      
+      toast.success("Pesanan berhasil dibuat!");
+      
+      // Clear buyNowItem after successful order
+      if (checkout.buyNowItem) {
+        checkout.clearBuyNowItem();
+      }
+
+      // Navigate to verification or success page
+      const warehouses = groups.map((g) => g.warehouse);
+      checkout.submitOrder(warehouses);
+      navigate({ to: "/checkout/verifikasi" });
+    } catch (error) {
+      console.error("Failed to create order:", error);
+      toast.error("Gagal membuat pesanan. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleQtyChange = (itemId: string, newQty: number) => {
@@ -238,9 +294,17 @@ function CheckoutPage() {
               </div>
               <button
                 onClick={submit}
-                className="mt-5 w-full rounded-md bg-primary py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+                disabled={isSubmitting}
+                className="mt-5 w-full rounded-md bg-primary py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Ajukan Pesanan
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+                    Memproses...
+                  </>
+                ) : (
+                  "Ajukan Pesanan"
+                )}
               </button>
             </div>
           </aside>
