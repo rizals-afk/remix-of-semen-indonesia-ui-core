@@ -45,26 +45,9 @@ export function TrxCard({ trx }: { trx: Trx }) {
         </span>
       </div>
 
-      {/* Shipping Address */}
-      {trx.customer_location && (
-        <div className="px-5 pt-4">
-          <div className="rounded-md bg-muted/50 px-4 py-3">
-            <p className="text-xs font-semibold text-foreground">
-              {trx.customer_location.name}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {trx.customer_location.phone}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {trx.customer_location.address}
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Product List */}
       <ul className="px-5 pb-4 pt-4">
-        {trx.lines.map((line, idx) => (
+        {trx.lines?.map((line, idx) => (
           <li 
             key={`${line.product_id}-${line.product_variant_id}-${idx}`} 
             className="flex items-center gap-4 py-3"

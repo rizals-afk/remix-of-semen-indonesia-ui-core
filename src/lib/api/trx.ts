@@ -32,6 +32,7 @@ export interface Trx {
   id: number;
   code: string;
   status: "pending" | "approve" | "proses" | "delivery" | "done" | "cancel";
+  trx_type: string;
   created_at: string;
   updated_at: string;
   subtotal: number;
@@ -101,6 +102,10 @@ export async function fetchTrx(params: FetchTrxParams = {}): Promise<TrxListResp
   }
 
   return apiFetch<TrxListResponse>(`/trx?${queryParams.toString()}`);
+}
+
+export async function fetchTrxById(id: number): Promise<Trx> {
+  return apiFetch<Trx>(`/trx/${id}`);
 }
 
 export async function createTrx(data: CreateTrxRequest): Promise<TrxResponse> {
