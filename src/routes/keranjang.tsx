@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CartWarehouseGroupCard } from "@/components/cart/CartWarehouseGroupCard";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useCart } from "@/store/cart";
+import { useCheckout } from "@/store/checkout";
 import { formatRupiah } from "@/lib/format";
 import { getCurrentUserFromStorage } from "@/lib/auth";
 
@@ -15,13 +16,17 @@ export const Route = createFileRoute("/keranjang")({
 
 function CartPage() {
   const cart = useCart();
+  const checkout = useCheckout();
   const navigate = useNavigate();
   const user = getCurrentUserFromStorage();
   const allSelected = cart.items.length > 0 && cart.selectedIds.size === cart.items.length;
 
-  // Refresh cart data when page opens
+  // Refresh cart data when page opens and clear buyNowItem to prevent flow mixing
   useEffect(() => {
     cart.refreshCart();
+    if (checkout.buyNowItem) {
+      checkout.clearBuyNowItem();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

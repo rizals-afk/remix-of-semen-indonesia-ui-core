@@ -28,7 +28,7 @@ function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
     image: item.image,
     weightKg: item.weightKg,
     unit: "Sak",
-    variant: "",
+    variant: item.variantName,
   };
   
   return {
@@ -65,6 +65,10 @@ function CheckoutPage() {
   const submit = () => {
     const warehouses = groups.map((g) => g.warehouse);
     checkout.submitOrder(warehouses);
+    // Clear buyNowItem after order submission
+    if (checkout.buyNowItem) {
+      checkout.clearBuyNowItem();
+    }
     navigate({ to: "/checkout/verifikasi" });
   };
 

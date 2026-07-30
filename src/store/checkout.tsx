@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ADDRESSES, PAYMENT_METHODS, WAREHOUSES, ESTIMATED_GROUP_SHIPPING_FEE,
   type Address, type PaymentMethod, type Voucher, type Warehouse,
@@ -12,6 +12,7 @@ export interface BuyNowItem {
   variantId: string;
   branchId: string;
   name: string;
+  variantName: string;
   price: number;
   qty: number;
   image: string;
@@ -55,6 +56,7 @@ interface CheckoutState {
 }
 
 const CheckoutContext = createContext<CheckoutState | null>(null);
+const BUY_NOW_STORAGE_KEY = "bm_buy_now_item";
 
 function makeOrderId() {
   const d = new Date();
@@ -74,7 +76,29 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [groupShippingFees, setGroupShippingFees] = useState<Record<string, number>>({});
   const [stage, setStage] = useState<CheckoutStage>("draft");
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [buyNowItem, setBuyNowItem] = useState<BuyNowItem | null>(null);
+  const [buyNowItem, setBuyNowItemState] = useState<BuyNowItem | null>(null);
+
+  // Load buyNowItem from localStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(BUY_NOW_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as BuyNowItem;
+        setBuyNowItemState(parsed);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Persist buyNowItem to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (buyNowItem) {
+      window.localStorage.setItem(BUY_NOW_STORAGE_KEY, JSON.stringify(buyNowItem));
+    } else {
+      window.localStorage.removeItem(BUY_NOW_STORAGE_KEY);
+    }
+  }, [buyNowItem]);
 
   const setNote = useCallback((wh: string, text: string) => {
     setNotes((s) => ({ ...s, [wh]: text }));
@@ -99,7 +123,11 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearBuyNowItem = useCallback(() => {
-    setBuyNowItem(null);
+    setBuyNowItemState(null);
+  }, []);
+
+  const setBuyNowItem = useCallback((item: BuyNowItem | null) => {
+    setBuyNowItemState(item);
   }, []);
 
   const value = useMemo<CheckoutState>(() => ({
