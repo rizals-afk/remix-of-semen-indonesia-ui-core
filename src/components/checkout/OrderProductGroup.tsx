@@ -1,6 +1,7 @@
 import { Warehouse as WarehouseIcon, Truck } from "lucide-react";
 import { formatRupiah } from "@/lib/format";
 import type { CartWarehouseGroup } from "@/store/cart";
+import { QuantityStepper } from "@/components/common/QuantityStepper";
 
 interface OrderProductGroupProps {
   group: CartWarehouseGroup;
@@ -10,10 +11,12 @@ interface OrderProductGroupProps {
   shippingFee?: number;
   /** Hide the note input + armada row, used on verified/paid screens where editing is locked. */
   readOnly?: boolean;
+  /** Callback when quantity changes */
+  onQtyChange?: (itemId: string, newQty: number) => void;
 }
 
 /** A "Produk Dipesan" card grouped per warehouse — used on checkout & payment screens. */
-export function OrderProductGroup({ group, note, onNoteChange, shippingFee, readOnly }: OrderProductGroupProps) {
+export function OrderProductGroup({ group, note, onNoteChange, shippingFee, readOnly, onQtyChange }: OrderProductGroupProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
       <div className="grid grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1fr)] items-center gap-3 border-b border-border px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -45,7 +48,15 @@ export function OrderProductGroup({ group, note, onNoteChange, shippingFee, read
               </div>
             </div>
             <span className="text-sm text-foreground">{formatRupiah(item.price)}</span>
-            <span className="text-sm text-foreground">{item.qty}</span>
+            {!readOnly && onQtyChange ? (
+              <QuantityStepper
+                value={item.qty}
+                onChange={(newQty) => onQtyChange(item.id, newQty)}
+                min={1}
+              />
+            ) : (
+              <span className="text-sm text-foreground">{item.qty}</span>
+            )}
             <span className="text-sm text-foreground">{((item.weightKg ?? 0) * item.qty / 1000).toLocaleString("id-ID")} Ton</span>
             <span className="text-sm font-semibold text-foreground">{formatRupiah(item.price * item.qty)}</span>
           </div>

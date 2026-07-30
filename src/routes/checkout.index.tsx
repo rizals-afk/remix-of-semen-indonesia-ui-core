@@ -6,6 +6,7 @@ import { OrderProductGroup } from "@/components/checkout/OrderProductGroup";
 import { Switch } from "@/components/ui/switch";
 import { useCart } from "@/store/cart";
 import { useCheckout, type FulfillmentMode, type BuyNowItem } from "@/store/checkout";
+import { useCustomerLocation } from "@/store/customer-location";
 import { useUser } from "@/store/user";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
@@ -45,6 +46,7 @@ function CheckoutPage() {
   const { user } = useUser();
   const cart = useCart();
   const checkout = useCheckout();
+  const customerLocation = useCustomerLocation();
   const navigate = useNavigate();
   
   // Use buyNowItem if set, otherwise use cart groups
@@ -64,6 +66,19 @@ function CheckoutPage() {
     const warehouses = groups.map((g) => g.warehouse);
     checkout.submitOrder(warehouses);
     navigate({ to: "/checkout/verifikasi" });
+  };
+
+  const handleQtyChange = (itemId: string, newQty: number) => {
+    if (checkout.buyNowItem) {
+      // Update buyNowItem quantity
+      checkout.setBuyNowItem({
+        ...checkout.buyNowItem,
+        qty: newQty,
+      });
+    } else {
+      // Update cart item quantity
+      cart.updateQty(itemId, newQty);
+    }
   };
 
   if (groups.length === 0) {
@@ -109,15 +124,21 @@ function CheckoutPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="text-base font-bold text-foreground">Alamat Pengiriman</p>
-                      <Link to="/checkout/alamat" className="text-sm font-semibold text-primary hover:underline">Ubah</Link>
+                      <Link to="/akun/alamat" className="text-sm font-semibold text-primary hover:underline">Ubah</Link>
                     </div>
-                    <p className="mt-2 text-sm text-foreground">
-                      <span className="font-semibold">{checkout.address.recipient}</span>{" "}
-                      <span className="text-muted-foreground">({checkout.address.phone})</span>
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {checkout.address.address}, {checkout.address.city}
-                    </p>
+                    {customerLocation.selectedLocation ? (
+                      <>
+                        <p className="mt-2 text-sm text-foreground">
+                          <span className="font-semibold">{customerLocation.selectedLocation.name}</span>{" "}
+                          <span className="text-muted-foreground">({customerLocation.selectedLocation.phone})</span>
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {customerLocation.selectedLocation.address}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-sm text-muted-foreground">Memuat alamat...</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -161,6 +182,7 @@ function CheckoutPage() {
                 note={checkout.notes[g.warehouse] ?? ""}
                 onNoteChange={(t) => checkout.setNote(g.warehouse, t)}
                 shippingFee={showShipping ? ESTIMATED_GROUP_SHIPPING_FEE * 2 : undefined}
+                onQtyChange={handleQtyChange}
               />
             ))}
           </div>
