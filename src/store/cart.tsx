@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { DEMO_CART, type CartProduct } from "@/data/shopping";
+import { type CartProduct } from "@/data/shopping";
 import { fetchCart, addToCart, fetchCartCount, type CartItem } from "@/lib/api/cart";
 import { getToken } from "@/lib/auth";
 
@@ -42,17 +42,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
   // Transform API cart item to CartProduct format
-  const transformApiItemToCartProduct = (item: CartItem): CartProduct => ({
-    id: String(item.id),
-    name: item.product.name,
-    price: item.price,
-    qty: item.qty,
-    warehouse: item.branch.name,
-    image: item.product.photo || "",
-    weightKg: parseFloat(item.product_variant.weight) || 0,
-    unit: "Sak", // Default unit
-    variant: item.product_variant.variant_name,
-  });
+  const transformApiItemToCartProduct = (item: CartItem): CartProduct => {
+    const image =
+      (item.product_variant.media && item.product_variant.media[0]?.url) ||
+      item.product_variant.photo ||
+      item.product.photo ||
+      "";
+
+    return {
+      id: String(item.id),
+      name: item.product.name,
+      price: item.price,
+      qty: item.qty,
+      warehouse: item.branch.name,
+      image,
+      weightKg: parseFloat(item.product_variant.weight) || 0,
+      unit: "Sak", // Default unit
+      variant: item.product_variant.variant_name,
+    };
+  };
 
   // Load cart from localStorage
   useEffect(() => {
@@ -83,9 +91,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setSelectedIds(new Set(cartItems.map((i) => i.id)));
       } catch (error) {
         console.error("Failed to load cart from API:", error);
-        // Fall back to demo cart if API fails
-        setItems(DEMO_CART);
-        setSelectedIds(new Set(DEMO_CART.map((i) => i.id)));
+        // Set empty cart if API fails
+        setItems([]);
+        setSelectedIds(new Set());
       }
     };
 

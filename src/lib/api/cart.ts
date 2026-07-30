@@ -36,6 +36,10 @@ export interface CartItem {
     weight: string;
     volume: string;
     photo: string | null;
+    media: Array<{
+      id: number;
+      url: string;
+    }>;
   };
   branch: {
     id: number;
