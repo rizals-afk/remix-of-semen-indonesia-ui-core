@@ -27,6 +27,7 @@ interface CartContextValue {
   addItem: (item: CartProduct, productId?: number, variantId?: number, branchId?: number) => Promise<void>;
   removeItem: (id: string) => Promise<void>;
   updateQty: (id: string, qty: number) => Promise<void>;
+  refreshCart: () => Promise<void>;
   toggleSelect: (id: string) => void;
   toggleSelectAll: (select: boolean) => void;
   toggleSelectGroup: (warehouse: string, select: boolean) => void;
@@ -53,7 +54,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     price: item.price,
     qty: item.qty,
     warehouse: item.branch.name,
-    image: item.product.photo || "",
+    image: item.product_variant.media?.[0]?.url || item.product.photo || "",
     weightKg: parseFloat(item.product_variant.weight) || 0,
     unit: "Sak", // Default unit
     variant: item.product_variant.variant_name,
@@ -245,6 +246,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setSelectedIds(new Set());
   }, [selectedIds]);
 
+  const refreshCart = useCallback(async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const response = await fetchCart({ page: 1, per_page: 100 });
+      const cartItems = response.data.map(transformApiItemToCartProduct);
+      setItems(cartItems);
+      setSelectedIds(new Set(cartItems.map((i) => i.id)));
+      // Also refresh cart count
+      await refreshCartCount();
+    } catch (error) {
+      console.error("Failed to refresh cart from API:", error);
+    }
+  }, [refreshCartCount]);
+
   const value = useMemo<CartContextValue>(() => {
     const byWarehouse = new Map<string, CartProduct[]>();
     items.forEach((it) => {
@@ -276,7 +293,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subTotal: selectedItems.reduce((s, i) => s + i.qty * i.price, 0),
       totalTonase: selectedItems.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0) / 1000,
       cartCount,
-      addItem, removeItem, updateQty, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected,
+      addItem, removeItem, updateQty, refreshCart, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected,
       updatingIds,
       deletingIds,
     };

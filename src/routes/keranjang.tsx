@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ShoppingCart } from "lucide-react";
+import { useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CartWarehouseGroupCard } from "@/components/cart/CartWarehouseGroupCard";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -18,8 +19,14 @@ function CartPage() {
   const user = getCurrentUserFromStorage();
   const allSelected = cart.items.length > 0 && cart.selectedIds.size === cart.items.length;
 
+  // Refresh cart data when page opens
+  useEffect(() => {
+    cart.refreshCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <MainLayout user={user}>
+    <MainLayout>
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-2xl font-bold text-primary">Keranjang</h1>
 

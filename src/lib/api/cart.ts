@@ -1,5 +1,12 @@
 import { apiFetch } from "../api";
 
+export interface ProductMedia {
+  id: string;
+  url: string;
+  type: "image" | "video";
+  alt?: string;
+}
+
 export interface CartItem {
   id: number;
   user_id: number;
@@ -36,6 +43,7 @@ export interface CartItem {
     weight: string;
     volume: string;
     photo: string | null;
+    media: ProductMedia[];
   };
   branch: {
     id: number;
