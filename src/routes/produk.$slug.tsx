@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bookmark, Heart, MapPin, Share2, Star, Truck, Building2, Loader2 } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useWarehouse } from "@/store/warehouse";
+import { useCheckout } from "@/store/checkout";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
@@ -32,6 +33,7 @@ type Tab = (typeof TABS)[number];
 function ProductDetailPage() {
   const { slug } = Route.useParams();
   const { selectedWarehouse: headerWarehouse } = useWarehouse();
+  const checkout = useCheckout();
   const [tab, setTab] = useState<Tab>("Deskripsi");
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [selectedBranchId, setSelectedBranchId] = useState<string | undefined>();
@@ -187,12 +189,42 @@ function ProductDetailPage() {
   };
 
   const buyNow = async () => {
+    if (!product || !price) {
+      toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
+      return;
+    }
     if (!hasPrice) {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;
     }
-    await addToCart();
-    navigate({ to: "/keranjang" });
+    if (!selectedVariantId || !selectedBranchId) {
+      toast.error("Silakan pilih varian dan gudang terlebih dahulu.");
+      return;
+    }
+    if (price <= 0) {
+      toast.error("Harga tidak valid untuk produk ini.");
+      return;
+    }
+    if (stock <= 0) {
+      toast.error("Stok tidak tersedia untuk produk ini.");
+      return;
+    }
+
+    // Set buyNowItem in checkout store
+    checkout.setBuyNowItem({
+      productId: product.id,
+      variantId: selectedVariantId,
+      branchId: selectedBranchId,
+      name: product.name + (selectedVariant?.name ? ` ${selectedVariant.name}` : ""),
+      price,
+      qty,
+      image: images[0] || "",
+      warehouse: selectedWarehouse?.name || "Gudang Utama",
+      weightKg: parseFloat(selectedVariant?.weight || "0") || 0,
+    });
+
+    // Navigate directly to checkout
+    navigate({ to: "/checkout" });
   };
 
   if (loading || !product) {

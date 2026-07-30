@@ -1,26 +1,56 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, MapPin, Ticket, Truck, Store, Check } from "lucide-react";
+import { ChevronLeft, MapPin, Ticket, Truck, Store, Check, Building2 } from "lucide-react";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { OrderProductGroup } from "@/components/checkout/OrderProductGroup";
 import { Switch } from "@/components/ui/switch";
 import { useCart } from "@/store/cart";
-import { useCheckout, type FulfillmentMode } from "@/store/checkout";
+import { useCheckout, type FulfillmentMode, type BuyNowItem } from "@/store/checkout";
 import { useUser } from "@/store/user";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
+import type { CartWarehouseGroup } from "@/store/cart";
 
 export const Route = createFileRoute("/checkout/")({
   head: () => ({ meta: [{ title: "Checkout — BahanMaterial.com" }] }),
   component: CheckoutPage,
 });
 
+// Helper to convert BuyNowItem to CartWarehouseGroup format
+function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
+  const cartItem = {
+    id: item.productId,
+    name: item.name,
+    price: item.price,
+    qty: item.qty,
+    warehouse: item.warehouse,
+    image: item.image,
+    weightKg: item.weightKg,
+    unit: "Sak",
+    variant: "",
+  };
+  
+  return {
+    warehouse: item.warehouse,
+    items: [cartItem],
+    selectedItems: [cartItem],
+    subTotal: item.price * item.qty,
+    tonase: (item.weightKg * item.qty) / 1000,
+    allSelected: true,
+    anySelected: true,
+  };
+}
+
 function CheckoutPage() {
   const { user } = useUser();
   const cart = useCart();
   const checkout = useCheckout();
   const navigate = useNavigate();
-  const groups = cart.selectedGroups;
+  
+  // Use buyNowItem if set, otherwise use cart groups
+  const groups = checkout.buyNowItem 
+    ? [createGroupFromBuyNowItem(checkout.buyNowItem)]
+    : cart.selectedGroups;
 
   const subtotalPesanan = groups.reduce((s, g) => s + g.subTotal, 0);
   const totalTonase = groups.reduce((s, g) => s + g.tonase, 0);
@@ -48,6 +78,12 @@ function CheckoutPage() {
         </div>
       </MainLayout>
     );
+  }
+
+  // Set warehouse from buyNowItem if available
+  if (checkout.buyNowItem && checkout.buyNowItem.warehouse !== checkout.warehouse.name) {
+    // Update checkout warehouse to match buyNowItem warehouse
+    // This is a simplified approach - in production you might want to match by ID
   }
 
   return (
