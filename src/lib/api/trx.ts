@@ -85,7 +85,7 @@ export interface CreateTrxRequest {
   customer_location_phone?: string;
   customer_location_lat?: number;
   customer_location_long?: number;
-  lines: string;
+  lines: TrxLine[];
 }
 
 export interface TrxResponse {

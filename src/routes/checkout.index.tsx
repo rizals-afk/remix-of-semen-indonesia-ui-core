@@ -80,10 +80,12 @@ function CheckoutPage() {
       // Build order lines from groups
       const lines = groups.flatMap((group) =>
         group.selectedItems.map((item) => ({
-          product_variant_id: checkout.buyNowItem 
-            ? parseInt(checkout.buyNowItem.variantId) 
+          product_variant_id: checkout.buyNowItem
+            ? parseInt(checkout.buyNowItem.variantId)
             : (item.variant_id || 0),
-          product_id: parseInt(item.id),
+          product_id: checkout.buyNowItem
+            ? parseInt(checkout.buyNowItem.productId)
+            : (item.product_id || 0),
           price: item.price,
           qty: item.qty,
           subtotal: item.price * item.qty,
@@ -107,7 +109,7 @@ function CheckoutPage() {
         customer_location_phone: customerLocation.selectedLocation.phone,
         customer_location_lat: customerLocation.selectedLocation.lat || 0,
         customer_location_long: customerLocation.selectedLocation.long || 0,
-        lines: JSON.stringify(lines),
+        lines: lines,
       };
 
       const response = await createTrx(payload);

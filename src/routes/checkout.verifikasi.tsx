@@ -1,5 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Hourglass, MessageCircle, Home, Info, Package, Lock, Clock } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useCart } from "@/store/cart";
@@ -15,7 +14,6 @@ export const Route = createFileRoute("/checkout/verifikasi")({
 function VerifikasiPage() {
   const cart = useCart();
   const checkout = useCheckout();
-  const navigate = useNavigate();
 
   const subtotalPesanan = cart.selectedGroups.reduce((s, g) => s + g.subTotal, 0);
   const shipping = checkout.mode === "dikirim" && !checkout.cod
@@ -23,21 +21,6 @@ function VerifikasiPage() {
     : 0;
   const discount = checkout.voucher?.discount ?? 0;
   const total = subtotalPesanan + shipping - discount;
-
-  // Simulate admin verification after a few seconds.
-  useEffect(() => {
-    if (checkout.stage !== "verifying") return;
-    const t = setTimeout(() => {
-      checkout.markVerified(cart.selectedGroups.map((g) => g.warehouse));
-      // For COD orders, skip payment method selection → go straight to success.
-      if (checkout.cod) {
-        navigate({ to: "/pembayaran/sukses" });
-      } else {
-        navigate({ to: "/checkout/pembayaran" });
-      }
-    }, 6000);
-    return () => clearTimeout(t);
-  }, [checkout, cart.selectedGroups, navigate]);
 
   return (
     <MainLayout>

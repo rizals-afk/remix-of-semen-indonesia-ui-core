@@ -143,6 +143,8 @@ export interface CartProduct extends Product {
   variant_id?: number;
   /** Branch ID for order submission */
   branch_id?: number;
+  /** Product ID for order submission */
+  product_id?: number;
 }
 
 export const DEMO_CART: CartProduct[] = [

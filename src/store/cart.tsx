@@ -60,6 +60,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     variant: item.product_variant.variant_name,
     variant_id: item.product_variant_id,
     branch_id: item.branch_id,
+    product_id: item.product_id,
   });
 
   // Load cart from localStorage
