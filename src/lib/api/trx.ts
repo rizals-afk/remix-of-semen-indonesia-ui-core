@@ -16,6 +16,12 @@ export interface TrxLine {
     id: number;
     variant_name: string;
     weight: string;
+    media?: Array<{
+      id: string;
+      url: string;
+      type: "image" | "video";
+      alt?: string;
+    }>;
   };
 }
 

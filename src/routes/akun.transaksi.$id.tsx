@@ -198,11 +198,11 @@ function OrderDetailPage() {
           {trx.lines.map((line, idx) => (
             <li key={`${line.product_id}-${line.product_variant_id}-${idx}`} className="flex items-center gap-4 py-2">
               <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
-                <img 
-                  src={line.product?.photo || "/placeholder.png"} 
-                  alt={line.product?.name || "Produk"} 
-                  className="h-full w-full object-contain p-1" 
-                  loading="lazy" 
+                <img
+                  src={line.product_variant?.media?.[0]?.url || line.product?.photo || "/placeholder.png"}
+                  alt={line.product?.name || "Produk"}
+                  className="h-full w-full object-contain p-1"
+                  loading="lazy"
                 />
               </div>
               <div className="min-w-0 flex-1">
