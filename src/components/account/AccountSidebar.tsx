@@ -6,6 +6,7 @@ import {
 import { useState, type ComponentType } from "react";
 import { toast } from "sonner";
 import { logout } from "@/lib/auth";
+import { useUser } from "@/store/user";
 import { LogoutDialog } from "@/components/auth/LogoutDialog";
 
 interface MenuItem {
@@ -63,6 +64,7 @@ const GROUPS: MenuGroup[] = [
 export function AccountSidebar({ user }: { user: { name: string; email?: string } }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const { clearUser } = useUser();
   const [logoutOpen, setLogoutOpen] = useState(false);
   return (
     <aside className="rounded-2xl border border-border bg-card p-5">
@@ -128,6 +130,7 @@ export function AccountSidebar({ user }: { user: { name: string; email?: string 
         onConfirm={async () => {
           try {
             await logout();
+            clearUser();
             toast.success("Berhasil keluar");
             setLogoutOpen(false);
             await navigate({ to: "/masuk" });

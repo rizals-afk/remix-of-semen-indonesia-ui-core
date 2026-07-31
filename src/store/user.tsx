@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { getUser } from "@/lib/auth";
+import { getUser, saveSession, getToken } from "@/lib/auth";
 
 export interface User {
   name?: string;
@@ -34,10 +34,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const setUser = useCallback((userData: User | null) => {
     setUserState(userData);
+    if (userData) {
+      saveSession(getToken() || "", userData);
+    }
   }, []);
 
   const clearUser = useCallback(() => {
     setUserState(null);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("bm_auth_token");
+      window.localStorage.removeItem("bm_user");
+    }
   }, []);
 
   const value = useMemo<UserContextValue>(() => ({

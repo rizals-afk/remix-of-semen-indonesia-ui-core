@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { login } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
+import { useUser } from "@/store/user";
 import {
   AuthShell,
   NotchedInput,
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/masuk")({
 
 function SignInPage() {
   const navigate = useNavigate();
+  const { setUser } = useUser();
   const [show, setShow] = useState(false);
   const [email, setEmail] = useState("testadmin@email.com");
   const [password, setPassword] = useState("testadmin");
@@ -40,7 +42,9 @@ function SignInPage() {
             if (loading) return;
             setLoading(true);
             try {
-              await login({ email, password });
+              const response = await login({ email, password });
+              const user = response.user ?? response.data?.user ?? null;
+              setUser(user as any);
               toast.success("Login berhasil");
               await navigate({ to: "/" });
             } catch (err) {
