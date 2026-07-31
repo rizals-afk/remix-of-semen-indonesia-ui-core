@@ -60,15 +60,32 @@ export interface FetchTrxParams {
 }
 
 export interface CreateTrxRequest {
-  customer_location_id: number;
   trx_type: "order";
-  subtotal: number;
-  shipping_cost: number;
-  total: number;
-  branch_id: number;
-  shipping_address: string;
-  shipping_phone: string;
-  lines: TrxLine[];
+  status?: string;
+  subtotal?: number;
+  shipping_cost?: number;
+  total?: number;
+  verificator_id?: number;
+  verification_date?: string;
+  reject_message?: string;
+  payment_id?: number;
+  verification_due_date?: string;
+  shipping_method?: string;
+  shipping_type?: string;
+  so_number?: string;
+  do_number?: string;
+  billing_number?: string;
+  is_billing_sap?: boolean;
+  is_post_payment?: boolean;
+  review_id?: number;
+  branch_id?: number;
+  shipping_address?: string;
+  shipping_phone?: string;
+  customer_location_address?: string;
+  customer_location_phone?: string;
+  customer_location_lat?: number;
+  customer_location_long?: number;
+  lines: string;
 }
 
 export interface TrxResponse {

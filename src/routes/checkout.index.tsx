@@ -96,7 +96,6 @@ function CheckoutPage() {
         : (groups[0].selectedItems[0].branch_id || 0);
 
       const payload: CreateTrxRequest = {
-        customer_location_id: parseInt(customerLocation.selectedLocation.id),
         trx_type: "order",
         subtotal: subtotalPesanan,
         shipping_cost: subtotalShipping,
@@ -104,7 +103,11 @@ function CheckoutPage() {
         branch_id: branchId,
         shipping_address: customerLocation.selectedLocation.address,
         shipping_phone: customerLocation.selectedLocation.phone,
-        lines,
+        customer_location_address: customerLocation.selectedLocation.address,
+        customer_location_phone: customerLocation.selectedLocation.phone,
+        customer_location_lat: customerLocation.selectedLocation.lat || 0,
+        customer_location_long: customerLocation.selectedLocation.long || 0,
+        lines: JSON.stringify(lines),
       };
 
       const response = await createTrx(payload);
