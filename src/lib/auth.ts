@@ -155,6 +155,63 @@ export async function getCurrentUser<T = unknown>(): Promise<T> {
   return await apiFetch<T>("/me");
 }
 
+export interface UploadResponse {
+  url: string;
+}
+
+export async function uploadFile(file: File): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || "https://freewill-aftermost-elf.ngrok-free.dev/api"}/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Upload failed");
+  }
+
+  return response.json();
+}
+
+export interface UpdateProfilePayload {
+  name?: string;
+  email?: string;
+  nik_ktp?: string;
+  birth_date?: string;
+  birth_place?: string;
+  phone?: string;
+  photo?: string;
+  customer_type?: string | null;
+  company?: string;
+  npwp_1?: string;
+  npwp_2?: string;
+  is_nik?: boolean;
+}
+
+export async function updateProfile(payload: UpdateProfilePayload): Promise<void> {
+  await apiFetch<void>("/user", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export interface ChangePasswordPayload {
+  old_password: string;
+  new_password: string;
+}
+
+export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
+  await apiFetch<void>("/user/change_password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export function loginWithGoogle() {
   if (typeof window === "undefined") return;
   const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://52c2-182-8-99-17.ngrok-free.app/api";
