@@ -5,6 +5,8 @@ export interface CustomerLocation {
   name: string;
   phone: string;
   address: string;
+  city?: string;
+  postal_code?: string;
   lat: number;
   long: number;
   is_default: boolean;
@@ -27,6 +29,8 @@ export interface CreateCustomerLocationRequest {
   name: string;
   phone: string;
   address: string;
+  city?: string;
+  postal_code?: string;
   lat: number;
   long: number;
   is_default: boolean;
@@ -36,6 +40,8 @@ export interface UpdateCustomerLocationRequest {
   name?: string;
   phone?: string;
   address?: string;
+  city?: string;
+  postal_code?: string;
   lat?: number;
   long?: number;
   is_default?: boolean;

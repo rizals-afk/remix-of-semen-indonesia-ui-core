@@ -26,6 +26,8 @@ interface AddressForm {
   phone: string;
   region: string;
   street: string;
+  city: string;
+  postalCode: string;
   lat: number;
   lng: number;
   isPrimary: boolean;
@@ -36,6 +38,8 @@ const EMPTY_FORM: AddressForm = {
   phone: "",
   region: "",
   street: "",
+  city: "",
+  postalCode: "",
   lat: -7.2504,
   lng: 112.7688,
   isPrimary: false,
@@ -63,6 +67,8 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
         phone: addressToEdit.phone,
         region: addressToEdit.address,
         street: addressToEdit.address,
+        city: addressToEdit.city || "",
+        postalCode: addressToEdit.postal_code || "",
         lat: addressToEdit.lat,
         lng: addressToEdit.long,
         isPrimary: addressToEdit.is_default,
@@ -78,7 +84,7 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
 
   const save = async () => {
     // Validate required fields
-    if (!form.recipient || !form.phone || !form.region || !form.street) {
+    if (!form.recipient || !form.phone || !form.street) {
       toast.error("Mohon lengkapi semua field");
       return;
     }
@@ -86,13 +92,15 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
     setIsSaving(true);
     try {
       let savedLocation: CustomerLocation;
-      
+
       if (form.id) {
         // Update existing address
         savedLocation = await updateCustomerLocation(form.id, {
           name: form.recipient,
           phone: form.phone,
           address: form.street,
+          city: form.city || undefined,
+          postal_code: form.postalCode || undefined,
           lat: form.lat,
           long: form.lng,
           is_default: form.isPrimary,
@@ -104,20 +112,22 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
           name: form.recipient,
           phone: form.phone,
           address: form.street,
+          city: form.city || undefined,
+          postal_code: form.postalCode || undefined,
           lat: form.lat,
           long: form.lng,
           is_default: form.isPrimary,
         });
         toast.success("Alamat berhasil ditambahkan");
       }
-      
+
       await refreshLocations();
-      
+
       // Auto-select if it's the default address
       if (savedLocation.is_default) {
         setSelectedLocation(savedLocation);
       }
-      
+
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -162,6 +172,25 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
               onChange={(e) => setForm({ ...form, street: e.target.value })}
               className="h-11"
             />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Kota</label>
+              <Input
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                className="h-11"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Kode Pos</label>
+              <Input
+                value={form.postalCode}
+                onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+                className="h-11"
+              />
+            </div>
           </div>
 
           <div>
