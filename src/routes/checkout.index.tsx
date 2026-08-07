@@ -366,15 +366,6 @@ function InfoItem({ icon, children }: { icon: React.ReactNode; children: React.R
   );
 }
 
-function RowLegacy({ label, value, accent }: { label: string; value: string; accent?: "success" }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className={"font-semibold " + (accent === "success" ? "text-success" : "text-foreground")}>{value}</dd>
-    </div>
-  );
-}
-
 function ModeOption({
   active, onClick, icon, title,
 }: { active: boolean; onClick: () => void; icon: React.ReactNode; title: string }) {
