@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, MapPin, Ticket, Truck, Store, Check, Building2, Loader2 } from "lucide-react";
+import { ChevronLeft, MapPin, Ticket, Truck, Store, Check, Loader2, Info, Package, ShieldCheck, ChevronRight, Lock } from "lucide-react";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { OrderProductGroup } from "@/components/checkout/OrderProductGroup";
