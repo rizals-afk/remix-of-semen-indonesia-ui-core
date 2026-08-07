@@ -179,8 +179,17 @@ function CheckoutPage() {
           <ChevronLeft className="h-4 w-4" /> Kembali ke Keranjang
         </Link>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-5">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-8">
+          <div className="space-y-6">
+            {/* Info banner */}
+            <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary-soft/50 px-5 py-4">
+              <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div className="min-w-0 text-sm">
+                <p className="font-semibold text-primary">Pesanan akan dibuat terpisah berdasarkan gudang pengirim.</p>
+                <p className="mt-0.5 text-muted-foreground">Total pembayaran tetap dihitung menjadi satu.</p>
+              </div>
+            </div>
+
             {/* Address card — only when shipping */}
             {checkout.mode === "dikirim" ? (
               <div className="rounded-2xl border border-border bg-card p-5">
