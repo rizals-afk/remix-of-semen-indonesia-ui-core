@@ -357,6 +357,24 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
   );
 }
 
+function InfoItem({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-3">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">{icon}</span>
+      <span className="min-w-0 leading-relaxed">{children}</span>
+    </li>
+  );
+}
+
+function RowLegacy({ label, value, accent }: { label: string; value: string; accent?: "success" }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className={"font-semibold " + (accent === "success" ? "text-success" : "text-foreground")}>{value}</dd>
+    </div>
+  );
+}
+
 function ModeOption({
   active, onClick, icon, title,
 }: { active: boolean; onClick: () => void; icon: React.ReactNode; title: string }) {
