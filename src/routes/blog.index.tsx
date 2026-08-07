@@ -51,7 +51,7 @@ function BlogIndexPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     navigate({
-      search: (prev) => ({
+      search: (prev: Record<string, unknown>) => ({
         ...prev,
         q: q || undefined,
         page: 1,
@@ -61,7 +61,7 @@ function BlogIndexPage() {
 
   const handlePageChange = (newPage: number) => {
     navigate({
-      search: (prev) => ({
+      search: (prev: Record<string, unknown>) => ({
         ...prev,
         page: newPage,
       }),
@@ -87,7 +87,7 @@ function BlogIndexPage() {
               onChange={(e) => {
                 const value = e.target.value;
                 navigate({
-                  search: (prev) => ({
+                  search: (prev: Record<string, unknown>) => ({
                     ...prev,
                     q: value || undefined,
                     page: 1,
