@@ -6,6 +6,7 @@ import { Pagination } from "@/components/common/Pagination";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterSidebar } from "@/components/product/FilterSidebar";
 import { ProductCard } from "@/components/product/ProductCard";
+import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
 import { fetchCategories, buildCategoryTree } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import type { CategoryNode } from "@/lib/api/product-category";
@@ -32,10 +33,26 @@ export const Route = createFileRoute("/produk/")({
 
 const PAGE_SIZE = 9;
 
+// Map frontend sort parameter to backend sort_by and sort_order
+function mapSortToBackend(sort?: string): { sort_by?: string; sort_order?: string } {
+  switch (sort) {
+    case "terbaru":
+      return { sort_by: "created_at", sort_order: "desc" };
+    case "terlaris":
+      return { sort_by: "most_bought", sort_order: "desc" };
+    case "termurah":
+      return { sort_by: "price", sort_order: "asc" };
+    case "termahal":
+      return { sort_by: "price", sort_order: "desc" };
+    default:
+      return {};
+  }
+}
+
 function ProductListingPage() {
   const { q = "", page = 1, sort = "terbaru", category } = Route.useSearch();
   const navigate = useNavigate({ from: "/produk/" });
-  const { selectedWarehouse } = useWarehouse();
+  const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();
   const user = getCurrentUserFromStorage();
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
@@ -43,6 +60,7 @@ function ProductListingPage() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
+  const [warehouseModalOpen, setWarehouseModalOpen] = useState(false);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -64,22 +82,25 @@ function ProductListingPage() {
     const loadProducts = async () => {
       setLoading(true);
       try {
+        const { sort_by, sort_order } = mapSortToBackend(sort);
+
         const response = await fetchProducts({
           page,
           per_page: PAGE_SIZE,
           product_category_id: category,
           branch_id: selectedWarehouse?.id,
           search: q || undefined,
-          sort,
+          sort_by: sort_by as any,
+          sort_order: sort_order as any,
         });
-        
+
         console.log("Product List - API response:", response);
         console.log("Product List - first product media:", response.data[0]?.media);
-        
+
         const transformedProducts = response.data.map((product) =>
           transformProductToCard(product, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
         );
-        
+
         setProducts(transformedProducts);
         setTotalPages(Math.max(1, Math.ceil(response.total / PAGE_SIZE)));
       } catch (error) {
@@ -206,7 +227,13 @@ function ProductListingPage() {
               </div>
             ) : products.length === 0 ? (
               <div className="grid place-items-center rounded-xl border border-dashed border-border py-20 text-sm text-muted-foreground">
-                Tidak ada produk yang cocok dengan filter Anda.
+                Untuk gudang ini memang kosong, anda bisa mencari product serupa di gudang lain.{" "}
+                <button
+                  onClick={() => setWarehouseModalOpen(true)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Pilih gudang
+                </button>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -230,6 +257,14 @@ function ProductListingPage() {
           </section>
         </div>
       </div>
+
+      <WarehouseSelectorModal
+        open={warehouseModalOpen}
+        onOpenChange={setWarehouseModalOpen}
+        selectedWarehouse={selectedWarehouse}
+        onSelectWarehouse={setSelectedWarehouse}
+        userLocation={user?.name || "Jakarta"}
+      />
     </MainLayout>
   );
 }
