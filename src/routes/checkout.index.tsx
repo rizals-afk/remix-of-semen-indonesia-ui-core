@@ -259,40 +259,42 @@ function CheckoutPage() {
                 onQtyChange={handleQtyChange}
               />
             ))}
-          </div>
 
-          {/* Right rail */}
-          <aside className="space-y-4 lg:sticky lg:top-24 lg:h-fit">
+            {/* Voucher — below all warehouse cards */}
             <Link
               to="/checkout/voucher"
-              className="flex items-center justify-between rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary"
+              className="flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-colors hover:border-primary"
             >
-              <div>
-                <p className="text-base font-bold text-foreground">Gunakan Voucher</p>
-                <div className="mt-3 flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-md bg-primary-soft text-primary">
-                    <Ticket className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{checkout.voucher?.title ?? "Voucher"}</p>
-                    <p className="text-xs text-muted-foreground">{checkout.voucher?.description ?? "Pilih voucher untuk hemat lebih banyak"}</p>
-                  </div>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
+                  <Ticket className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-base font-bold text-foreground">Gunakan Voucher</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {checkout.voucher?.title ?? "Pilih voucher untuk mendapatkan potongan harga"}
+                  </p>
                 </div>
               </div>
               {checkout.voucher ? (
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-primary-foreground">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                   <Check className="h-3.5 w-3.5" />
                 </span>
-              ) : null}
+              ) : (
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              )}
             </Link>
+          </div>
 
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <h2 className="text-base font-bold text-foreground">Rincian Pembayaran</h2>
-              <dl className="mt-4 space-y-3 text-sm">
+          {/* Right rail */}
+          <aside className="space-y-5 lg:sticky lg:top-24 lg:h-fit">
+            <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm">
+              <h2 className="text-base font-bold text-foreground">Ringkasan Pembayaran</h2>
+              <dl className="mt-5 space-y-3.5 text-sm">
                 <Row label="Subtotal Tonase" value={`${totalTonase.toLocaleString("id-ID")} Ton`} />
-                <Row label="Subtotal Pesanan" value={formatRupiah(subtotalPesanan)} />
+                <Row label="Subtotal Barang" value={formatRupiah(subtotalPesanan)} />
                 {showShipping ? (
-                  <Row label="Subtotal Pengiriman" value={formatRupiah(subtotalShipping)} />
+                  <Row label="Subtotal Ongkir" value={formatRupiah(subtotalShipping)} />
                 ) : null}
                 {checkout.voucher ? (
                   <Row
@@ -302,14 +304,14 @@ function CheckoutPage() {
                   />
                 ) : null}
               </dl>
-              <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
+              <div className="mt-5 flex items-baseline justify-between gap-3 border-t border-border pt-5">
                 <span className="text-sm font-bold text-foreground">Total Pembayaran</span>
-                <span className="text-xl font-bold text-accent">{formatRupiah(total)}</span>
+                <span className="text-2xl font-bold text-accent">{formatRupiah(total)}</span>
               </div>
               <button
                 onClick={submit}
                 disabled={isSubmitting}
-                className="mt-5 w-full rounded-md bg-primary py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-5 w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
@@ -320,6 +322,24 @@ function CheckoutPage() {
                   "Ajukan Pesanan"
                 )}
               </button>
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <Lock className="h-3.5 w-3.5" /> Data aman dan terenkripsi
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm">
+              <h2 className="text-base font-bold text-foreground">Informasi Penting</h2>
+              <ul className="mt-4 space-y-4 text-sm text-muted-foreground">
+                <InfoItem icon={<Package className="h-4 w-4" />}>
+                  Pesanan akan dibuat terpisah berdasarkan gudang pengirim.
+                </InfoItem>
+                <InfoItem icon={<Truck className="h-4 w-4" />}>
+                  Pengiriman dari setiap gudang mungkin datang berbeda.
+                </InfoItem>
+                <InfoItem icon={<ShieldCheck className="h-4 w-4" />}>
+                  Total pembayaran tetap dilakukan satu kali.
+                </InfoItem>
+              </ul>
             </div>
           </aside>
         </div>
