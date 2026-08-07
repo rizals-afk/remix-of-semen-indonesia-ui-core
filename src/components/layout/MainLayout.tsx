@@ -5,6 +5,8 @@ import { SiteHeader } from "./SiteHeader";
 
 interface MainLayoutProps {
   children: ReactNode;
+  /** Deprecated: header reads the user from the store; kept for call-site compatibility. */
+  user?: unknown;
 }
 
 /**

@@ -13,18 +13,18 @@ import type { BlogPost } from "@/components/common/BlogCard";
 const PLACEHOLDER = "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70";
 
 export const CATEGORIES: Category[] = [
-  { slug: "semen", label: "Semen", image: PLACEHOLDER },
-  { slug: "baja-ringan", label: "Baja Ringan", image: PLACEHOLDER },
-  { slug: "mortar", label: "Mortar", image: PLACEHOLDER },
-  { slug: "bata-ringan", label: "Bata Ringan", image: PLACEHOLDER },
-  { slug: "besi", label: "Besi", image: PLACEHOLDER },
-  { slug: "produk-atap", label: "Produk Atap", image: PLACEHOLDER },
-  { slug: "produk-lantai", label: "Produk Lantai", image: PLACEHOLDER },
-  { slug: "cat", label: "Cat", image: PLACEHOLDER },
-  { slug: "sanitari", label: "Sanitari", image: PLACEHOLDER },
-  { slug: "produk-beton", label: "Produk Beton", image: PLACEHOLDER },
-  { slug: "aksesoris-pintu-jendela", label: "Aksesoris Pintu & Jendela", image: PLACEHOLDER },
-  { slug: "peralatan-perkakas", label: "Peralatan & Perkakas", image: PLACEHOLDER },
+  { id: "semen", slug: "semen", label: "Semen", image: PLACEHOLDER },
+  { id: "baja-ringan", slug: "baja-ringan", label: "Baja Ringan", image: PLACEHOLDER },
+  { id: "mortar", slug: "mortar", label: "Mortar", image: PLACEHOLDER },
+  { id: "bata-ringan", slug: "bata-ringan", label: "Bata Ringan", image: PLACEHOLDER },
+  { id: "besi", slug: "besi", label: "Besi", image: PLACEHOLDER },
+  { id: "produk-atap", slug: "produk-atap", label: "Produk Atap", image: PLACEHOLDER },
+  { id: "produk-lantai", slug: "produk-lantai", label: "Produk Lantai", image: PLACEHOLDER },
+  { id: "cat", slug: "cat", label: "Cat", image: PLACEHOLDER },
+  { id: "sanitari", slug: "sanitari", label: "Sanitari", image: PLACEHOLDER },
+  { id: "produk-beton", slug: "produk-beton", label: "Produk Beton", image: PLACEHOLDER },
+  { id: "aksesoris-pintu-jendela", slug: "aksesoris-pintu-jendela", label: "Aksesoris Pintu & Jendela", image: PLACEHOLDER },
+  { id: "peralatan-perkakas", slug: "peralatan-perkakas", label: "Peralatan & Perkakas", image: PLACEHOLDER },
 ];
 
 export const FEATURED_PRODUCTS: Product[] = [
@@ -176,6 +176,7 @@ export function getProductDetail(slug: string): ProductDetail {
 export const BLOG_POSTS: BlogPost[] = [
   {
     id: "inovasi-ramah-lingkungan",
+    slug: "inovasi-ramah-lingkungan",
     title: "Inovasi Material Ramah Lingkungan Untuk Masa Depan",
     excerpt:
       "Mengurangi jejak karbon dengan bahan material dari daur ulang ramah lingkungan namun, tetap kuat dan tahan lama.",
@@ -184,6 +185,7 @@ export const BLOG_POSTS: BlogPost[] = [
   },
   {
     id: "jenis-bangunan-rumah",
+    slug: "jenis-bangunan-rumah",
     title: "10+ Jenis Material Bangunan Rumah dan Tips Memilihnya",
     excerpt:
       "Memahami material bangunan rumah merupakan langkah penting saat membangun rumah idaman keluarga.",
@@ -192,6 +194,7 @@ export const BLOG_POSTS: BlogPost[] = [
   },
   {
     id: "pondasi-kokoh",
+    slug: "pondasi-kokoh",
     title: "Rahasia Pondasi Kokoh untuk Rumah 2 Lantai",
     excerpt:
       "Memahami material bangunan rumah merupakan langkah penting saat membangun rumah idaman.",
