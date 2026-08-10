@@ -290,7 +290,7 @@ function ProfilePage() {
                   className="h-11"
                 />
               </FormRow>
-              <FormRow label="NPWP 2 (Jika ada)">
+              <FormRow label="Nama NPWP">
                 <Input
                   value={npwp2}
                   onChange={(e) => setNpwp2(e.target.value)}
