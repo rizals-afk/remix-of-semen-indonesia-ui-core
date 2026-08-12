@@ -3,6 +3,7 @@ import { DEMO_CART, type CartProduct } from "@/data/shopping";
 import { fetchCart, addToCart, fetchCartCount, updateCartQuantity, deleteCartItem, type CartItem } from "@/lib/api/cart";
 import { getToken } from "@/lib/auth";
 import { toast } from "sonner";
+import { useUser } from "./user";
 
 export interface CartWarehouseGroup {
   warehouse: string;
@@ -46,6 +47,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const { isAuthenticated, user } = useUser();
+  const [hasFetchedAfterAuth, setHasFetchedAfterAuth] = useState(false);
 
   // Transform API cart item to CartProduct format
   const transformApiItemToCartProduct = (item: CartItem): CartProduct => ({
@@ -99,24 +102,52 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     loadCartFromApi();
-  }, [hasLoadedFromStorage]);
+  }, [hasLoadedFromStorage, isAuthenticated]);
 
-  // Load cart count from API
+  // Load cart count from API when authentication state changes
   useEffect(() => {
     const loadCartCount = async () => {
-      const token = getToken();
-      if (!token) return;
-
-      try {
-        const response = await fetchCartCount();
-        setCartCount(response.count);
-      } catch (error) {
-        console.error("Failed to load cart count from API:", error);
+      // Only clear cart if user is explicitly logged out (user is null)
+      if (!isAuthenticated && !user) {
+        setCartCount(0);
+        setItems([]);
+        setSelectedIds(new Set());
+        setHasFetchedAfterAuth(false);
+        return;
       }
+
+      // If not authenticated, don't fetch
+      if (!isAuthenticated) return;
+
+      // If we already fetched after auth, don't fetch again unless auth state changed
+      if (hasFetchedAfterAuth) return;
+
+      // Retry mechanism for token availability
+      const retryWithDelay = async (retries = 3, delay = 100): Promise<void> => {
+        for (let i = 0; i < retries; i++) {
+          const token = getToken();
+          if (token) {
+            try {
+              const response = await fetchCartCount();
+              setCartCount(response.count);
+              setHasFetchedAfterAuth(true);
+              return;
+            } catch (error) {
+              console.error("Failed to load cart count from API:", error);
+            }
+          }
+          if (i < retries - 1) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+        console.warn("Failed to fetch cart count after retries");
+      };
+
+      retryWithDelay();
     };
 
     loadCartCount();
-  }, []);
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

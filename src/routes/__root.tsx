@@ -125,8 +125,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <WarehouseProvider>
-        <CustomerLocationProvider>
-          <UserProvider>
+        <UserProvider>
+          <CustomerLocationProvider>
             <CartProvider>
               <CheckoutProvider>
                 {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
@@ -134,8 +134,8 @@ function RootComponent() {
                 <Toaster richColors position="top-center" />
               </CheckoutProvider>
             </CartProvider>
-          </UserProvider>
-        </CustomerLocationProvider>
+          </CustomerLocationProvider>
+        </UserProvider>
       </WarehouseProvider>
     </QueryClientProvider>
   );

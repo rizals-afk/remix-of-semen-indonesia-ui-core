@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { CustomerLocation } from "@/lib/api/customer-location";
 import { fetchCustomerLocations } from "@/lib/api/customer-location";
+import { useUser } from "./user";
 
 interface CustomerLocationContextValue {
   selectedLocation: CustomerLocation | null;
@@ -19,6 +20,7 @@ export function CustomerLocationProvider({ children }: { children: ReactNode }) 
   const [locations, setLocations] = useState<CustomerLocation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
+  const { isAuthenticated } = useUser();
 
   // Load selected location from localStorage on mount
   useEffect(() => {
@@ -33,7 +35,7 @@ export function CustomerLocationProvider({ children }: { children: ReactNode }) 
     setHasLoadedFromStorage(true);
   }, []);
 
-  // Fetch locations and auto-select default
+  // Fetch locations and auto-select default when authenticated
   useEffect(() => {
     if (!hasLoadedFromStorage || typeof window === "undefined") return;
 
@@ -55,8 +57,16 @@ export function CustomerLocationProvider({ children }: { children: ReactNode }) 
       }
     };
 
+    // Clear locations when user logs out
+    if (!isAuthenticated) {
+      setLocations([]);
+      setSelectedLocationState(null);
+      setIsLoading(false);
+      return;
+    }
+
     loadLocations();
-  }, [hasLoadedFromStorage, selectedLocation]);
+  }, [hasLoadedFromStorage, isAuthenticated, selectedLocation]);
 
   // Persist selected location to localStorage
   useEffect(() => {
