@@ -23,10 +23,15 @@ function CartPage() {
 
   // Refresh cart data when page opens and clear buyNowItem to prevent flow mixing
   useEffect(() => {
-    cart.refreshCart();
-    if (checkout.buyNowItem) {
-      checkout.clearBuyNowItem();
-    }
+    const loadCart = async () => {
+      await cart.refreshCart();
+      // Clear selections after refresh completes
+      cart.clearSelections();
+      if (checkout.buyNowItem) {
+        checkout.clearBuyNowItem();
+      }
+    };
+    loadCart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

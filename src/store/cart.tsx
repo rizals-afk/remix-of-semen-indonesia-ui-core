@@ -33,6 +33,7 @@ interface CartContextValue {
   toggleSelectAll: (select: boolean) => void;
   toggleSelectGroup: (warehouse: string, select: boolean) => void;
   clearSelected: () => void;
+  clearSelections: () => void;
   updatingIds: Set<string>;
   deletingIds: Set<string>;
 }
@@ -74,8 +75,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (raw) {
         const parsed = JSON.parse(raw) as { items: CartProduct[]; selected: string[] };
         if (parsed.items) setItems(parsed.items);
-        if (parsed.selected) setSelectedIds(new Set(parsed.selected));
       }
+      // Always start with empty selection
+      setSelectedIds(new Set());
     } catch { /* ignore */ }
     setHasLoadedFromStorage(true);
   }, []);
@@ -92,12 +94,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const response = await fetchCart({ page: 1, per_page: 100 });
         const cartItems = response.data.map(transformApiItemToCartProduct);
         setItems(cartItems);
-        setSelectedIds(new Set(cartItems.map((i) => i.id)));
+        setSelectedIds(new Set()); // Always clear selections on API load
       } catch (error) {
         console.error("Failed to load cart from API:", error);
         // Fall back to demo cart if API fails
         setItems(DEMO_CART);
-        setSelectedIds(new Set(DEMO_CART.map((i) => i.id)));
+        setSelectedIds(new Set()); // Always clear selections on API load
       }
     };
 
@@ -151,8 +153,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, selected: Array.from(selectedIds) }));
-  }, [items, selectedIds]);
+    // Always save empty selection to prevent restoring selections on page load
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, selected: [] }));
+  }, [items]);
 
   // Refresh cart count from API
   const refreshCartCount = useCallback(async () => {
@@ -174,7 +177,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existing) return prev.map((p) => (p.id === item.id ? { ...p, qty: p.qty + item.qty } : p));
       return [...prev, item];
     });
-    setSelectedIds((s) => new Set(s).add(item.id));
+    // Don't auto-select items when adding to cart
+    // setSelectedIds((s) => new Set(s).add(item.id));
 
     // Call API if user is authenticated and required params are provided
     const token = getToken();
@@ -280,6 +284,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setSelectedIds(new Set());
   }, [selectedIds]);
 
+  const clearSelections = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
   const refreshCart = useCallback(async () => {
     const token = getToken();
     if (!token) return;
@@ -288,7 +296,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const response = await fetchCart({ page: 1, per_page: 100 });
       const cartItems = response.data.map(transformApiItemToCartProduct);
       setItems(cartItems);
-      setSelectedIds(new Set(cartItems.map((i) => i.id)));
+      // Clear selections on refresh
+      setSelectedIds(new Set());
       // Also refresh cart count
       await refreshCartCount();
     } catch (error) {
@@ -327,11 +336,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subTotal: selectedItems.reduce((s, i) => s + i.qty * i.price, 0),
       totalTonase: selectedItems.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0) / 1000,
       cartCount,
-      addItem, removeItem, updateQty, refreshCart, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected,
+      addItem, removeItem, updateQty, refreshCart, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected, clearSelections,
       updatingIds,
       deletingIds,
     };
-  }, [items, selectedIds, addItem, removeItem, updateQty, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected]);
+  }, [items, selectedIds, addItem, removeItem, updateQty, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected, clearSelections]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
