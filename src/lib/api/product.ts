@@ -65,6 +65,7 @@ export interface Product {
   media: ProductMedia[];
   variants: ProductVariant[];
   pricelists: ProductPricelist[];
+  is_favourite: boolean;
   // Additional fields for UI compatibility
   rating?: number;
   reviewCount?: number;

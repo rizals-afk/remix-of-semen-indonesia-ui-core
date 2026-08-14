@@ -22,6 +22,8 @@ import { fetchProductById, getProductPrice, getProductImages, getProductStock, t
 import { fetchProducts } from "@/lib/api/product";
 import type { Product } from "@/lib/api/product";
 import { formatRupiah } from "@/lib/format";
+import { toggleFavourite } from "@/lib/api/favourite";
+import { getToken } from "@/lib/auth";
 
 export const Route = createFileRoute("/produk/$slug")({
   component: ProductDetailPage,
@@ -47,6 +49,8 @@ function ProductDetailPage() {
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isFavourited, setIsFavourited] = useState(false);
+  const [isTogglingFavourite, setIsTogglingFavourite] = useState(false);
   const cart = useCart();
   const navigate = useNavigate();
 
@@ -60,6 +64,7 @@ function ProductDetailPage() {
         console.log("Product Detail - product.media:", data.media);
         console.log("Product Detail - product.variants:", data.variants);
         setProduct(data);
+        setIsFavourited(data.is_favourite || false);
         // Set first variant as default
         if (data.variants.length > 0) {
           setSelectedVariantId(data.variants[0].id);
@@ -228,6 +233,28 @@ function ProductDetailPage() {
     navigate({ to: "/checkout" });
   };
 
+  const handleToggleFavourite = async () => {
+    const token = getToken();
+    if (!token) {
+      toast.error("Silakan login terlebih dahulu untuk menambahkan favorit.");
+      return;
+    }
+
+    if (!product) return;
+
+    setIsTogglingFavourite(true);
+    try {
+      await toggleFavourite(product.id);
+      setIsFavourited(!isFavourited);
+      toast.success(isFavourited ? "Produk dihapus dari favorit." : "Produk ditambahkan ke favorit.");
+    } catch (error) {
+      console.error("Failed to toggle favourite:", error);
+      toast.error("Gagal mengubah status favorit. Silakan coba lagi.");
+    } finally {
+      setIsTogglingFavourite(false);
+    }
+  };
+
   if (loading || !product) {
     return (
       <MainLayout>
@@ -391,8 +418,13 @@ function ProductDetailPage() {
               </button>
             </div>
             <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-              <button className="inline-flex items-center gap-1 hover:text-primary">
-                <Heart className="h-4 w-4" /> Favorit
+              <button
+                onClick={handleToggleFavourite}
+                disabled={isTogglingFavourite}
+                className="inline-flex items-center gap-1 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Heart className={`h-4 w-4 ${isFavourited ? "fill-red-500 text-red-500" : ""}`} />
+                Favorit
               </button>
               <button className="inline-flex items-center gap-1 hover:text-primary">
                 <Bookmark className="h-4 w-4" /> Wishlist
