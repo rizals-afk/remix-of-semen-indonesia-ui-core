@@ -20,6 +20,7 @@ import { Route as MasukRouteImport } from './routes/masuk'
 import { Route as LupaPasswordRouteImport } from './routes/lupa-password'
 import { Route as KeranjangRouteImport } from './routes/keranjang'
 import { Route as GudangRouteImport } from './routes/gudang'
+import { Route as FavoriteRouteImport } from './routes/favorite'
 import { Route as AkunRouteImport } from './routes/akun'
 import { Route as ActivateRouteImport } from './routes/activate'
 import { Route as IndexRouteImport } from './routes/index'
@@ -112,6 +113,11 @@ const KeranjangRoute = KeranjangRouteImport.update({
 const GudangRoute = GudangRouteImport.update({
   id: '/gudang',
   path: '/gudang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoriteRoute = FavoriteRouteImport.update({
+  id: '/favorite',
+  path: '/favorite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AkunRoute = AkunRouteImport.update({
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
   '/akun': typeof AkunRouteWithChildren
+  '/favorite': typeof FavoriteRoute
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
   '/lupa-password': typeof LupaPasswordRoute
@@ -359,6 +366,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
+  '/favorite': typeof FavoriteRoute
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
   '/lupa-password': typeof LupaPasswordRoute
@@ -411,6 +419,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activate': typeof ActivateRoute
   '/akun': typeof AkunRouteWithChildren
+  '/favorite': typeof FavoriteRoute
   '/gudang': typeof GudangRoute
   '/keranjang': typeof KeranjangRoute
   '/lupa-password': typeof LupaPasswordRoute
@@ -464,6 +473,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activate'
     | '/akun'
+    | '/favorite'
     | '/gudang'
     | '/keranjang'
     | '/lupa-password'
@@ -514,6 +524,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activate'
+    | '/favorite'
     | '/gudang'
     | '/keranjang'
     | '/lupa-password'
@@ -565,6 +576,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activate'
     | '/akun'
+    | '/favorite'
     | '/gudang'
     | '/keranjang'
     | '/lupa-password'
@@ -617,6 +629,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivateRoute: typeof ActivateRoute
   AkunRoute: typeof AkunRouteWithChildren
+  FavoriteRoute: typeof FavoriteRoute
   GudangRoute: typeof GudangRoute
   KeranjangRoute: typeof KeranjangRoute
   LupaPasswordRoute: typeof LupaPasswordRoute
@@ -734,6 +747,13 @@ declare module '@tanstack/react-router' {
       path: '/gudang'
       fullPath: '/gudang'
       preLoaderRoute: typeof GudangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorite': {
+      id: '/favorite'
+      path: '/favorite'
+      fullPath: '/favorite'
+      preLoaderRoute: typeof FavoriteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/akun': {
@@ -1033,6 +1053,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivateRoute: ActivateRoute,
   AkunRoute: AkunRouteWithChildren,
+  FavoriteRoute: FavoriteRoute,
   GudangRoute: GudangRoute,
   KeranjangRoute: KeranjangRoute,
   LupaPasswordRoute: LupaPasswordRoute,
