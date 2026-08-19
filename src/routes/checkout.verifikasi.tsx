@@ -44,11 +44,23 @@ function VerifikasiPage() {
         </div>
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">ID Pesanan</span>
-            <span className="font-mono text-sm font-bold text-foreground">{checkout.orderId ?? "—"}</span>
+          <div className="border-b border-border px-5 py-4">
+            <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Nomor Pesanan</span>
           </div>
-          <div className="flex items-center justify-between px-5 py-4">
+          <div className="px-5 py-4">
+            {checkout.transactionCodes.length > 0 ? (
+              <div className="space-y-2">
+                {checkout.transactionCodes.map((code, index) => (
+                  <div key={index} className="font-mono text-sm font-bold text-foreground">
+                    {code}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <span className="font-mono text-sm font-bold text-foreground">—</span>
+            )}
+          </div>
+          <div className="flex items-center justify-between border-t border-border px-5 py-4">
             <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Total Pembayaran</span>
             <span className="text-base font-bold text-accent">{formatRupiah(total)}</span>
           </div>

@@ -129,6 +129,10 @@ function CheckoutPage() {
         // Map COD: checkout.cod → is_pay_store
         const isPayStore = checkout.cod;
 
+        // Get warehouse note and delivery rule ID
+        const warehouseNote = checkout.notes[warehouse] || "";
+        const deliveryRuleId = checkout.deliveryRuleIds[warehouse] || undefined;
+
         // Build lines for this group
         const lines = items.map((item) => ({
           product_variant_id: checkout.buyNowItem
@@ -156,6 +160,8 @@ function CheckoutPage() {
           total: orderTotal,
           branch_id: branchId,
           division: division === "UNKNOWN" ? undefined : division,
+          delivery_rule_id: deliveryRuleId,
+          notes: warehouseNote,
           shipping_method: shippingMethod,
           is_pay_store: isPayStore,
           shipping_address: selectedLocation.address,
@@ -196,6 +202,10 @@ function CheckoutPage() {
       };
 
       const response = await createBulkTrx(payload);
+      
+      // Extract transaction codes from bulk response
+      const codes = response.data.map((trx) => trx.code);
+      checkout.setTransactionCodes(codes);
       
       toast.success("Pesanan berhasil dibuat!");
       
@@ -256,6 +266,7 @@ function CheckoutPage() {
 
       setShippingFees(prev => ({ ...prev, [group.warehouse]: deliveryPrice }));
       setShippingDistances(prev => ({ ...prev, [group.warehouse]: response.distance }));
+      checkout.setDeliveryRuleId(group.warehouse, response.delivery_rule.id);
       setShippingStates(prev => ({ ...prev, [group.warehouse]: 'calculated' }));
     } catch (error) {
       console.error("Failed to calculate shipping:", error);
@@ -267,12 +278,15 @@ function CheckoutPage() {
   const handleChangeShipping = (warehouse: string) => {
     setShippingStates(prev => ({ ...prev, [warehouse]: 'initial' }));
     setShippingFees(prev => ({ ...prev, [warehouse]: 0 }));
-    setShippingDistances(prev => ({ ...prev, [warehouse]: 0 }));
+    checkout.setDeliveryRuleId(warehouse, 0);
   };
 
   const handleViewMap = (group: CartWarehouseGroup) => {
     if (group.lat && group.long) {
-      window.open(`https://www.google.com/maps?q=${group.lat},${group.long}`, '_blank');
+      const url = `https://www.google.com/maps?q=${group.lat},${group.long}`;
+      window.open(url, '_blank');
+    } else {
+      toast.error("Koordinat gudang tidak tersedia.");
     }
   };
 

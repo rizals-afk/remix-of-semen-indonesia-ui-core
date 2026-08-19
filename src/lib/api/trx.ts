@@ -119,6 +119,8 @@ export interface BulkTrxItem {
   review_id?: number;
   branch_id?: number;
   division?: string;
+  delivery_rule_id?: number;
+  notes?: string;
   shipping_address?: string;
   shipping_phone?: string;
   customer_location_address?: string;
@@ -134,10 +136,15 @@ export interface BulkTrxRequest {
 
 export interface BulkTrxResponse {
   data: TrxResponse[];
+  errors?: any[];
+  total?: number;
+  success?: number;
+  failed?: number;
 }
 
 export interface TrxResponse {
   id: number;
+  code: string;
   customer_location_id: number;
   trx_type: string;
   subtotal: number;
