@@ -407,6 +407,7 @@ function CheckoutPage() {
                 shippingState={shippingStates[g.warehouse] || 'initial'}
                 onCalculateShipping={() => handleCalculateShipping(g)}
                 onChangeShipping={() => handleChangeShipping(g.warehouse)}
+                hideShipping={checkout.mode === "diambil"}
               />
             ))}
 

@@ -41,7 +41,7 @@ export function SiteHeader() {
               <IconButton label="Notifikasi" to="/notifikasi">
                 <Bell className="h-5 w-5" />
               </IconButton>
-              <IconButton label="Wishlist" to="/wishlist">
+              <IconButton label="Produk Favorit" to="/favorite">
                 <Heart className="h-5 w-5" />
               </IconButton>
               <IconButton label="Keranjang" to="/keranjang" badge={cartBadge}>

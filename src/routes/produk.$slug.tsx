@@ -430,9 +430,6 @@ function ProductDetailPage() {
                 Favorit
               </button>
               <button className="inline-flex items-center gap-1 hover:text-primary">
-                <Bookmark className="h-4 w-4" /> Wishlist
-              </button>
-              <button className="inline-flex items-center gap-1 hover:text-primary">
                 <Share2 className="h-4 w-4" /> Share
               </button>
             </div>
