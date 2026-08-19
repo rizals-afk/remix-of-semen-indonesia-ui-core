@@ -227,6 +227,9 @@ function ProductDetailPage() {
       image: images[0] || "",
       warehouse: selectedWarehouse?.name || "Gudang Utama",
       weightKg: parseFloat(selectedVariant?.weight || "0") || 0,
+      division: selectedVariant?.division,
+      branch_latitude: selectedWarehouse?.lat,
+      branch_longitude: selectedWarehouse?.long,
     });
 
     // Navigate directly to checkout

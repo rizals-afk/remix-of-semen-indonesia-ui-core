@@ -13,6 +13,8 @@ export interface CartWarehouseGroup {
   tonase: number;
   allSelected: boolean;
   anySelected: boolean;
+  lat?: number;
+  long?: number;
 }
 
 interface CartContextValue {
@@ -60,11 +62,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     warehouse: item.branch.name,
     image: item.product_variant.media?.[0]?.url || item.product.photo || "",
     weightKg: parseFloat(item.product_variant.weight) || 0,
+    division: item.product_variant.division,
     unit: "Sak", // Default unit
     variant: item.product_variant.variant_name,
     variant_id: item.product_variant_id,
     branch_id: item.branch_id,
     product_id: item.product_id,
+    branch_latitude: parseFloat(item.branch.lat) || undefined,
+    branch_longitude: parseFloat(item.branch.long) || undefined,
   });
 
   // Load cart from localStorage
@@ -314,14 +319,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
     const groups: CartWarehouseGroup[] = Array.from(byWarehouse.entries()).map(([warehouse, list]) => {
       const selected = list.filter((i) => selectedIds.has(i.id));
+      // Use API-provided coordinates from cart items, fallback to first item's coordinates
+      const firstItemWithCoords = selected.find(i => i.branch_latitude && i.branch_longitude) || list.find(i => i.branch_latitude && i.branch_longitude);
       return {
         warehouse,
         items: list,
         selectedItems: selected,
         subTotal: selected.reduce((s, i) => s + i.qty * i.price, 0),
-        tonase: selected.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0) / 1000,
+        tonase: selected.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0),
         allSelected: list.length > 0 && selected.length === list.length,
         anySelected: selected.length > 0,
+        lat: firstItemWithCoords?.branch_latitude,
+        long: firstItemWithCoords?.branch_longitude,
       };
     });
     const selectedGroups = groups.filter((g) => g.anySelected);
@@ -334,7 +343,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       totalQty: items.reduce((s, i) => s + i.qty, 0),
       totalSelected: selectedItems.length,
       subTotal: selectedItems.reduce((s, i) => s + i.qty * i.price, 0),
-      totalTonase: selectedItems.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0) / 1000,
+      totalTonase: selectedItems.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0),
       cartCount,
       addItem, removeItem, updateQty, refreshCart, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected, clearSelections,
       updatingIds,

@@ -16,6 +16,8 @@ export interface Warehouse {
   address: string;
   distanceKm: number;
   hours: string;
+  lat?: number;
+  long?: number;
 }
 
 export interface Voucher {
@@ -72,6 +74,8 @@ export const WAREHOUSES: Warehouse[] = [
     address: "Jl. Veteran Sidokumpul, Kebomas, Gresik",
     distanceKm: 3.5,
     hours: "09.00 - 15.00 WIB",
+    lat: -7.1568,
+    long: 112.6543,
   },
   {
     id: "wh-sby-barat",
@@ -79,6 +83,8 @@ export const WAREHOUSES: Warehouse[] = [
     address: "Jl. Margomulyo No. 44, Surabaya",
     distanceKm: 12.7,
     hours: "08.00 - 17.00",
+    lat: -7.2345,
+    long: 112.7234,
   },
   {
     id: "wh-sidoarjo",
@@ -86,6 +92,8 @@ export const WAREHOUSES: Warehouse[] = [
     address: "Jl. Raya Waru KM 12, Sidoarjo",
     distanceKm: 15.1,
     hours: "07.30 - 16.30",
+    lat: -7.3890,
+    long: 112.7156,
   },
 ];
 
@@ -139,12 +147,18 @@ export interface CartProduct extends Product {
   variant?: string;
   /** Weight per single unit in kg. Used to compute tonase. */
   weightKg?: number;
+  /** Division from product variant */
+  division?: string;
   /** Variant ID for order submission */
   variant_id?: number;
   /** Branch ID for order submission */
   branch_id?: number;
   /** Product ID for order submission */
   product_id?: number;
+  /** Branch latitude from Cart API */
+  branch_latitude?: number;
+  /** Branch longitude from Cart API */
+  branch_longitude?: number;
 }
 
 export const DEMO_CART: CartProduct[] = [

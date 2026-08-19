@@ -14,6 +14,7 @@ export interface ProductVariant {
   variant_name?: string;
   sku: string;
   weight?: string;
+  division?: string;
   media: ProductMedia[];
   pricelists?: ProductPricelist[];
   online_stock?: number;

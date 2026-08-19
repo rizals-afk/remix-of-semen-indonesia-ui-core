@@ -6,6 +6,7 @@ export interface TrxLine {
   price: number;
   qty: number;
   subtotal: number;
+  division?: string;
   product?: {
     id: number;
     name: string;
@@ -16,6 +17,7 @@ export interface TrxLine {
     id: number;
     variant_name: string;
     weight: string;
+    division?: string;
     media?: Array<{
       id: string;
       url: string;
@@ -94,6 +96,46 @@ export interface CreateTrxRequest {
   lines: TrxLine[];
 }
 
+export interface BulkTrxItem {
+  doc_type: string;
+  trx_type: "order";
+  status?: string;
+  subtotal?: number;
+  shipping_cost?: number;
+  total?: number;
+  verificator_id?: number;
+  verification_date?: string;
+  reject_message?: string;
+  payment_id?: number;
+  verification_due_date?: string;
+  shipping_method?: string;
+  shipping_type?: string;
+  so_number?: string;
+  do_number?: string;
+  billing_number?: string;
+  is_billing_sap?: boolean;
+  is_post_payment?: boolean;
+  is_pay_store?: boolean;
+  review_id?: number;
+  branch_id?: number;
+  division?: string;
+  shipping_address?: string;
+  shipping_phone?: string;
+  customer_location_address?: string;
+  customer_location_phone?: string;
+  customer_location_lat?: number;
+  customer_location_long?: number;
+  lines: TrxLine[];
+}
+
+export interface BulkTrxRequest {
+  items: BulkTrxItem[];
+}
+
+export interface BulkTrxResponse {
+  data: TrxResponse[];
+}
+
 export interface TrxResponse {
   id: number;
   customer_location_id: number;
@@ -133,6 +175,13 @@ export async function fetchTrxById(id: number): Promise<Trx> {
 
 export async function createTrx(data: CreateTrxRequest): Promise<TrxResponse> {
   return apiFetch<TrxResponse>("/trx", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function createBulkTrx(data: BulkTrxRequest): Promise<BulkTrxResponse> {
+  return apiFetch<BulkTrxResponse>("/trx/bulk", {
     method: "POST",
     body: JSON.stringify(data),
   });

@@ -41,6 +41,7 @@ export interface CartItem {
     uuid: string;
     old_material: string;
     weight: string;
+    division?: string;
     volume: string;
     photo: string | null;
     media: ProductMedia[];

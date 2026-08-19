@@ -11,7 +11,8 @@ import { useUser } from "@/store/user";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
 import type { CartWarehouseGroup } from "@/store/cart";
-import { createTrx, type CreateTrxRequest } from "@/lib/api/trx";
+import { createBulkTrx, type BulkTrxRequest } from "@/lib/api/trx";
+import { checkDelivery, type CheckDeliveryRequest } from "@/lib/api/delivery";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -35,15 +36,17 @@ function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
     variant_id: parseInt(item.variantId),
     branch_id: parseInt(item.branchId),
   };
-  
+
   return {
     warehouse: item.warehouse,
     items: [cartItem],
     selectedItems: [cartItem],
     subTotal: item.price * item.qty,
-    tonase: (item.weightKg * item.qty) / 1000,
+    tonase: (item.weightKg * item.qty),
     allSelected: true,
     anySelected: true,
+    lat: item.branch_latitude,
+    long: item.branch_longitude,
   };
 }
 
@@ -54,9 +57,12 @@ function CheckoutPage() {
   const customerLocation = useCustomerLocation();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [shippingStates, setShippingStates] = useState<Record<string, 'initial' | 'loading' | 'calculated'>>({});
+  const [shippingFees, setShippingFees] = useState<Record<string, number>>({});
+  const [shippingDistances, setShippingDistances] = useState<Record<string, number>>({});
+
   // Use buyNowItem if set, otherwise use cart groups
-  const groups = checkout.buyNowItem 
+  const groups = checkout.buyNowItem
     ? [createGroupFromBuyNowItem(checkout.buyNowItem)]
     : cart.selectedGroups;
 
@@ -64,12 +70,13 @@ function CheckoutPage() {
   const totalTonase = groups.reduce((s, g) => s + g.tonase, 0);
   // Pre-verification shipping estimate: per-group fee, only when "dikirim" and not COD.
   const showShipping = checkout.mode === "dikirim";
-  const subtotalShipping = showShipping ? groups.length * ESTIMATED_GROUP_SHIPPING_FEE * 2 : 0;
+  const subtotalShipping = showShipping ? Object.values(shippingFees).reduce((sum, fee) => sum + fee, 0) : 0;
   const discount = checkout.voucher?.discount ?? 0;
   const total = subtotalPesanan + subtotalShipping - discount;
 
   const submit = async () => {
-    if (!customerLocation.selectedLocation) {
+    const selectedLocation = customerLocation.selectedLocation;
+    if (!selectedLocation) {
       toast.error("Silakan pilih alamat pengiriman terlebih dahulu.");
       return;
     }
@@ -77,9 +84,53 @@ function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // Build order lines from groups
-      const lines = groups.flatMap((group) =>
-        group.selectedItems.map((item) => ({
+      // Group items by warehouse + division
+      const warehouseDivisionGroups = new Map<string, typeof groups[0]['selectedItems']>();
+      
+      groups.forEach((group) => {
+        group.selectedItems.forEach((item) => {
+          const division = checkout.buyNowItem?.division || item.division || "UNKNOWN";
+          const key = `${group.warehouse}|${division}`;
+          
+          if (!warehouseDivisionGroups.has(key)) {
+            warehouseDivisionGroups.set(key, []);
+          }
+          warehouseDivisionGroups.get(key)!.push(item);
+        });
+      });
+
+      // Calculate original totals for validation
+      const originalSubtotal = subtotalPesanan;
+      const originalShipping = subtotalShipping;
+      const originalTotal = total;
+
+      // Build bulk transaction items
+      const bulkItems = Array.from(warehouseDivisionGroups.entries()).map(([key, items]) => {
+        const [warehouse, division] = key.split('|');
+        
+        // Get branch_id from first item or buyNowItem
+        const branchId = checkout.buyNowItem
+          ? parseInt(checkout.buyNowItem.branchId)
+          : (items[0].branch_id || 0);
+
+        // Get warehouse shipping cost
+        const warehouseShippingCost = shippingFees[warehouse] || 0;
+
+        // Check if this is the first division in this warehouse (gets shipping cost)
+        const warehouseKeys = Array.from(warehouseDivisionGroups.keys()).filter(k => k.startsWith(`${warehouse}|`));
+        const isFirstDivision = warehouseKeys.indexOf(key) === 0;
+
+        // Allocate shipping cost to first division only
+        const allocatedShippingCost = isFirstDivision ? warehouseShippingCost : 0;
+
+        // Map shipping method: "dikirim" → "FRC", "diambil" → "LOC"
+        const shippingMethod = checkout.mode === "dikirim" ? "FRC" : "LOC";
+
+        // Map COD: checkout.cod → is_pay_store
+        const isPayStore = checkout.cod;
+
+        // Build lines for this group
+        const lines = items.map((item) => ({
           product_variant_id: checkout.buyNowItem
             ? parseInt(checkout.buyNowItem.variantId)
             : (item.variant_id || 0),
@@ -89,30 +140,62 @@ function CheckoutPage() {
           price: item.price,
           qty: item.qty,
           subtotal: item.price * item.qty,
-        }))
-      );
+          division: checkout.buyNowItem?.division || item.division,
+        }));
 
-      // Get branch_id from buyNowItem or first item
-      const branchId = checkout.buyNowItem
-        ? parseInt(checkout.buyNowItem.branchId)
-        : (groups[0].selectedItems[0].branch_id || 0);
+        // Recalculate financial totals for this order
+        const orderSubtotal = lines.reduce((sum, line) => sum + line.subtotal, 0);
+        const orderShippingCost = allocatedShippingCost;
+        const orderTotal = orderSubtotal + orderShippingCost;
 
-      const payload: CreateTrxRequest = {
-        trx_type: "order",
-        subtotal: subtotalPesanan,
-        shipping_cost: subtotalShipping,
-        total: total,
-        branch_id: branchId,
-        shipping_address: customerLocation.selectedLocation.address,
-        shipping_phone: customerLocation.selectedLocation.phone,
-        customer_location_address: customerLocation.selectedLocation.address,
-        customer_location_phone: customerLocation.selectedLocation.phone,
-        customer_location_lat: customerLocation.selectedLocation.lat || 0,
-        customer_location_long: customerLocation.selectedLocation.long || 0,
-        lines: lines,
+        return {
+          doc_type: "ZEO1",
+          trx_type: "order" as const,
+          subtotal: orderSubtotal,
+          shipping_cost: orderShippingCost,
+          total: orderTotal,
+          branch_id: branchId,
+          division: division === "UNKNOWN" ? undefined : division,
+          shipping_method: shippingMethod,
+          is_pay_store: isPayStore,
+          shipping_address: selectedLocation.address,
+          shipping_phone: selectedLocation.phone,
+          customer_location_address: selectedLocation.address,
+          customer_location_phone: selectedLocation.phone,
+          customer_location_lat: selectedLocation.lat || 0,
+          customer_location_long: selectedLocation.long || 0,
+          lines: lines,
+        };
+      });
+
+      // Validate financial totals
+      const calculatedSubtotal = bulkItems.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+      const calculatedShipping = bulkItems.reduce((sum, item) => sum + (item.shipping_cost || 0), 0);
+      const calculatedTotal = bulkItems.reduce((sum, item) => sum + (item.total || 0), 0);
+
+      // Allow small floating point differences
+      const epsilon = 0.01;
+      if (Math.abs(calculatedSubtotal - originalSubtotal) > epsilon) {
+        console.error(`Subtotal mismatch: calculated=${calculatedSubtotal}, original=${originalSubtotal}`);
+        toast.error("Terjadi kesalahan perhitungan subtotal. Silakan coba lagi.");
+        return;
+      }
+      if (Math.abs(calculatedShipping - originalShipping) > epsilon) {
+        console.error(`Shipping mismatch: calculated=${calculatedShipping}, original=${originalShipping}`);
+        toast.error("Terjadi kesalahan perhitungan ongkir. Silakan coba lagi.");
+        return;
+      }
+      if (Math.abs(calculatedTotal - originalTotal) > epsilon) {
+        console.error(`Total mismatch: calculated=${calculatedTotal}, original=${originalTotal}`);
+        toast.error("Terjadi kesalahan perhitungan total. Silakan coba lagi.");
+        return;
+      }
+
+      const payload: BulkTrxRequest = {
+        items: bulkItems,
       };
 
-      const response = await createTrx(payload);
+      const response = await createBulkTrx(payload);
       
       toast.success("Pesanan berhasil dibuat!");
       
@@ -143,6 +226,53 @@ function CheckoutPage() {
     } else {
       // Update cart item quantity
       cart.updateQty(itemId, newQty);
+    }
+  };
+
+  const handleCalculateShipping = async (group: CartWarehouseGroup) => {
+    if (!customerLocation.selectedLocation) {
+      toast.error("Silakan pilih alamat pengiriman terlebih dahulu.");
+      return;
+    }
+
+    if (!group.lat || !group.long) {
+      toast.error("Koordinat gudang tidak tersedia.");
+      return;
+    }
+
+    setShippingStates(prev => ({ ...prev, [group.warehouse]: 'loading' }));
+
+    try {
+      const request: CheckDeliveryRequest = {
+        customer_lat: customerLocation.selectedLocation.lat || 0,
+        customer_long: customerLocation.selectedLocation.long || 0,
+        branch_lat: group.lat,
+        branch_long: group.long,
+        tonase: Math.round(group.tonase),
+      };
+
+      const response = await checkDelivery(request);
+      const deliveryPrice = parseFloat(response.delivery_rule.delivery_price);
+
+      setShippingFees(prev => ({ ...prev, [group.warehouse]: deliveryPrice }));
+      setShippingDistances(prev => ({ ...prev, [group.warehouse]: response.distance }));
+      setShippingStates(prev => ({ ...prev, [group.warehouse]: 'calculated' }));
+    } catch (error) {
+      console.error("Failed to calculate shipping:", error);
+      toast.error("Gagal menghitung ongkir. Silakan coba lagi.");
+      setShippingStates(prev => ({ ...prev, [group.warehouse]: 'initial' }));
+    }
+  };
+
+  const handleChangeShipping = (warehouse: string) => {
+    setShippingStates(prev => ({ ...prev, [warehouse]: 'initial' }));
+    setShippingFees(prev => ({ ...prev, [warehouse]: 0 }));
+    setShippingDistances(prev => ({ ...prev, [warehouse]: 0 }));
+  };
+
+  const handleViewMap = (group: CartWarehouseGroup) => {
+    if (group.lat && group.long) {
+      window.open(`https://www.google.com/maps?q=${group.lat},${group.long}`, '_blank');
     }
   };
 
@@ -198,7 +328,7 @@ function CheckoutPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="text-base font-bold text-foreground">Alamat Pengiriman</p>
-                      <Link to="/akun/alamat" className="text-sm font-semibold text-primary hover:underline">Ubah</Link>
+                      <Link to="/checkout/alamat" className="text-sm font-semibold text-primary hover:underline">Ubah</Link>
                     </div>
                     {customerLocation.selectedLocation ? (
                       <>
@@ -255,8 +385,14 @@ function CheckoutPage() {
                 group={g}
                 note={checkout.notes[g.warehouse] ?? ""}
                 onNoteChange={(t) => checkout.setNote(g.warehouse, t)}
-                shippingFee={showShipping ? ESTIMATED_GROUP_SHIPPING_FEE * 2 : undefined}
+                shippingFee={showShipping && shippingStates[g.warehouse] === 'calculated' ? shippingFees[g.warehouse] : undefined}
                 onQtyChange={handleQtyChange}
+                address={g.warehouse}
+                etaLabel={shippingStates[g.warehouse] === 'calculated' ? `${shippingDistances[g.warehouse]?.toFixed(1)} km` : ""}
+                onViewMap={() => handleViewMap(g)}
+                shippingState={shippingStates[g.warehouse] || 'initial'}
+                onCalculateShipping={() => handleCalculateShipping(g)}
+                onChangeShipping={() => handleChangeShipping(g.warehouse)}
               />
             ))}
 

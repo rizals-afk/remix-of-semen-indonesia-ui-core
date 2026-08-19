@@ -18,6 +18,12 @@ export interface BuyNowItem {
   image: string;
   warehouse: string;
   weightKg: number;
+  /** Division from selected product variant */
+  division?: string;
+  /** Branch latitude from selected product branch */
+  branch_latitude?: number;
+  /** Branch longitude from selected product branch */
+  branch_longitude?: number;
 }
 
 interface CheckoutState {

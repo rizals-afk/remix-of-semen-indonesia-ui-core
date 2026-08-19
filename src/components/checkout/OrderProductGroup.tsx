@@ -1,4 +1,4 @@
-import { Warehouse as WarehouseIcon, Truck, MapPin } from "lucide-react";
+import { Warehouse as WarehouseIcon, Truck, MapPin, Loader2 } from "lucide-react";
 import { formatRupiah } from "@/lib/format";
 import type { CartWarehouseGroup } from "@/store/cart";
 import { QuantityStepper } from "@/components/common/QuantityStepper";
@@ -19,12 +19,18 @@ interface OrderProductGroupProps {
   etaLabel?: string;
   /** Optional handler for the "Lihat di Peta" link. */
   onViewMap?: () => void;
+  /** Shipping state: 'initial' | 'loading' | 'calculated' */
+  shippingState?: 'initial' | 'loading' | 'calculated';
+  /** Callback when "Hitung Ongkir" button is clicked */
+  onCalculateShipping?: () => void;
+  /** Callback when "Ubah" shipping button is clicked */
+  onChangeShipping?: () => void;
 }
 
 /** A "Produk Dipesan" card grouped per warehouse — used on checkout & payment screens. */
 export function OrderProductGroup({
   group, note, onNoteChange, shippingFee, readOnly, onQtyChange,
-  address, etaLabel = "1 - 2 Hari", onViewMap,
+  address, etaLabel = "", onViewMap, shippingState = 'initial', onCalculateShipping, onChangeShipping,
 }: OrderProductGroupProps) {
   const cols =
     "grid grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1fr)] items-center gap-4";
@@ -46,18 +52,20 @@ export function OrderProductGroup({
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               {address ? <span className="truncate">{address}</span> : null}
-              <button
-                type="button"
-                onClick={onViewMap}
-                className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
-              >
-                <MapPin className="h-3.5 w-3.5" /> Lihat di Peta
-              </button>
+              {onViewMap && group.lat && group.long ? (
+                <button
+                  type="button"
+                  onClick={onViewMap}
+                  className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                >
+                  <MapPin className="h-3.5 w-3.5" /> Lihat di Peta
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Estimasi Pengiriman</p>
+          <p className="text-xs text-muted-foreground"></p>
           <p className="text-sm font-bold text-foreground">{etaLabel}</p>
         </div>
       </header>
@@ -93,7 +101,7 @@ export function OrderProductGroup({
                 <span className="text-sm text-foreground">{item.qty}</span>
               )}
               <span className="text-sm text-muted-foreground">
-                {(((item.weightKg ?? 0) * item.qty) / 1000).toLocaleString("id-ID")} Ton
+                {(((item.weightKg ?? 0) * item.qty)).toLocaleString("id-ID")} Ton
               </span>
               <span className="text-sm font-bold text-foreground md:text-right">
                 {formatRupiah(item.price * item.qty)}
@@ -126,18 +134,48 @@ export function OrderProductGroup({
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold text-foreground">Pengiriman</p>
-                <div className="mt-1 flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm text-foreground">Armada Gudang</p>
-                    <p className="text-xs text-muted-foreground">Estimasi {etaLabel}</p>
+                {shippingState === 'initial' && (
+                  <div className="mt-1">
+                    <p className="text-sm text-muted-foreground">Belum memilih metode pengiriman</p>
+                    {onCalculateShipping && (
+                      <button
+                        type="button"
+                        onClick={onCalculateShipping}
+                        className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                      >
+                        Hitung Ongkir
+                      </button>
+                    )}
                   </div>
-                  <div className="text-right">
-                    {shippingFee && shippingFee > 0 ? (
-                      <p className="text-sm font-bold text-foreground">{formatRupiah(shippingFee)}</p>
-                    ) : null}
-                    <span className="text-xs font-semibold text-primary">Ubah</span>
+                )}
+                {shippingState === 'loading' && (
+                  <div className="mt-1 flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Menghitung ongkir...</p>
                   </div>
-                </div>
+                )}
+                {shippingState === 'calculated' && (
+                  <div className="mt-1 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm text-foreground">Armada Gudang</p>
+                      <p className="text-xs text-muted-foreground">Estimasi {etaLabel}</p>
+                    </div>
+                    <div className="text-right">
+                      {shippingFee && shippingFee > 0 ? (
+                        <p className="text-sm font-bold text-foreground">{formatRupiah(shippingFee)}</p>
+                      ) : null}
+                      {onChangeShipping && (
+                        <button
+                          type="button"
+                          onClick={onChangeShipping}
+                          className="text-xs font-semibold text-primary hover:underline"
+                        >
+                          Ubah
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
