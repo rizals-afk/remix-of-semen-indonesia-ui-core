@@ -1,4 +1,5 @@
 export interface BlogArticle {
+  id: string;
   slug: string;
   title: string;
   excerpt: string;
@@ -27,6 +28,7 @@ const PARAGRAPHS = [
 
 export const BLOG_POSTS: BlogArticle[] = [
   {
+    id: "1",
     slug: "kesalahan-umum-memilih-material-bangunan",
     title: "Kesalahan Umum dalam Memilih Material Bangunan",
     excerpt: "Banyak orang tergiur harga murah tanpa mempertimbangkan kualitas material yang digunakan…",
@@ -38,6 +40,7 @@ export const BLOG_POSTS: BlogArticle[] = [
     tags: ["Material", "Tips", "Bangunan"],
   },
   {
+    id: "2",
     slug: "panduan-lengkap-mengenal-material-konstruksi",
     title: "Panduan Lengkap Mengenal Material Konstruksi",
     excerpt: "Material konstruksi adalah fondasi utama dalam setiap proyek pembangunan. Dari material struktur seperti beton…",
@@ -49,6 +52,7 @@ export const BLOG_POSTS: BlogArticle[] = [
     tags: ["Material", "Konstruksi", "Panduan"],
   },
   {
+    id: "3",
     slug: "inovasi-material-ramah-lingkungan",
     title: "Inovasi Material Ramah Lingkungan untuk Masa Depan",
     excerpt: "Mengurangi jejak karbon dengan bahan material dari daur ulang ramah lingkungan namun tetap mempertahankan kualitas dan…",
@@ -60,6 +64,7 @@ export const BLOG_POSTS: BlogArticle[] = [
     tags: ["Ramah Lingkungan", "Ramah", "Material", "Inovasi"],
   },
   {
+    id: "4",
     slug: "jenis-material-bangunan-rumah",
     title: "10+ Jenis Material Bangunan Rumah dan Tips Memilihnya",
     excerpt: "Memahami material bangunan rumah merupakan langkah penting saat membangun…",
@@ -71,6 +76,7 @@ export const BLOG_POSTS: BlogArticle[] = [
     tags: ["Material", "Tips", "Rumah"],
   },
   {
+    id: "5",
     slug: "memilih-bata-merah-berkualitas",
     title: "Cara Memilih Bata Merah yang Berkualitas untuk Dinding…",
     excerpt: "Material konstruksi adalah fondasi utama dalam setiap proyek pembangunan. Dari material struktur seperti beton…",
@@ -82,6 +88,7 @@ export const BLOG_POSTS: BlogArticle[] = [
     tags: ["Bata Merah", "Material", "Dinding"],
   },
   {
+    id: "6",
     slug: "pondasi-kokoh-rumah-2-lantai",
     title: "Rahasia Pondasi Kokoh untuk Rumah 2 Lantai",
     excerpt: "Mengurangi jejak karbon dengan bahan material dari daur ulang ramah lingkungan namun tetap mempertahankan kualitas dan…",

@@ -4,6 +4,8 @@ import { BlogRelatedItem } from "@/components/blog/BlogListCard";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ALL_PRODUCTS } from "@/data/catalog";
 import { getPostBySlug, relatedPosts, tagSlug, type BlogArticle } from "@/data/blog";
+import { fetchBlogProducts, fetchBlogs, type BlogProduct } from "@/lib/api/blog";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/blog/$slug")({
   head: ({ params }) => ({
@@ -19,8 +21,47 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function BlogDetailPage() {
   const post = Route.useLoaderData() as BlogArticle;
-  const related = relatedPosts(post.slug);
-  const recommendations = ALL_PRODUCTS.slice(0, 5);
+  const [relatedBlogs, setRelatedBlogs] = useState<any[]>([]);
+  const [blogProducts, setBlogProducts] = useState<BlogProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch related blogs (per_page: 4, page: 1)
+  useEffect(() => {
+    const loadRelatedBlogs = async () => {
+      try {
+        const response = await fetchBlogs({ per_page: 4, page: 1 });
+        console.log("Related blogs API response:", response);
+        setRelatedBlogs(response.data);
+      } catch (error) {
+        console.error("Failed to load related blogs:", error);
+        // Fallback to static data
+        const related = relatedPosts(post.slug);
+        setRelatedBlogs(related);
+      }
+    };
+    loadRelatedBlogs();
+  }, [post.slug]);
+
+  // Fetch blog products (using blog_id from post if available, or use a default)
+  useEffect(() => {
+    const loadBlogProducts = async () => {
+      try {
+        // Use post.id as blog_id, or fallback to a default if needed
+        const blogId = post.id || "16";
+        console.log("Fetching blog products with blog_id:", blogId);
+        const response = await fetchBlogProducts({ per_page: 15, page: 1, blog_id: blogId });
+        console.log("Blog products API response:", response);
+        setBlogProducts(response.data);
+      } catch (error) {
+        console.error("Failed to load blog products:", error);
+        // Fallback to static data
+        setBlogProducts(ALL_PRODUCTS.slice(0, 5));
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadBlogProducts();
+  }, [post.id]);
 
   return (
     <MainLayout user={{ name: "Auliya Gita Ananda" }}>
@@ -63,9 +104,13 @@ function BlogDetailPage() {
           <aside className="space-y-3">
             <h2 className="text-base font-bold text-foreground">Artikel Terkait</h2>
             <div className="space-y-3">
-              {related.map((p) => (
-                <BlogRelatedItem key={p.slug} post={p} />
-              ))}
+              {relatedBlogs.length > 0 ? (
+                relatedBlogs.map((p: any) => (
+                  <BlogRelatedItem key={p.slug} post={p} />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">Tidak ada artikel terkait</p>
+              )}
             </div>
           </aside>
         </div>
@@ -73,9 +118,13 @@ function BlogDetailPage() {
         <section className="mt-12">
           <h2 className="text-lg font-bold text-foreground">Rekomendasi Produk</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {recommendations.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
+            {blogProducts.length > 0 ? (
+              blogProducts.map((p: BlogProduct) => (
+                <ProductCard key={p.id} product={p} />
+              ))
+            ) : (
+              <p className="col-span-full text-sm text-muted-foreground">Tidak ada produk rekomendasi</p>
+            )}
           </div>
         </section>
       </article>

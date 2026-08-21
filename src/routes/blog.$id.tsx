@@ -3,8 +3,9 @@ import { Calendar, User, Tag, ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
-import { fetchBlogById } from "@/lib/api/blog";
-import type { Blog } from "@/lib/api/blog";
+import { BlogRelatedItem } from "@/components/blog/BlogListCard";
+import { ProductCard } from "@/components/product/ProductCard";
+import { fetchBlogById, fetchBlogs, type Blog } from "@/lib/api/blog";
 
 export const Route = createFileRoute("/blog/$id")({
   component: BlogDetailPage,
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/blog/$id")({
 function BlogDetailPage() {
   const { id } = Route.useParams();
   const [blog, setBlog] = useState<Blog | null>(null);
+  const [relatedBlogs, setRelatedBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +31,39 @@ function BlogDetailPage() {
 
     loadBlog();
   }, [id]);
+
+  // Fetch related blogs (per_page: 4, page: 1)
+  useEffect(() => {
+    const loadRelatedBlogs = async () => {
+      try {
+        const response = await fetchBlogs({ per_page: 4, page: 1 });
+        console.log("Related blogs API response:", response);
+        setRelatedBlogs(response.data);
+      } catch (error) {
+        console.error("Failed to load related blogs:", error);
+      }
+    };
+    loadRelatedBlogs();
+  }, []);
+
+  // Map blog_products to product card format
+  const mappedProducts = blog?.blog_products?.map((item) => {
+    const variant = item.product_variant;
+    const product = item.product;
+    const pricelist = variant.pricelists?.[0];
+    const media = variant.media?.[0] || product.media?.[0];
+
+    return {
+      id: String(product.id),
+      name: product.name,
+      price: pricelist ? parseFloat(pricelist.branch_price_max) : 0,
+      image: media?.url || product.photo || '',
+      warehouse: pricelist?.branch?.name || 'Gudang Utama',
+      rating: undefined,
+      categorySlug: product.category?.name?.toLowerCase().replace(/\s+/g, '-'),
+      variantName: variant.variant_name,
+    };
+  }) || [];
 
   if (loading) {
     return (
@@ -66,7 +101,7 @@ function BlogDetailPage() {
 
   return (
     <MainLayout user={null}>
-      <div className="container mx-auto max-w-4xl px-4 py-12">
+      <div className="container mx-auto max-w-7xl px-4 py-12">
         <Breadcrumbs items={[
           { label: "Home", to: "/" },
           { label: "Blog", to: "/blog" },
@@ -122,11 +157,45 @@ function BlogDetailPage() {
               />
             </div>
           )}
-
-          <div className="mt-8 prose prose-sm max-w-none text-foreground md:prose-base">
-            <div dangerouslySetInnerHTML={{ __html: blog.content }} />
-          </div>
         </article>
+
+        {/* CONTENT + ARTIKEL TERKAIT */}
+        <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_320px]">
+          {/* Article Content */}
+          <div className="space-y-5 text-sm leading-7 text-foreground">
+            <div className="prose prose-sm max-w-none text-foreground md:prose-base">
+              <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+            </div>
+          </div>
+
+          {/* Artikel Terkait Sidebar */}
+          <aside className="space-y-3 lg:sticky lg:top-24 lg:self-start">
+            <h2 className="text-base font-bold text-foreground">Artikel Terkait</h2>
+            <div className="space-y-3">
+              {relatedBlogs.length > 0 ? (
+                relatedBlogs.map((p: Blog) => (
+                  <BlogRelatedItem key={p.id} post={p} />
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">Tidak ada artikel terkait</p>
+              )}
+            </div>
+          </aside>
+        </div>
+
+        {/* REKOMENDASI PRODUK */}
+        <section className="mt-12">
+          <h2 className="text-lg font-bold text-foreground">Rekomendasi Produk</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {mappedProducts.length > 0 ? (
+              mappedProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))
+            ) : (
+              <p className="col-span-full text-sm text-muted-foreground">Tidak ada produk rekomendasi</p>
+            )}
+          </div>
+        </section>
       </div>
     </MainLayout>
   );
