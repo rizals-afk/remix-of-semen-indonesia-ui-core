@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BadgeCheck } from "lucide-react";
-import { useEffect, useState } from "react";
-import heroImage from "@/assets/hero-construction.jpg";
+import { useEffect, useState, useRef } from "react";
 import pengirimanImg from "@/assets/mengapa/pengiriman-tepat-waktu.png";
 import hargaImg from "@/assets/mengapa/harga-terjangkau.png";
 import produkImg from "@/assets/mengapa/product-lengkap.png";
@@ -27,11 +26,13 @@ import { SectionTitle } from "@/components/common/SectionTitle";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { CategoryTile } from "@/components/product/CategoryTile";
 import { ProductCard } from "@/components/product/ProductCard";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { FEATURED_PRODUCTS } from "@/data/catalog";
 import { getCurrentUserFromStorage } from "@/lib/auth";
 import { fetchCategories, getChildCategories } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import { fetchBlogs } from "@/lib/api/blog";
+import { fetchBanners, type Banner } from "@/lib/api/banner";
 import type { ProductCategory } from "@/lib/api/product-category";
 import { useWarehouse } from "@/store/warehouse";
 
@@ -78,68 +79,140 @@ function HomePage() {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bannersLoading, setBannersLoading] = useState(true);
+  const [api, setApi] = useState<CarouselApi>();
+  const pluginIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [categoriesResponse, productsResponse, blogsResponse] = await Promise.all([
+        const [categoriesResponse, productsResponse, blogsResponse, bannersResponse] = await Promise.all([
           fetchCategories({ per_page: 999, page: 1 }),
           fetchProducts({ page: 1, per_page: 6, sort: "terlaris", branch_id: selectedWarehouse?.id }),
           fetchBlogs({ page: 1, per_page: 3 }),
+          fetchBanners({ per_page: 99, page: 1, is_website: 1, active: true }),
         ]);
-        
+
         const childCategories = getChildCategories(categoriesResponse.data);
         setCategories(childCategories);
-        
+
         const transformedProducts = productsResponse.data.map((product) =>
           transformProductToCard(product, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
         );
         setFeaturedProducts(transformedProducts);
-        
+
         setBlogs(blogsResponse.data);
+        setBanners(bannersResponse.data);
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
         setLoading(false);
+        setBannersLoading(false);
       }
     };
 
     loadData();
   }, [selectedWarehouse]);
 
+  // Manual autoplay implementation
+  useEffect(() => {
+    if (!api || banners.length <= 1) return;
+
+    pluginIntervalRef.current = setInterval(() => {
+      api.scrollNext();
+    }, 5000);
+
+    return () => {
+      if (pluginIntervalRef.current) {
+        clearInterval(pluginIntervalRef.current);
+      }
+    };
+  }, [api, banners.length]);
+
   return (
     <MainLayout user={user}>
       {/* HERO */}
-      <section className="relative isolate">
-        <div className="relative w-full overflow-hidden">
-          <img
-            src={heroImage}
-            alt="Tim konstruksi profesional menggunakan material bangunan berkualitas"
-            width={1920}
-            height={768}
-            className="h-[360px] w-full object-cover md:h-[520px] lg:h-[600px]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
-          <div className="absolute inset-0 flex items-center">
-            <div className="container mx-auto max-w-7xl px-6 md:px-12">
-              <div className="max-w-xl space-y-5 text-white">
-                <h1 className="text-4xl font-bold leading-tight md:text-6xl">
-                  The Best Partner in
-                  <br />
-                  Building Material
-                </h1>
-                <button
-                  type="button"
-                  className="rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:text-base"
-                >
-                  Learn More
-                </button>
+      {bannersLoading ? (
+        <section className="relative isolate">
+          <div className="relative w-full overflow-hidden">
+            <div className="h-[360px] w-full bg-muted animate-pulse md:h-[520px] lg:h-[600px]" />
+          </div>
+        </section>
+      ) : banners.length > 0 ? (
+        <section className="relative isolate">
+          {banners.length === 1 ? (
+            <div className="relative w-full overflow-hidden">
+              <img
+                src={banners[0].photo}
+                alt={banners[0].title}
+                width={1920}
+                height={768}
+                className="h-[360px] w-full object-cover md:h-[520px] lg:h-[600px]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+              <div className="absolute inset-0 flex items-center">
+                <div className="container mx-auto max-w-7xl px-6 md:px-12">
+                  <div className="max-w-xl space-y-5 text-white">
+                    <h1 className="text-4xl font-bold leading-tight md:text-6xl">
+                      {banners[0].title}
+                    </h1>
+                    <Link
+                      to="/produk"
+                      className="inline-block rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:text-base"
+                    >
+                      Learn More
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          ) : (
+            <Carousel
+              className="relative w-full"
+              opts={{
+                loop: true,
+              }}
+              setApi={setApi}
+            >
+              <CarouselContent>
+                {banners.map((banner) => (
+                  <CarouselItem key={banner.id}>
+                    <div className="relative w-full overflow-hidden">
+                      <img
+                        src={banner.photo}
+                        alt={banner.title}
+                        width={1920}
+                        height={768}
+                        className="h-[360px] w-full object-cover md:h-[520px] lg:h-[600px]"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="container mx-auto max-w-7xl px-6 md:px-12">
+                          <div className="max-w-xl space-y-5 text-white">
+                            <h1 className="text-4xl font-bold leading-tight md:text-6xl">
+                              {banner.title}
+                            </h1>
+                            <Link
+                              to="/produk"
+                              className="inline-block rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:text-base"
+                            >
+                              Learn More
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex -left-4 top-1/2 -translate-y-1/2" />
+              <CarouselNext className="hidden md:flex -right-4 top-1/2 -translate-y-1/2" />
+            </Carousel>
+          )}
+        </section>
+      ) : null}
 
       {/* KATEGORI PRODUK */}
       <section className="container mx-auto max-w-7xl px-4 py-12">
@@ -279,7 +352,7 @@ function HomePage() {
       <section className="container mx-auto max-w-7xl px-4 py-12">
         <div className="flex items-center justify-between">
           <SectionTitle>Blog & Inspirasi</SectionTitle>
-          <Link to="/blog" className="text-sm font-semibold text-primary hover:text-primary/80">
+          <Link to="/blog" search={{}} className="text-sm font-semibold text-primary hover:text-primary/80">
             Selengkapnya →
           </Link>
         </div>
