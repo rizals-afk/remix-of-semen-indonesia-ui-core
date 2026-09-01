@@ -24,7 +24,7 @@ type Tab = (typeof TABS)[number];
 const TAB_TO_STATUS: Record<Tab, string> = {
   "Menunggu Verifikasi": "pending",
   "Menunggu Pembayaran": "approve",
-  Diproses: "proses",
+  Diproses: "process",
   Dikirim: "delivery",
   Selesai: "done",
   Dibatalkan: "cancel",

@@ -40,7 +40,7 @@ export interface CustomerLocation {
 export interface Trx {
   id: number;
   code: string;
-  status: "pending" | "approve" | "proses" | "delivery" | "done" | "cancel";
+  status: "pending" | "approve" | "process" | "delivery" | "done" | "cancel";
   trx_type: string;
   created_at: string;
   updated_at: string;
@@ -50,6 +50,7 @@ export interface Trx {
   customer_location_id: number;
   branch_id: number;
   customer_id?: number;
+  payment_id?: number;
   customer_location?: CustomerLocation;
   customer_location_name?: string;
   customer_location_phone?: string;

@@ -91,7 +91,7 @@ function bannerFor(trx: Trx): BannerCopy {
         subtitle: "Silahkan lakukan pembayaran untuk melanjutkan pesanan.",
         tone: "primary",
       };
-    case "proses":
+    case "process":
       return {
         icon: Hourglass,
         title: "Pesanan Diproses",
@@ -205,13 +205,13 @@ function OrderDetailPage() {
       <OrderStatusStepper
         status={currentTrx.status === "pending" ? "menunggu-verifikasi" :
                currentTrx.status === "approve" ? "menunggu-pembayaran" :
-               currentTrx.status === "proses" ? "diproses" :
+               currentTrx.status === "process" ? "diproses" :
                currentTrx.status === "delivery" ? "dikirim" :
                currentTrx.status === "done" ? "selesai" : "dibatalkan"}
         timestamps={{
           dibuat: formatTimestamp(currentTrx.created_at),
           verifikasi: currentTrx.verification_date ? formatTimestamp(currentTrx.verification_date) : undefined,
-          pembayaran: ["proses", "delivery", "done"].includes(currentTrx.status) ? formatTimestamp(currentTrx.created_at) : undefined,
+          pembayaran: ["process", "delivery", "done"].includes(currentTrx.status) ? formatTimestamp(currentTrx.created_at) : undefined,
           dikirim: currentTrx.lines?.[0]?.delivery_date ? formatTimestamp(currentTrx.lines[0].delivery_date) : undefined,
           selesai: currentTrx.date_done ? formatTimestamp(currentTrx.date_done) : undefined,
         }}
@@ -475,29 +475,31 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
             </AlertDialogContent>
           </AlertDialog>
           {outline("Hubungi Penjual", whatsapp)}
-          <button
-            onClick={handlePayment}
-            disabled={isProcessingPayment || isSavingPayment}
-            className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {isProcessingPayment ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Memproses Pembayaran...
-              </>
-            ) : isSavingPayment ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Menyimpan pembayaran...
-              </>
-            ) : (
-              "Bayar Sekarang"
-            )}
-          </button>
+          {!trx.payment_id && (
+            <button
+              onClick={handlePayment}
+              disabled={isProcessingPayment || isSavingPayment}
+              className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isProcessingPayment ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Memproses Pembayaran...
+                </>
+              ) : isSavingPayment ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Menyimpan pembayaran...
+                </>
+              ) : (
+                "Bayar Sekarang"
+              )}
+            </button>
+          )}
         </>
       );
       break;
-    case "proses":
+    case "process":
       content = outline("Hubungi Penjual", whatsapp);
       break;
     case "delivery":
