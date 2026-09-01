@@ -17,17 +17,28 @@ export function loadMidtransSnap(): Promise<void> {
     }
 
     const script = document.createElement('script');
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+    // Use proxied URL to avoid CORS issues in development
+    script.src = '/snap.js';
     script.setAttribute('data-client-key', 'SB-Mid-client-'); // Client key will be set by the backend
     script.onload = () => {
+      console.log('Midtrans Snap SDK loaded successfully');
       snapLoaded = true;
+
+      // Verify snap is available
+      if (typeof (window as any).snap === 'undefined') {
+        console.error('Snap SDK loaded but window.snap is not available');
+        reject(new Error('Snap SDK loaded but window.snap is not available'));
+        return;
+      }
+
       resolve();
     };
     script.onerror = () => {
+      console.error('Failed to load Midtrans Snap SDK script');
       snapLoadPromise = null;
       reject(new Error('Failed to load Midtrans Snap SDK'));
     };
-    document.body.appendChild(script);
+    document.head.appendChild(script);
   });
 
   return snapLoadPromise;

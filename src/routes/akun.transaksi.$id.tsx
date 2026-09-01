@@ -298,36 +298,37 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   };
 
   const handlePayment = async () => {
+    console.log("handlePayment called");
     setIsProcessingPayment(true);
     paymentCreatedRef.current = false; // Reset payment created flag
     try {
       // Load Midtrans Snap SDK
+      console.log("Loading Midtrans Snap SDK...");
       await loadMidtransSnap();
+      console.log("Midtrans Snap SDK loaded");
 
       // Generate Snap token
+      console.log("Generating Snap token for trx_id:", trx.id);
       const response = await generateSnapToken(trx.id);
+      console.log("Snap token generated:", response.token);
 
       // Reset loading state before opening Snap popup
       setIsProcessingPayment(false);
 
+      console.log("Opening Snap popup...");
       // Open Snap popup
       (window as any).snap.pay(response.token, {
         onSuccess: async (result: any) => {
+          console.log("Snap onSuccess:", result);
           toast.success("Pembayaran berhasil");
           await onRefresh();
         },
         onPending: async (result: any) => {
-          toast.info("Pembayaran sedang diproses");
-          await onRefresh();
-        },
-        onError: (result: any) => {
-          toast.error("Pembayaran gagal. Silakan coba lagi.");
-        },
-        onClose: async () => {
-          console.log("Snap onClose triggered");
+          console.log("Snap onPending:", result);
           // Prevent duplicate payment creation
           if (paymentCreatedRef.current) {
             console.log("Payment already created, skipping");
+            await onRefresh();
             return;
           }
 
@@ -364,6 +365,14 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
           } finally {
             setIsSavingPayment(false);
           }
+        },
+        onError: (result: any) => {
+          console.error("Snap onError:", result);
+          toast.error("Pembayaran gagal. Silakan coba lagi.");
+        },
+        onClose: () => {
+          console.log("Snap onClose triggered");
+          // onClose is not creating payment since onPending already handles it
         },
       });
     } catch (error) {
