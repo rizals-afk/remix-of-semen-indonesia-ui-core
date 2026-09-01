@@ -1,11 +1,24 @@
+import { useState } from "react";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import {
-  MapPin, Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2,
+  Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2,
 } from "lucide-react";
 import { OrderStatusStepper } from "@/components/account/OrderStatusStepper";
 import { formatRupiah } from "@/lib/format";
 import { fetchTrxById, cancelTrx, type Trx } from "@/lib/api/trx";
 import { toast } from "sonner";
+import alamatPengirimanIcon from "@/assets/transaksi/Alamat_Pengiriman.png";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/akun/transaksi/$id")({
   head: () => ({ meta: [{ title: "Detail Pesanan — BahanMaterial.com" }] }),
@@ -47,6 +60,17 @@ function formatDate(dateString: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatTimestamp(dateString: string): string {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
 }
 
 function bannerFor(trx: Trx): BannerCopy {
@@ -153,17 +177,19 @@ function OrderDetailPage() {
       {/* Address */}
       <section className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-start gap-4">
-          <span className="grid h-12 w-12 place-items-center rounded-md bg-primary-soft text-primary">
-            <MapPin className="h-6 w-6" />
+          <span className="grid h-16 w-16 place-items-center rounded-md bg-primary-soft">
+            <img src={alamatPengirimanIcon} alt="Alamat Pengiriman" className="h-10 w-10" />
           </span>
           <div className="min-w-0">
             <p className="text-sm font-bold text-foreground">Alamat Pengiriman</p>
-            {trx.customer_location ? (
+            {trx.customer_location_name || trx.customer_location_address ? (
               <>
                 <p className="mt-1 text-sm font-semibold text-foreground">
-                  {trx.customer_location.name} <span className="text-muted-foreground">({trx.customer_location.phone})</span>
+                  {trx.customer_location_name || "-"} {trx.customer_location_phone ? <span className="text-muted-foreground">({trx.customer_location_phone})</span> : null}
                 </p>
-                <p className="mt-0.5 text-sm text-muted-foreground">{trx.customer_location.address}</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {trx.customer_location_address || "-"}{trx.customer_location_city ? `, ${trx.customer_location_city}` : ""}{trx.customer_location_postal_code ? ` ${trx.customer_location_postal_code}` : ""}
+                </p>
               </>
             ) : (
               <p className="mt-1 text-sm text-muted-foreground">Alamat tidak tersedia</p>
@@ -174,17 +200,17 @@ function OrderDetailPage() {
 
       {/* Stepper */}
       <OrderStatusStepper
-        status={trx.status === "pending" ? "menunggu-verifikasi" : 
+        status={trx.status === "pending" ? "menunggu-verifikasi" :
                trx.status === "approve" ? "menunggu-pembayaran" :
                trx.status === "proses" ? "diproses" :
                trx.status === "delivery" ? "dikirim" :
                trx.status === "done" ? "selesai" : "dibatalkan"}
         timestamps={{
-          dibuat: trx.created_at,
-          verifikasi: trx.status !== "pending" && trx.status !== "cancel" ? trx.created_at : undefined,
-          pembayaran: ["proses", "delivery", "done"].includes(trx.status) ? trx.created_at : undefined,
-          dikirim: ["delivery", "done"].includes(trx.status) ? trx.created_at : undefined,
-          selesai: trx.status === "done" ? trx.updated_at : undefined,
+          dibuat: formatTimestamp(trx.created_at),
+          verifikasi: trx.verification_date ? formatTimestamp(trx.verification_date) : undefined,
+          pembayaran: ["proses", "delivery", "done"].includes(trx.status) ? formatTimestamp(trx.created_at) : undefined,
+          dikirim: trx.lines?.[0]?.delivery_date ? formatTimestamp(trx.lines[0].delivery_date) : undefined,
+          selesai: trx.date_done ? formatTimestamp(trx.date_done) : undefined,
         }}
       />
 
@@ -226,6 +252,7 @@ function OrderDetailPage() {
       <section className="rounded-2xl border border-border bg-card p-5">
         <h3 className="text-base font-bold text-foreground">Rincian Pembayaran</h3>
         <dl className="mt-4 space-y-3 text-sm">
+          <Row label="No. Pesanan" value={trx.code} />
           <Row label="Tipe Transaksi" value={trx.trx_type} />
           <Row label="Subtotal Pesanan" value={formatRupiah(typeof trx.subtotal === 'string' ? parseFloat(trx.subtotal) : trx.subtotal)} />
           <Row label="Biaya Pengiriman" value={formatRupiah(typeof trx.shipping_cost === 'string' ? parseFloat(trx.shipping_cost) : trx.shipping_cost)} />
@@ -243,19 +270,21 @@ function OrderDetailPage() {
 
 function DetailActions({ trx }: { trx: Trx }) {
   const navigate = useNavigate();
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const handleCancel = async () => {
-    if (!confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
-      return;
-    }
-
+    setIsCancelling(true);
     try {
       await cancelTrx(trx.id);
       toast.success("Pesanan berhasil dibatalkan");
+      setIsCancelDialogOpen(false);
       navigate({ to: "/akun/transaksi" });
     } catch (error) {
       console.error("Failed to cancel transaction:", error);
       toast.error("Gagal membatalkan pesanan");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -294,7 +323,31 @@ function DetailActions({ trx }: { trx: Trx }) {
     case "pending":
       content = (
         <>
-          {outline("Batalkan Pesanan", undefined, handleCancel, true)}
+          <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <button className="rounded-md border-2 border-destructive px-5 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/5">
+                Batalkan Pesanan
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Batalkan Pesanan</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleCancel}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? "Membatalkan..." : "Ya, Batalkan"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           {outline("Hubungi Penjual", whatsapp)}
         </>
       );
@@ -302,7 +355,31 @@ function DetailActions({ trx }: { trx: Trx }) {
     case "approve":
       content = (
         <>
-          {outline("Batalkan Pesanan", undefined, handleCancel, true)}
+          <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+            <AlertDialogTrigger asChild>
+              <button className="rounded-md border-2 border-destructive px-5 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/5">
+                Batalkan Pesanan
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Batalkan Pesanan</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleCancel}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? "Membatalkan..." : "Ya, Batalkan"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           {outline("Hubungi Penjual", whatsapp)}
           {primary("Bayar Sekarang", "/checkout/pembayaran")}
         </>

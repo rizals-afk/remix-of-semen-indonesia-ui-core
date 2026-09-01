@@ -7,6 +7,7 @@ export interface TrxLine {
   qty: number;
   subtotal: number;
   division?: string;
+  delivery_date?: string;
   product?: {
     id: number;
     name: string;
@@ -49,6 +50,15 @@ export interface Trx {
   customer_location_id: number;
   branch_id: number;
   customer_location?: CustomerLocation;
+  customer_location_name?: string;
+  customer_location_phone?: string;
+  customer_location_address?: string;
+  customer_location_city?: string;
+  customer_location_postal_code?: string;
+  customer_location_lat?: number;
+  customer_location_long?: number;
+  verification_date?: string;
+  date_done?: string;
   lines: TrxLine[];
 }
 
