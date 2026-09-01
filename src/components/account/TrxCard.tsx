@@ -18,7 +18,7 @@ import {
 const STATUS_LABELS: Record<Trx["status"], string> = {
   pending: "Menunggu Verifikasi",
   approve: "Menunggu Pembayaran",
-  proses: "Diproses",
+  process: "Diproses",
   delivery: "Dikirim",
   done: "Selesai",
   cancel: "Dibatalkan",
@@ -27,7 +27,7 @@ const STATUS_LABELS: Record<Trx["status"], string> = {
 const STATUS_COLORS: Record<Trx["status"], string> = {
   pending: "bg-yellow-100 text-yellow-800",
   approve: "bg-blue-100 text-blue-800",
-  proses: "bg-purple-100 text-purple-800",
+  process: "bg-purple-100 text-purple-800",
   delivery: "bg-orange-100 text-orange-800",
   done: "bg-green-100 text-green-800",
   cancel: "bg-red-100 text-red-800",

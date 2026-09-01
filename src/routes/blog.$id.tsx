@@ -56,7 +56,7 @@ function BlogDetailPage() {
     return {
       id: String(product.id),
       name: product.name,
-      price: pricelist ? parseFloat(pricelist.branch_price_max) : 0,
+      price: pricelist ? parseFloat(String(pricelist.branch_price_max)) : 0,
       image: media?.url || product.photo || '',
       warehouse: pricelist?.branch?.name || 'Gudang Utama',
       rating: undefined,
