@@ -46,7 +46,7 @@ function Actions({ order }: { order: Order }) {
   const primary = (label: string, to: string = `/akun/transaksi/${order.id}`) => (
     <Link
       to={to as "/akun/transaksi/$id"}
-      params={to.includes("$id") ? { id: order.id } : undefined}
+      params={{ id: order.id }}
       className="rounded-md bg-primary px-5 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90"
     >
       {label}

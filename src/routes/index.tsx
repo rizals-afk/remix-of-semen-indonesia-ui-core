@@ -352,7 +352,7 @@ function HomePage() {
       <section className="container mx-auto max-w-7xl px-4 py-12">
         <div className="flex items-center justify-between">
           <SectionTitle>Blog & Inspirasi</SectionTitle>
-          <Link to="/blog" search={{}} className="text-sm font-semibold text-primary hover:text-primary/80">
+          <Link to="/blog" search={{ q: undefined, page: 1 }} className="text-sm font-semibold text-primary hover:text-primary/80">
             Selengkapnya →
           </Link>
         </div>
