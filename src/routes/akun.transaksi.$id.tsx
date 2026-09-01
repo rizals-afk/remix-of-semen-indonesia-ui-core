@@ -274,6 +274,9 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSavingPayment, setIsSavingPayment] = useState(false);
   const [isMarkingDone, setIsMarkingDone] = useState(false);
+  const [isReturnOpen, setIsReturnOpen] = useState(false);
+  const [isConfirmDoneOpen, setIsConfirmDoneOpen] = useState(false);
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
   const paymentCreatedRef = useRef(false);
 
   const handleCancel = async () => {
