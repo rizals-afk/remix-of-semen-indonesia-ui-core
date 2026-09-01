@@ -431,36 +431,34 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   const whatsapp = "https://wa.me/6281133331800";
   const canCancel = trx.status === "pending" || trx.status === "approve";
 
+  const firstLine = trx.lines?.[0];
+  const dialogProduct = {
+    name: firstLine?.product?.name ?? "Produk",
+    variant: firstLine?.product_variant?.variant_name,
+    image: firstLine?.product_variant?.media?.[0]?.url || firstLine?.product?.photo,
+    maxQty: typeof firstLine?.qty === "string" ? parseFloat(firstLine.qty) : firstLine?.qty,
+  };
+
+  const cancelDialog = (
+    <CancelOrderDialog
+      open={isCancelDialogOpen}
+      onOpenChange={setIsCancelDialogOpen}
+      onConfirm={handleCancel}
+      isSubmitting={isCancelling}
+      trigger={
+        <button className="rounded-md border-2 border-destructive px-5 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/5">
+          Batalkan Pesanan
+        </button>
+      }
+    />
+  );
+
   let content: React.ReactNode = null;
   switch (trx.status) {
     case "pending":
       content = (
         <>
-          <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <button className="rounded-md border-2 border-destructive px-5 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/5">
-                Batalkan Pesanan
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Batalkan Pesanan</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Batal</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleCancel}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? "Membatalkan..." : "Ya, Batalkan"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {cancelDialog}
           {outline("Hubungi Penjual", whatsapp)}
         </>
       );
@@ -468,31 +466,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     case "approve":
       content = (
         <>
-          <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <button className="rounded-md border-2 border-destructive px-5 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/5">
-                Batalkan Pesanan
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Batalkan Pesanan</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Batal</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleCancel}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? "Membatalkan..." : "Ya, Batalkan"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {cancelDialog}
           {outline("Hubungi Penjual", whatsapp)}
           {!trx.payment_id && (
             <button
@@ -524,8 +498,32 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     case "delivery":
       content = (
         <>
-          {outline("Ajukan Pengembalian")}
-          {primary("Pesanan Selesai", undefined, handleMarkDone)}
+          {outline("Ajukan Pengembalian", undefined, () => setIsReturnOpen(true))}
+          {primary("Pesanan Selesai", undefined, () => setIsConfirmDoneOpen(true))}
+          <ReturnRequestDialog
+            open={isReturnOpen}
+            onOpenChange={setIsReturnOpen}
+            warehouseName={firstLine?.product_variant?.division}
+            product={dialogProduct}
+            address={{
+              name: trx.customer_location?.name ?? trx.customer_location_name,
+              phone: trx.customer_location?.phone ?? trx.customer_location_phone,
+              address: trx.customer_location?.address ?? trx.customer_location_address,
+            }}
+            onSubmit={() => {
+              toast.success("Pengajuan pengembalian terkirim");
+              setIsReturnOpen(false);
+            }}
+          />
+          <ConfirmReceivedDialog
+            open={isConfirmDoneOpen}
+            onOpenChange={setIsConfirmDoneOpen}
+            isSubmitting={isMarkingDone}
+            onConfirm={async () => {
+              await handleMarkDone();
+              setIsConfirmDoneOpen(false);
+            }}
+          />
         </>
       );
       break;
@@ -533,7 +531,12 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       content = (
         <>
           {outline("Beli Lagi")}
-          {primary("Nilai")}
+          {primary("Nilai", undefined, () => setIsReviewOpen(true))}
+          <ReviewDialog
+            open={isReviewOpen}
+            onOpenChange={setIsReviewOpen}
+            product={dialogProduct}
+          />
         </>
       );
       break;
