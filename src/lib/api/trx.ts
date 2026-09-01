@@ -212,6 +212,12 @@ export async function cancelTrx(id: number): Promise<Trx> {
   });
 }
 
+export async function markTrxDone(id: number): Promise<Trx> {
+  return apiFetch<Trx>(`/trx/${id}/done`, {
+    method: "PUT",
+  });
+}
+
 export interface SnapTokenResponse {
   token: string;
   redirect_url: string;

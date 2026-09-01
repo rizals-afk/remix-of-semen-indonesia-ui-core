@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { OrderStatusStepper } from "@/components/account/OrderStatusStepper";
 import { formatRupiah } from "@/lib/format";
-import { fetchTrxById, cancelTrx, generateSnapToken, type Trx } from "@/lib/api/trx";
+import { fetchTrxById, cancelTrx, markTrxDone, generateSnapToken, type Trx } from "@/lib/api/trx";
 import { createPayment } from "@/lib/api/payment";
 import { toast } from "sonner";
 import { loadMidtransSnap } from "@/lib/midtrans";
@@ -280,6 +280,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   const [isCancelling, setIsCancelling] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSavingPayment, setIsSavingPayment] = useState(false);
+  const [isMarkingDone, setIsMarkingDone] = useState(false);
   const paymentCreatedRef = useRef(false);
 
   const handleCancel = async () => {
@@ -294,6 +295,20 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       toast.error("Gagal membatalkan pesanan");
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handleMarkDone = async () => {
+    setIsMarkingDone(true);
+    try {
+      await markTrxDone(trx.id);
+      toast.success("Pesanan berhasil diselesaikan");
+      await onRefresh();
+    } catch (error) {
+      console.error("Failed to mark transaction as done:", error);
+      toast.error("Gagal menyelesaikan pesanan");
+    } finally {
+      setIsMarkingDone(false);
     }
   };
 
@@ -397,12 +412,16 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
         {label}
       </button>
     );
-  const primary = (label: string, to?: string) =>
+  const primary = (label: string, to?: string, onClick?: () => void) =>
     to ? (
       <Link to={to as "/checkout/pembayaran"}
         className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
         {label}
       </Link>
+    ) : onClick ? (
+      <button onClick={onClick} className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+        {label}
+      </button>
     ) : (
       <button className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
         {label}
@@ -506,7 +525,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       content = (
         <>
           {outline("Ajukan Pengembalian")}
-          {primary("Pesanan Selesai")}
+          {primary("Pesanan Selesai", undefined, handleMarkDone)}
         </>
       );
       break;
