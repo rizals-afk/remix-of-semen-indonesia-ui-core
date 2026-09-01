@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { formatRupiah } from "@/lib/format";
-import { type Trx } from "@/lib/api/trx";
+import { type Trx, cancelTrx } from "@/lib/api/trx";
+import { toast } from "sonner";
 
 const STATUS_LABELS: Record<Trx["status"], string> = {
   pending: "Menunggu Verifikasi",
@@ -31,7 +32,24 @@ function formatDate(dateString: string): string {
   });
 }
 
-export function TrxCard({ trx }: { trx: Trx }) {
+export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) => void }) {
+  const handleCancel = async () => {
+    if (!confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
+      return;
+    }
+
+    try {
+      await cancelTrx(trx.id);
+      toast.success("Pesanan berhasil dibatalkan");
+      onCancel?.(trx.id);
+    } catch (error) {
+      console.error("Failed to cancel transaction:", error);
+      toast.error("Gagal membatalkan pesanan");
+    }
+  };
+
+  const canCancel = trx.status === "pending" || trx.status === "approve";
+
   return (
     <article className="rounded-2xl border border-border bg-card">
       {/* Header */}
@@ -48,8 +66,8 @@ export function TrxCard({ trx }: { trx: Trx }) {
       {/* Product List */}
       <ul className="px-5 pb-4 pt-4">
         {trx.lines?.map((line, idx) => (
-          <li 
-            key={`${line.product_id}-${line.product_variant_id}-${idx}`} 
+          <li
+            key={`${line.product_id}-${line.product_variant_id}-${idx}`}
             className="flex items-center gap-4 py-3"
           >
             <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
@@ -69,8 +87,8 @@ export function TrxCard({ trx }: { trx: Trx }) {
               </p>
             </div>
             <div className="text-right text-sm">
-              <p className="text-muted-foreground">x{line.qty}</p>
-              <p className="mt-1 font-bold text-foreground">{formatRupiah(line.price)}</p>
+              <p className="text-muted-foreground">x{(typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty).toLocaleString('id-ID')}</p>
+              <p className="mt-1 font-bold text-foreground">{formatRupiah(typeof line.price === 'string' ? parseFloat(line.price) : line.price)}</p>
             </div>
           </li>
         ))}
@@ -80,15 +98,25 @@ export function TrxCard({ trx }: { trx: Trx }) {
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border px-5 py-4">
         <div className="text-sm">
           <span className="text-muted-foreground">Total Pesanan: </span>
-          <span className="text-base font-bold text-accent">{formatRupiah(trx.total)}</span>
+          <span className="text-base font-bold text-accent">{formatRupiah(typeof trx.total === 'string' ? parseFloat(trx.total) : trx.total)}</span>
         </div>
-        <Link
-          to="/akun/transaksi/$id"
-          params={{ id: trx.id.toString() }}
-          className="rounded-md bg-primary px-5 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90"
-        >
-          Detail Pesanan
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {canCancel && (
+            <button
+              onClick={handleCancel}
+              className="rounded-md border-2 border-destructive px-5 py-2 text-sm font-bold text-destructive hover:bg-destructive/5"
+            >
+              Batalkan Pesanan
+            </button>
+          )}
+          <Link
+            to="/akun/transaksi/$id"
+            params={{ id: trx.id.toString() }}
+            className="rounded-md bg-primary px-5 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+          >
+            Detail Pesanan
+          </Link>
+        </div>
       </div>
     </article>
   );

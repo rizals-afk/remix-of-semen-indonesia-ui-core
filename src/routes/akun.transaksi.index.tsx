@@ -184,7 +184,9 @@ function TransactionsPage() {
       ) : (
         <div className="space-y-4">
           {transactions.map((trx) => (
-            <TrxCard key={trx.id} trx={trx} />
+            <TrxCard key={trx.id} trx={trx} onCancel={(id) => {
+              setTransactions((prev) => prev.filter((t) => t.id !== id));
+            }} />
           ))}
           {isLoadingMore && (
             <div className="flex items-center justify-center py-4">

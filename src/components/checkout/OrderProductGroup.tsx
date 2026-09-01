@@ -103,7 +103,7 @@ export function OrderProductGroup({
                 <span className="text-sm text-foreground">{item.qty}</span>
               )}
               <span className="text-sm text-muted-foreground">
-                {(((item.weightKg ?? 0) * item.qty)).toLocaleString("id-ID")} Ton
+                {(((item.weightKg ?? 0) * item.qty)).toLocaleString("id-ID")} Kg
               </span>
               <span className="text-sm font-bold text-foreground md:text-right">
                 {formatRupiah(item.price * item.qty)}
@@ -189,7 +189,7 @@ export function OrderProductGroup({
       {/* Warehouse summary */}
       <div className="grid gap-3 border-t border-border/70 bg-muted/40 px-5 py-4 sm:px-6 md:grid-cols-4">
         <SummaryCell label="Subtotal Barang" value={formatRupiah(group.subTotal)} />
-        <SummaryCell label="Total Tonase" value={`${group.tonase.toLocaleString("id-ID")} Ton`} />
+        <SummaryCell label="Total Tonase" value={`${group.tonase.toLocaleString("id-ID")} Kg`} />
         <SummaryCell label="Ongkir" value={formatRupiah(shippingFee ?? 0)} />
         <div className="md:text-right">
           <p className="text-xs text-muted-foreground">Total {group.warehouse}</p>

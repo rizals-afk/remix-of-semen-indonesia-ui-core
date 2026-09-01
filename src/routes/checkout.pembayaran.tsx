@@ -150,7 +150,7 @@ function PaymentMethodPage() {
             <div className="rounded-2xl border border-border bg-card p-5">
               <h2 className="text-base font-bold text-foreground">Rincian Pembayaran</h2>
               <dl className="mt-4 space-y-3 text-sm">
-                <Row label="Subtotal Tonase" value={`${totalTonase.toLocaleString("id-ID")} Ton`} />
+                <Row label="Subtotal Tonase" value={`${totalTonase.toLocaleString("id-ID")} Kg`} />
                 <Row label="Subtotal Pesanan" value={formatRupiah(subtotalPesanan)} />
                 <Row label="Subtotal Pengiriman" value={formatRupiah(shippingTotal)} />
                 {checkout.voucher ? (

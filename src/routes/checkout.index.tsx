@@ -442,7 +442,7 @@ function CheckoutPage() {
             <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm">
               <h2 className="text-base font-bold text-foreground">Ringkasan Pembayaran</h2>
               <dl className="mt-5 space-y-3.5 text-sm">
-                <Row label="Subtotal Tonase" value={`${totalTonase.toLocaleString("id-ID")} Ton`} />
+                <Row label="Subtotal Tonase" value={`${totalTonase.toLocaleString("id-ID")} Kg`} />
                 <Row label="Subtotal Barang" value={formatRupiah(subtotalPesanan)} />
                 {showShipping ? (
                   <Row label="Subtotal Ongkir" value={formatRupiah(subtotalShipping)} />

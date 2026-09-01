@@ -1,10 +1,10 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import {
   MapPin, Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2,
 } from "lucide-react";
 import { OrderStatusStepper } from "@/components/account/OrderStatusStepper";
 import { formatRupiah } from "@/lib/format";
-import { fetchTrxById, type Trx } from "@/lib/api/trx";
+import { fetchTrxById, cancelTrx, type Trx } from "@/lib/api/trx";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/akun/transaksi/$id")({
@@ -208,16 +208,16 @@ function OrderDetailPage() {
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-1 text-sm font-bold text-foreground">{line.product?.name || "Produk"}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{line.product_variant?.variant_name || ""}</p>
-                <p className="mt-1 text-sm font-bold text-foreground">{formatRupiah(line.price)}</p>
+                <p className="mt-1 text-sm font-bold text-foreground">{formatRupiah(typeof line.price === 'string' ? parseFloat(line.price) : line.price)}</p>
               </div>
-              <p className="text-right text-sm text-muted-foreground">x{line.qty}</p>
+              <p className="text-right text-sm text-muted-foreground">x{(typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty).toLocaleString('id-ID')}</p>
             </li>
           ))}
         </ul>
         <div className="grid gap-2 border-t border-border px-5 py-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Total Pesanan:</span>
-            <span className="font-bold text-accent">{formatRupiah(trx.total)}</span>
+            <span className="font-bold text-accent">{formatRupiah(typeof trx.total === 'string' ? parseFloat(trx.total) : trx.total)}</span>
           </div>
         </div>
       </section>
@@ -227,12 +227,12 @@ function OrderDetailPage() {
         <h3 className="text-base font-bold text-foreground">Rincian Pembayaran</h3>
         <dl className="mt-4 space-y-3 text-sm">
           <Row label="Tipe Transaksi" value={trx.trx_type} />
-          <Row label="Subtotal Pesanan" value={formatRupiah(trx.subtotal)} />
-          <Row label="Biaya Pengiriman" value={formatRupiah(trx.shipping_cost)} />
+          <Row label="Subtotal Pesanan" value={formatRupiah(typeof trx.subtotal === 'string' ? parseFloat(trx.subtotal) : trx.subtotal)} />
+          <Row label="Biaya Pengiriman" value={formatRupiah(typeof trx.shipping_cost === 'string' ? parseFloat(trx.shipping_cost) : trx.shipping_cost)} />
         </dl>
         <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
           <span className="text-base font-bold text-foreground">Total Pembayaran</span>
-          <span className="text-xl font-bold text-accent">{formatRupiah(trx.total)}</span>
+          <span className="text-xl font-bold text-accent">{formatRupiah(typeof trx.total === 'string' ? parseFloat(trx.total) : trx.total)}</span>
         </div>
 
         <DetailActions trx={trx} />
@@ -242,14 +242,35 @@ function OrderDetailPage() {
 }
 
 function DetailActions({ trx }: { trx: Trx }) {
-  const outline = (label: string, href?: string) =>
+  const navigate = useNavigate();
+
+  const handleCancel = async () => {
+    if (!confirm("Apakah Anda yakin ingin membatalkan pesanan ini?")) {
+      return;
+    }
+
+    try {
+      await cancelTrx(trx.id);
+      toast.success("Pesanan berhasil dibatalkan");
+      navigate({ to: "/akun/transaksi" });
+    } catch (error) {
+      console.error("Failed to cancel transaction:", error);
+      toast.error("Gagal membatalkan pesanan");
+    }
+  };
+
+  const outline = (label: string, href?: string, onClick?: () => void, isDestructive?: boolean) =>
     href ? (
       <a href={href} target="_blank" rel="noreferrer"
-        className="rounded-md border-2 border-primary px-5 py-2.5 text-sm font-bold text-primary hover:bg-primary/5">
+        className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'}`}>
         {label}
       </a>
+    ) : onClick ? (
+      <button onClick={onClick} className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'}`}>
+        {label}
+      </button>
     ) : (
-      <button className="rounded-md border-2 border-primary px-5 py-2.5 text-sm font-bold text-primary hover:bg-primary/5">
+      <button className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'}`}>
         {label}
       </button>
     );
@@ -266,15 +287,22 @@ function DetailActions({ trx }: { trx: Trx }) {
     );
 
   const whatsapp = "https://wa.me/6281133331800";
+  const canCancel = trx.status === "pending" || trx.status === "approve";
 
   let content: React.ReactNode = null;
   switch (trx.status) {
     case "pending":
-      content = outline("Hubungi Penjual", whatsapp);
+      content = (
+        <>
+          {outline("Batalkan Pesanan", undefined, handleCancel, true)}
+          {outline("Hubungi Penjual", whatsapp)}
+        </>
+      );
       break;
     case "approve":
       content = (
         <>
+          {outline("Batalkan Pesanan", undefined, handleCancel, true)}
           {outline("Hubungi Penjual", whatsapp)}
           {primary("Bayar Sekarang", "/checkout/pembayaran")}
         </>

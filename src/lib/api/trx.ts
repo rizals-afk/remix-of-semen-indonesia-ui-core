@@ -193,3 +193,9 @@ export async function createBulkTrx(data: BulkTrxRequest): Promise<BulkTrxRespon
     body: JSON.stringify(data),
   });
 }
+
+export async function cancelTrx(id: number): Promise<Trx> {
+  return apiFetch<Trx>(`/trx/${id}/cancel`, {
+    method: "PUT",
+  });
+}
