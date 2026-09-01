@@ -3,17 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { formatRupiah } from "@/lib/format";
 import { type Trx, cancelTrx } from "@/lib/api/trx";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { CancelOrderDialog } from "@/components/account/CancelOrderDialog";
 
 const STATUS_LABELS: Record<Trx["status"], string> = {
   pending: "Menunggu Verifikasi",
@@ -117,31 +107,17 @@ export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) =
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {canCancel && (
-            <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-              <AlertDialogTrigger asChild>
+            <CancelOrderDialog
+              open={isCancelDialogOpen}
+              onOpenChange={setIsCancelDialogOpen}
+              onConfirm={handleCancel}
+              isSubmitting={isCancelling}
+              trigger={
                 <button className="rounded-md border-2 border-destructive px-5 py-2 text-sm font-bold text-destructive hover:bg-destructive/5">
                   Batalkan Pesanan
                 </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Batalkan Pesanan</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleCancel}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    disabled={isCancelling}
-                  >
-                    {isCancelling ? "Membatalkan..." : "Ya, Batalkan"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+              }
+            />
           )}
           <Link
             to="/akun/transaksi/$id"
