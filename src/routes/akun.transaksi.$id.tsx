@@ -1,12 +1,14 @@
-import { useState } from "react";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { useState, useRef } from "react";
+import { createFileRoute, Link, notFound, useNavigate, useLoaderData } from "@tanstack/react-router";
 import {
   Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2,
 } from "lucide-react";
 import { OrderStatusStepper } from "@/components/account/OrderStatusStepper";
 import { formatRupiah } from "@/lib/format";
-import { fetchTrxById, cancelTrx, type Trx } from "@/lib/api/trx";
+import { fetchTrxById, cancelTrx, generateSnapToken, type Trx } from "@/lib/api/trx";
+import { createPayment } from "@/lib/api/payment";
 import { toast } from "sonner";
+import { loadMidtransSnap } from "@/lib/midtrans";
 import alamatPengirimanIcon from "@/assets/transaksi/Alamat_Pengiriman.png";
 import {
   AlertDialog,
@@ -122,8 +124,9 @@ function bannerFor(trx: Trx): BannerCopy {
 }
 
 function OrderDetailPage() {
-  const { trx } = Route.useLoaderData() as { trx: Trx };
-  const banner = bannerFor(trx);
+  const { trx } = useLoaderData({ from: "/akun/transaksi/$id" }) as { trx: Trx };
+  const [currentTrx, setCurrentTrx] = useState(trx);
+  const banner = bannerFor(currentTrx);
   const BannerIcon = banner.icon;
   const toneText =
     banner.tone === "success" ? "text-success"
@@ -149,7 +152,7 @@ function OrderDetailPage() {
             <p className="mt-1 text-sm text-muted-foreground">{banner.subtitle}</p>
           </div>
         </div>
-        {trx.status === "delivery" ? (
+        {currentTrx.status === "delivery" ? (
           <div className="text-right text-sm">
             <p className="text-muted-foreground">Estimasi Tiba</p>
             <p className="mt-0.5 font-bold text-foreground">Sedang dalam perjalanan</p>
@@ -157,12 +160,12 @@ function OrderDetailPage() {
         ) : banner.invoice ? (
           <div className="text-right text-sm">
             <p className="text-muted-foreground">No. Pesanan</p>
-            <p className="mt-0.5 font-mono font-bold text-foreground">{trx.code}</p>
+            <p className="mt-0.5 font-mono font-bold text-foreground">{currentTrx.code}</p>
           </div>
         ) : null}
       </section>
 
-      {trx.status === "delivery" ? (
+      {currentTrx.status === "delivery" ? (
         <section className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary-soft p-4">
           <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
           <div className="text-sm">
@@ -182,13 +185,13 @@ function OrderDetailPage() {
           </span>
           <div className="min-w-0">
             <p className="text-sm font-bold text-foreground">Alamat Pengiriman</p>
-            {trx.customer_location_name || trx.customer_location_address ? (
+            {currentTrx.customer_location_name || currentTrx.customer_location_address ? (
               <>
                 <p className="mt-1 text-sm font-semibold text-foreground">
-                  {trx.customer_location_name || "-"} {trx.customer_location_phone ? <span className="text-muted-foreground">({trx.customer_location_phone})</span> : null}
+                  {currentTrx.customer_location_name || "-"} {currentTrx.customer_location_phone ? <span className="text-muted-foreground">({currentTrx.customer_location_phone})</span> : null}
                 </p>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  {trx.customer_location_address || "-"}{trx.customer_location_city ? `, ${trx.customer_location_city}` : ""}{trx.customer_location_postal_code ? ` ${trx.customer_location_postal_code}` : ""}
+                  {currentTrx.customer_location_address || "-"}{currentTrx.customer_location_city ? `, ${currentTrx.customer_location_city}` : ""}{currentTrx.customer_location_postal_code ? ` ${currentTrx.customer_location_postal_code}` : ""}
                 </p>
               </>
             ) : (
@@ -200,17 +203,17 @@ function OrderDetailPage() {
 
       {/* Stepper */}
       <OrderStatusStepper
-        status={trx.status === "pending" ? "menunggu-verifikasi" :
-               trx.status === "approve" ? "menunggu-pembayaran" :
-               trx.status === "proses" ? "diproses" :
-               trx.status === "delivery" ? "dikirim" :
-               trx.status === "done" ? "selesai" : "dibatalkan"}
+        status={currentTrx.status === "pending" ? "menunggu-verifikasi" :
+               currentTrx.status === "approve" ? "menunggu-pembayaran" :
+               currentTrx.status === "proses" ? "diproses" :
+               currentTrx.status === "delivery" ? "dikirim" :
+               currentTrx.status === "done" ? "selesai" : "dibatalkan"}
         timestamps={{
-          dibuat: formatTimestamp(trx.created_at),
-          verifikasi: trx.verification_date ? formatTimestamp(trx.verification_date) : undefined,
-          pembayaran: ["proses", "delivery", "done"].includes(trx.status) ? formatTimestamp(trx.created_at) : undefined,
-          dikirim: trx.lines?.[0]?.delivery_date ? formatTimestamp(trx.lines[0].delivery_date) : undefined,
-          selesai: trx.date_done ? formatTimestamp(trx.date_done) : undefined,
+          dibuat: formatTimestamp(currentTrx.created_at),
+          verifikasi: currentTrx.verification_date ? formatTimestamp(currentTrx.verification_date) : undefined,
+          pembayaran: ["proses", "delivery", "done"].includes(currentTrx.status) ? formatTimestamp(currentTrx.created_at) : undefined,
+          dikirim: currentTrx.lines?.[0]?.delivery_date ? formatTimestamp(currentTrx.lines[0].delivery_date) : undefined,
+          selesai: currentTrx.date_done ? formatTimestamp(currentTrx.date_done) : undefined,
         }}
       />
 
@@ -221,7 +224,7 @@ function OrderDetailPage() {
           <span className="text-sm font-semibold text-primary">Selesai</span>
         </div>
         <ul className="px-5 py-4">
-          {trx.lines.map((line, idx) => (
+          {currentTrx.lines.map((line, idx) => (
             <li key={`${line.product_id}-${line.product_variant_id}-${idx}`} className="flex items-center gap-4 py-2">
               <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
                 <img
@@ -243,7 +246,7 @@ function OrderDetailPage() {
         <div className="grid gap-2 border-t border-border px-5 py-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Total Pesanan:</span>
-            <span className="font-bold text-accent">{formatRupiah(typeof trx.total === 'string' ? parseFloat(trx.total) : trx.total)}</span>
+            <span className="font-bold text-accent">{formatRupiah(typeof currentTrx.total === 'string' ? parseFloat(currentTrx.total) : currentTrx.total)}</span>
           </div>
         </div>
       </section>
@@ -252,26 +255,32 @@ function OrderDetailPage() {
       <section className="rounded-2xl border border-border bg-card p-5">
         <h3 className="text-base font-bold text-foreground">Rincian Pembayaran</h3>
         <dl className="mt-4 space-y-3 text-sm">
-          <Row label="No. Pesanan" value={trx.code} />
-          <Row label="Tipe Transaksi" value={trx.trx_type} />
-          <Row label="Subtotal Pesanan" value={formatRupiah(typeof trx.subtotal === 'string' ? parseFloat(trx.subtotal) : trx.subtotal)} />
-          <Row label="Biaya Pengiriman" value={formatRupiah(typeof trx.shipping_cost === 'string' ? parseFloat(trx.shipping_cost) : trx.shipping_cost)} />
+          <Row label="No. Pesanan" value={currentTrx.code} />
+          <Row label="Tipe Transaksi" value={currentTrx.trx_type} />
+          <Row label="Subtotal Pesanan" value={formatRupiah(typeof currentTrx.subtotal === 'string' ? parseFloat(currentTrx.subtotal) : currentTrx.subtotal)} />
+          <Row label="Biaya Pengiriman" value={formatRupiah(typeof currentTrx.shipping_cost === 'string' ? parseFloat(currentTrx.shipping_cost) : currentTrx.shipping_cost)} />
         </dl>
         <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
           <span className="text-base font-bold text-foreground">Total Pembayaran</span>
-          <span className="text-xl font-bold text-accent">{formatRupiah(typeof trx.total === 'string' ? parseFloat(trx.total) : trx.total)}</span>
+          <span className="text-xl font-bold text-accent">{formatRupiah(typeof currentTrx.total === 'string' ? parseFloat(currentTrx.total) : currentTrx.total)}</span>
         </div>
 
-        <DetailActions trx={trx} />
+        <DetailActions trx={currentTrx} onRefresh={async () => {
+          const updatedTrx = await fetchTrxById(currentTrx.id);
+          setCurrentTrx(updatedTrx);
+        }} />
       </section>
     </div>
   );
 }
 
-function DetailActions({ trx }: { trx: Trx }) {
+function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<void> }) {
   const navigate = useNavigate();
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isSavingPayment, setIsSavingPayment] = useState(false);
+  const paymentCreatedRef = useRef(false);
 
   const handleCancel = async () => {
     setIsCancelling(true);
@@ -285,6 +294,82 @@ function DetailActions({ trx }: { trx: Trx }) {
       toast.error("Gagal membatalkan pesanan");
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    setIsProcessingPayment(true);
+    paymentCreatedRef.current = false; // Reset payment created flag
+    try {
+      // Load Midtrans Snap SDK
+      await loadMidtransSnap();
+
+      // Generate Snap token
+      const response = await generateSnapToken(trx.id);
+
+      // Reset loading state before opening Snap popup
+      setIsProcessingPayment(false);
+
+      // Open Snap popup
+      (window as any).snap.pay(response.token, {
+        onSuccess: async (result: any) => {
+          toast.success("Pembayaran berhasil");
+          await onRefresh();
+        },
+        onPending: async (result: any) => {
+          toast.info("Pembayaran sedang diproses");
+          await onRefresh();
+        },
+        onError: (result: any) => {
+          toast.error("Pembayaran gagal. Silakan coba lagi.");
+        },
+        onClose: async () => {
+          console.log("Snap onClose triggered");
+          // Prevent duplicate payment creation
+          if (paymentCreatedRef.current) {
+            console.log("Payment already created, skipping");
+            return;
+          }
+
+          console.log("Creating payment record...");
+          setIsSavingPayment(true);
+          try {
+            // Format today's date as YYYY-MM-DD
+            const today = new Date();
+            const paymentDate = today.toISOString().split('T')[0];
+
+            const paymentData = {
+              trx_id: trx.id,
+              customer_id: trx.customer_id || 0,
+              payment_method: "midtrans",
+              payment_date: paymentDate,
+              total: trx.total.toString(),
+              status: "pending",
+              reference_id: trx.code,
+              reference_type: "midtrans",
+            };
+
+            console.log("Payment data:", paymentData);
+
+            // Create payment record
+            await createPayment(paymentData);
+
+            paymentCreatedRef.current = true;
+            console.log("Payment record created successfully");
+            toast.success("Pembayaran berhasil disimpan");
+            await onRefresh();
+          } catch (error) {
+            console.error("Failed to create payment record:", error);
+            toast.error("Gagal menyimpan pembayaran. Silakan coba lagi.");
+          } finally {
+            setIsSavingPayment(false);
+          }
+        },
+      });
+    } catch (error) {
+      console.error("Failed to process payment:", error);
+      toast.error("Gagal memproses pembayaran. Silakan coba lagi.");
+      setIsProcessingPayment(false);
     }
   };
 
@@ -381,7 +466,25 @@ function DetailActions({ trx }: { trx: Trx }) {
             </AlertDialogContent>
           </AlertDialog>
           {outline("Hubungi Penjual", whatsapp)}
-          {primary("Bayar Sekarang", "/checkout/pembayaran")}
+          <button
+            onClick={handlePayment}
+            disabled={isProcessingPayment || isSavingPayment}
+            className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isProcessingPayment ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Memproses Pembayaran...
+              </>
+            ) : isSavingPayment ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Menyimpan pembayaran...
+              </>
+            ) : (
+              "Bayar Sekarang"
+            )}
+          </button>
         </>
       );
       break;

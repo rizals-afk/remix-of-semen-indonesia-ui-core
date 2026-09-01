@@ -49,6 +49,7 @@ export interface Trx {
   total: number;
   customer_location_id: number;
   branch_id: number;
+  customer_id?: number;
   customer_location?: CustomerLocation;
   customer_location_name?: string;
   customer_location_phone?: string;
@@ -208,4 +209,13 @@ export async function cancelTrx(id: number): Promise<Trx> {
   return apiFetch<Trx>(`/trx/${id}/cancel`, {
     method: "PUT",
   });
+}
+
+export interface SnapTokenResponse {
+  token: string;
+  redirect_url: string;
+}
+
+export async function generateSnapToken(trxId: number): Promise<SnapTokenResponse> {
+  return apiFetch<SnapTokenResponse>(`/trx/${trxId}/gen_snap_token`);
 }
