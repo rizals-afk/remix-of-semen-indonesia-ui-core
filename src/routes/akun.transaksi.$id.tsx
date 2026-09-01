@@ -10,17 +10,10 @@ import { createPayment } from "@/lib/api/payment";
 import { toast } from "sonner";
 import { loadMidtransSnap } from "@/lib/midtrans";
 import alamatPengirimanIcon from "@/assets/transaksi/Alamat_Pengiriman.png";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { CancelOrderDialog } from "@/components/account/CancelOrderDialog";
+import { ConfirmReceivedDialog } from "@/components/account/ConfirmReceivedDialog";
+import { ReviewDialog } from "@/components/account/ReviewDialog";
+import { ReturnRequestDialog } from "@/components/account/ReturnRequestDialog";
 
 export const Route = createFileRoute("/akun/transaksi/$id")({
   head: () => ({ meta: [{ title: "Detail Pesanan — BahanMaterial.com" }] }),
