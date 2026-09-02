@@ -258,6 +258,38 @@ function ProductDetailPage() {
     }
   };
 
+  const handleShare = async () => {
+    if (!product) return;
+
+    const shareData = {
+      title: product.name,
+      text: `Cek produk ini: ${product.name}`,
+      url: window.location.href,
+    };
+
+    // Try Web Share API first (mobile devices)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        toast.success("Produk berhasil dibagikan.");
+        return;
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error("Error sharing:", error);
+        }
+      }
+    }
+
+    // Fallback: Copy to clipboard
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Link produk berhasil disalin ke clipboard.");
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+      toast.error("Gagal membagikan produk. Silakan coba lagi.");
+    }
+  };
+
   if (loading || !product) {
     return (
       <MainLayout>
@@ -429,7 +461,10 @@ function ProductDetailPage() {
                 <Heart className={`h-4 w-4 ${isFavourited ? "fill-red-500 text-red-500" : ""}`} />
                 Favorit
               </button>
-              <button className="inline-flex items-center gap-1 hover:text-primary">
+              <button
+                onClick={handleShare}
+                className="inline-flex items-center gap-1 hover:text-primary"
+              >
                 <Share2 className="h-4 w-4" /> Share
               </button>
             </div>
