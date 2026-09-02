@@ -81,6 +81,22 @@ export async function apiFetch<T = unknown>(
       }
     }
     message = message || `Request failed with status ${res.status}`;
+
+    // Handle Unauthenticated error - clear cache and redirect to homepage
+    if (message === "Unauthenticated." || res.status === 401) {
+      if (typeof window !== "undefined") {
+        // Clear all cache
+        window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+        window.localStorage.removeItem(USER_STORAGE_KEY);
+        window.localStorage.removeItem("bm_cart_v2");
+        window.localStorage.removeItem("bm_selected_customer_location");
+        window.localStorage.removeItem("bm_buy_now_item");
+        window.localStorage.removeItem("bm_user");
+        // Redirect to homepage
+        window.location.href = "/";
+      }
+    }
+
     throw new ApiError(message, res.status, data);
   }
 

@@ -121,6 +121,17 @@ export function saveSession(token: string, user?: unknown) {
   }
 }
 
+export function clearAllCache(): void {
+  if (typeof window === "undefined") return;
+  // Clear all app-related localStorage items
+  window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+  window.localStorage.removeItem(USER_STORAGE_KEY);
+  window.localStorage.removeItem("bm_cart_v2");
+  window.localStorage.removeItem("bm_selected_customer_location");
+  window.localStorage.removeItem("bm_buy_now_item");
+  window.localStorage.removeItem("bm_user");
+}
+
 export async function logout(): Promise<void> {
   try {
     await apiFetch<void>("/logout", {
@@ -130,9 +141,7 @@ export async function logout(): Promise<void> {
     // Ignore logout API errors and proceed with local cleanup
     console.error("Logout API call failed:", err);
   }
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-  window.localStorage.removeItem(USER_STORAGE_KEY);
+  clearAllCache();
 }
 
 export function getToken(): string | null {

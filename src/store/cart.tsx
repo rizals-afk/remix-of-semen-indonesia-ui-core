@@ -284,10 +284,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   }, [items]);
 
-  const clearSelected = useCallback(() => {
+  const clearSelected = useCallback(async () => {
+    const token = getToken();
+    const selectedItems = items.filter((p) => selectedIds.has(p.id));
+
+    // Delete selected items via API if authenticated
+    if (token && selectedItems.length > 0) {
+      try {
+        // Loop through each selected item and delete via API
+        for (const item of selectedItems) {
+          const cartId = parseInt(item.id);
+          if (!isNaN(cartId)) {
+            await deleteCartItem(cartId);
+          }
+        }
+        // Refresh cart count after successful deletion
+        await refreshCartCount();
+      } catch (error) {
+        console.error("Failed to delete selected items:", error);
+        toast.error("Gagal menghapus item. Silakan coba lagi.");
+        return;
+      }
+    }
+
+    // Update local state
     setItems((prev) => prev.filter((p) => !selectedIds.has(p.id)));
     setSelectedIds(new Set());
-  }, [selectedIds]);
+  }, [selectedIds, items, refreshCartCount]);
 
   const clearSelections = useCallback(() => {
     setSelectedIds(new Set());
