@@ -9,6 +9,11 @@ export function useFcm() {
   const [isRegistered, setIsRegistered] = useState(false);
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const initializeFcm = async () => {
       try {
         const token = await getFcmToken();
@@ -32,7 +37,7 @@ export function useFcm() {
     initializeFcm();
 
     // Listen for foreground messages
-    const unsubscribe = onForegroundMessage((payload) => {
+    const unsubscribePromise = onForegroundMessage((payload) => {
       console.log('Foreground message received:', payload);
       toast.info(payload.notification?.title || 'New notification', {
         description: payload.notification?.body,
@@ -40,11 +45,17 @@ export function useFcm() {
     });
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      unsubscribePromise.then(unsubscribe => {
+        if (unsubscribe) unsubscribe();
+      });
     };
   }, []);
 
   const registerToken = async () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     if (!fcmToken) {
       const token = await getFcmToken();
       if (token) {
