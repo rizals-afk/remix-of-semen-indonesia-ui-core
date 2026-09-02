@@ -530,15 +530,29 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
             open={isReturnOpen}
             onOpenChange={setIsReturnOpen}
             warehouseName={firstLine?.product_variant?.division}
-            product={dialogProduct}
+            branchName={trx.branch?.name || `Branch ${trx.branch_id}`}
+            products={trx.lines.map(line => ({
+              product_id: line.product_id,
+              product_variant_id: line.product_variant_id,
+              name: line.product?.name || "Produk",
+              variant: line.product_variant?.variant_name,
+              image: line.product_variant?.media?.[0]?.url || line.product?.photo,
+              qty: typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty,
+              maxQty: typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty,
+            }))}
             address={{
+              id: trx.customer_location_id,
               name: trx.customer_location?.name ?? trx.customer_location_name,
               phone: trx.customer_location?.phone ?? trx.customer_location_phone,
               address: trx.customer_location?.address ?? trx.customer_location_address,
+              city: trx.customer_location_city,
+              postalCode: trx.customer_location_postal_code,
+              lat: trx.customer_location_lat,
+              long: trx.customer_location_long,
             }}
-            onSubmit={() => {
-              toast.success("Pengajuan pengembalian terkirim");
-              setIsReturnOpen(false);
+            trxId={trx.id}
+            onSubmit={async () => {
+              await onRefresh();
             }}
           />
           <ConfirmReceivedDialog
@@ -569,8 +583,38 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     case "cancel":
       content = (
         <>
+          {outline("Ajukan Pengembalian", undefined, () => setIsReturnOpen(true))}
           {outline("Rincian Pembatalan")}
           {primary("Beli Lagi")}
+          <ReturnRequestDialog
+            open={isReturnOpen}
+            onOpenChange={setIsReturnOpen}
+            warehouseName={firstLine?.product_variant?.division}
+            branchName={trx.branch?.name || `Branch ${trx.branch_id}`}
+            products={trx.lines.map(line => ({
+              product_id: line.product_id,
+              product_variant_id: line.product_variant_id,
+              name: line.product?.name || "Produk",
+              variant: line.product_variant?.variant_name,
+              image: line.product_variant?.media?.[0]?.url || line.product?.photo,
+              qty: typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty,
+              maxQty: typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty,
+            }))}
+            address={{
+              id: trx.customer_location_id,
+              name: trx.customer_location?.name ?? trx.customer_location_name,
+              phone: trx.customer_location?.phone ?? trx.customer_location_phone,
+              address: trx.customer_location?.address ?? trx.customer_location_address,
+              city: trx.customer_location_city,
+              postalCode: trx.customer_location_postal_code,
+              lat: trx.customer_location_lat,
+              long: trx.customer_location_long,
+            }}
+            trxId={trx.id}
+            onSubmit={async () => {
+              await onRefresh();
+            }}
+          />
         </>
       );
       break;

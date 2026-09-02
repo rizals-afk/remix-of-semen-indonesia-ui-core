@@ -49,6 +49,7 @@ export interface Trx {
   total: number;
   customer_location_id: number;
   branch_id: number;
+  branch?: { id: number; name: string };
   customer_id?: number;
   payment_id?: number;
   customer_location?: CustomerLocation;
@@ -226,4 +227,37 @@ export interface SnapTokenResponse {
 
 export async function generateSnapToken(trxId: number): Promise<SnapTokenResponse> {
   return apiFetch<SnapTokenResponse>(`/trx/${trxId}/gen_snap_token`);
+}
+
+export interface ReturnPhoto {
+  url: string;
+  description: string;
+}
+
+export interface ReturnLine {
+  product_id: number;
+  product_variant_id: number;
+  qty: number;
+}
+
+export interface CreateReturnRequest {
+  lines: ReturnLine[];
+  photos: ReturnPhoto[];
+  customer_location_id: number;
+  customer_location_name: string;
+  customer_location_address: string;
+  customer_location_city: string;
+  customer_location_postal_code: string;
+  customer_location_lat: number;
+  customer_location_long: number;
+  retur_type: "barang" | "dana";
+  retur_reason: string;
+  retur_description: string;
+}
+
+export async function createReturn(trxId: number, data: CreateReturnRequest): Promise<unknown> {
+  return apiFetch<unknown>(`/trx/${trxId}/retur`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
