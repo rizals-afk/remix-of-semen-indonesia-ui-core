@@ -17,6 +17,7 @@ const TABS = [
   "Diproses",
   "Dikirim",
   "Selesai",
+  "Dikembalikan",
   "Dibatalkan",
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -27,6 +28,7 @@ const TAB_TO_STATUS: Record<Tab, string> = {
   Diproses: "process",
   Dikirim: "delivery",
   Selesai: "done",
+  Dikembalikan: "retur",
   Dibatalkan: "cancel",
 };
 

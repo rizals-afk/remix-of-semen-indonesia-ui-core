@@ -95,6 +95,13 @@ function bannerFor(trx: Trx): BannerCopy {
         subtitle: "Pesanan ini telah dibatalkan.",
         tone: "destructive",
       };
+    case "retur":
+      return {
+        icon: RotateCcw,
+        title: "Pesanan Dikembalikan",
+        subtitle: "Pesanan ini sedang dalam proses pengembalian.",
+        tone: "accent",
+      };
   }
 }
 
@@ -615,6 +622,14 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
               await onRefresh();
             }}
           />
+        </>
+      );
+      break;
+    case "retur":
+      content = (
+        <>
+          {outline("Hubungi Penjual", whatsapp)}
+          {primary("Beli Lagi")}
         </>
       );
       break;
