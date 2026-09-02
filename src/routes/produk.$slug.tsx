@@ -160,6 +160,12 @@ function ProductDetailPage() {
   ] : [];
 
   const addToCart = async () => {
+    const token = getToken();
+    if (!token) {
+      toast.error("Silahkan Login Terlebih Dahulu");
+      return;
+    }
+
     if (!product || !price) {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;
@@ -194,6 +200,12 @@ function ProductDetailPage() {
   };
 
   const buyNow = async () => {
+    const token = getToken();
+    if (!token) {
+      toast.error("Silahkan Login Terlebih Dahulu");
+      return;
+    }
+
     if (!product || !price) {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;

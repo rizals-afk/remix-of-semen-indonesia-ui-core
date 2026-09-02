@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Bell, Building2, Heart, MapPin, MessageSquare, ShoppingCart, User } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -8,6 +8,7 @@ import { useWarehouse } from "@/store/warehouse";
 import { useCustomerLocation } from "@/store/customer-location";
 import { useUser } from "@/store/user";
 import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
+import { CustomerLocationSelectorModal } from "@/components/account/CustomerLocationSelectorModal";
 
 /**
  * Site header used on every page.
@@ -18,6 +19,7 @@ export function SiteHeader() {
   const { user } = useUser();
   const cart = useCart();
   const cartBadge = cart.cartCount > 0 ? cart.cartCount : undefined;
+  const navigate = useNavigate();
   
   // Warehouse selector state
   const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();
@@ -26,6 +28,15 @@ export function SiteHeader() {
   
   // Customer location state
   const { selectedLocation } = useCustomerLocation();
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
+  const handleLocationClick = () => {
+    if (!user) {
+      navigate({ to: "/masuk" });
+      return;
+    }
+    setIsAddressModalOpen(true);
+  };
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background">
       <div className="container mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:gap-6 lg:py-4">
@@ -82,11 +93,14 @@ export function SiteHeader() {
         <div className="container mx-auto max-w-7xl px-4 py-2.5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 text-sm text-foreground">
             {/* Shipping Address */}
-            <div className="flex items-center gap-2">
+            <button
+              onClick={handleLocationClick}
+              className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors cursor-pointer"
+            >
               <MapPin className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">Kirim ke:</span>
               <span className="font-medium">{selectedLocation?.name || "Pilih Alamat"}</span>
-            </div>
+            </button>
             
             {/* Warehouse Selector */}
             <div className="flex items-center gap-2">
@@ -110,6 +124,12 @@ export function SiteHeader() {
         selectedWarehouse={selectedWarehouse}
         onSelectWarehouse={setSelectedWarehouse}
         userLocation={userLocation}
+      />
+
+      {/* Customer Location Selector Modal */}
+      <CustomerLocationSelectorModal
+        open={isAddressModalOpen}
+        onOpenChange={setIsAddressModalOpen}
       />
     </header>
   );

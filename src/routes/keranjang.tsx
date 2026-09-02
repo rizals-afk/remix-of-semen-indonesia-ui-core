@@ -18,6 +18,8 @@ import { formatRupiah } from "@/lib/format";
 
 import { getCurrentUserFromStorage } from "@/lib/auth";
 
+import { toast } from "sonner";
+
 
 
 export const Route = createFileRoute("/keranjang")({
@@ -188,7 +190,13 @@ function CartPage() {
 
               <button
 
-                onClick={() => navigate({ to: "/checkout" })}
+                onClick={() => {
+                  if (!user) {
+                    toast.error("Silahkan Login Terlebih Dahulu");
+                    return;
+                  }
+                  navigate({ to: "/checkout" });
+                }}
 
                 disabled={cart.totalSelected === 0}
 
