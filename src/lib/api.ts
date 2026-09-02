@@ -82,7 +82,7 @@ export async function apiFetch<T = unknown>(
     }
     message = message || `Request failed with status ${res.status}`;
 
-    // Handle Unauthenticated error - clear cache and redirect to homepage
+    // Handle Unauthenticated error - clear cache and redirect to login page
     if (message === "Unauthenticated." || res.status === 401) {
       if (typeof window !== "undefined") {
         // Clear all cache
@@ -92,8 +92,8 @@ export async function apiFetch<T = unknown>(
         window.localStorage.removeItem("bm_selected_customer_location");
         window.localStorage.removeItem("bm_buy_now_item");
         window.localStorage.removeItem("bm_user");
-        // Redirect to homepage
-        window.location.href = "/";
+        // Redirect to login page
+        window.location.href = "/masuk";
       }
     }
 

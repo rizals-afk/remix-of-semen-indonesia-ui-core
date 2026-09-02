@@ -60,12 +60,6 @@ export function SiteHeader() {
             </nav>
           ) : (
             <nav aria-label="Akun" className="flex items-center gap-4">
-              <IconButton label="Keranjang" to="/keranjang" badge={cartBadge}>
-                <ShoppingCart className="h-5 w-5" />
-              </IconButton>
-              <IconButton label="Notifikasi" to="/notifikasi">
-                <Bell className="h-5 w-5" />
-              </IconButton>
               <div className="hidden h-6 w-px bg-border lg:block" />
               <Link
                 to="/masuk"
