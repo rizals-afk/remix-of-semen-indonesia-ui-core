@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { createFileRoute, Link, notFound, useNavigate, useLoaderData } from "@tanstack/react-router";
+import { useState, useRef, useEffect } from "react";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
   Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2,
 } from "lucide-react";
@@ -17,25 +17,7 @@ import { ReturnRequestDialog } from "@/components/account/ReturnRequestDialog";
 
 export const Route = createFileRoute("/akun/transaksi/$id")({
   head: () => ({ meta: [{ title: "Detail Pesanan — BahanMaterial.com" }] }),
-  loader: async ({ params }) => {
-    try {
-      const trx = await fetchTrxById(parseInt(params.id));
-      return { trx };
-    } catch (error) {
-      console.error("Failed to fetch transaction:", error);
-      throw notFound();
-    }
-  },
   component: OrderDetailPage,
-  notFoundComponent: () => (
-    <div className="rounded-2xl border border-border bg-card p-10 text-center">
-      <h2 className="text-lg font-bold text-foreground">Pesanan tidak ditemukan</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Periksa kembali ID pesanan anda.</p>
-      <Link to="/akun/transaksi" className="mt-5 inline-block rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground">
-        Kembali ke Riwayat
-      </Link>
-    </div>
-  ),
 });
 
 interface BannerCopy {
@@ -117,20 +99,63 @@ function bannerFor(trx: Trx): BannerCopy {
 }
 
 function OrderDetailPage() {
-  const { trx } = useLoaderData({ from: "/akun/transaksi/$id" }) as { trx: Trx };
-  const [currentTrx, setCurrentTrx] = useState(trx);
-  const banner = bannerFor(currentTrx);
-  const BannerIcon = banner.icon;
+  const params = useParams({ from: "/akun/transaksi/$id" });
+  const id = params.id as string;
+  const [currentTrx, setCurrentTrx] = useState<Trx | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const banner = currentTrx ? bannerFor(currentTrx) : null;
+  const BannerIcon = banner?.icon || Hourglass;
   const toneText =
-    banner.tone === "success" ? "text-success"
-    : banner.tone === "destructive" ? "text-destructive"
-    : banner.tone === "accent" ? "text-accent"
+    banner?.tone === "success" ? "text-success"
+    : banner?.tone === "destructive" ? "text-destructive"
+    : banner?.tone === "accent" ? "text-accent"
     : "text-primary";
   const toneBg =
-    banner.tone === "success" ? "bg-success/10 border-success/30"
-    : banner.tone === "destructive" ? "bg-destructive/10 border-destructive/30"
-    : banner.tone === "accent" ? "bg-accent/10 border-accent/30"
+    banner?.tone === "success" ? "bg-success/10 border-success/30"
+    : banner?.tone === "destructive" ? "bg-destructive/10 border-destructive/30"
+    : banner?.tone === "accent" ? "bg-accent/10 border-accent/30"
     : "bg-primary-soft border-primary/20";
+
+  // Always fetch on client side
+  useEffect(() => {
+    if (id) {
+      const idNum = parseInt(id, 10);
+      if (!isNaN(idNum)) {
+        setIsLoading(true);
+        fetchTrxById(idNum)
+          .then(setCurrentTrx)
+          .catch((error) => {
+            console.error("Failed to fetch transaction:", error);
+          })
+          .finally(() => setIsLoading(false));
+      } else {
+        setIsLoading(false);
+      }
+    }
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center rounded-2xl border border-border bg-card p-10">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!currentTrx) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-10 text-center">
+        <h2 className="text-lg font-bold text-foreground">Pesanan tidak ditemukan</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Periksa kembali ID pesanan anda.</p>
+        <Link to="/akun/transaksi" className="mt-5 inline-block rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground">
+          Kembali ke Riwayat
+        </Link>
+      </div>
+    );
+  }
+
+  // At this point, currentTrx and banner are guaranteed to be non-null
+  const safeBanner = banner!;
 
   return (
     <div className="space-y-4">
@@ -141,8 +166,8 @@ function OrderDetailPage() {
             <BannerIcon className="h-6 w-6" />
           </span>
           <div>
-            <p className={`text-base font-bold ${toneText}`}>{banner.title}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{banner.subtitle}</p>
+            <p className={`text-base font-bold ${toneText}`}>{safeBanner.title}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{safeBanner.subtitle}</p>
           </div>
         </div>
         {currentTrx.status === "delivery" ? (
@@ -150,7 +175,7 @@ function OrderDetailPage() {
             <p className="text-muted-foreground">Estimasi Tiba</p>
             <p className="mt-0.5 font-bold text-foreground">Sedang dalam perjalanan</p>
           </div>
-        ) : banner.invoice ? (
+        ) : safeBanner.invoice ? (
           <div className="text-right text-sm">
             <p className="text-muted-foreground">No. Pesanan</p>
             <p className="mt-0.5 font-mono font-bold text-foreground">{currentTrx.code}</p>
