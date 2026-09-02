@@ -117,6 +117,24 @@ function ProfilePage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validation based on identity type
+    if (identity === "NIK") {
+      if (!nik.trim()) {
+        toast.error("NIK wajib diisi");
+        return;
+      }
+    } else if (identity === "NPWP") {
+      if (!npwp1.trim()) {
+        toast.error("NPWP 1 wajib diisi");
+        return;
+      }
+      if (!npwp2.trim()) {
+        toast.error("Nama NPWP wajib diisi");
+        return;
+      }
+    }
+
     setIsSaving(true);
 
     try {
