@@ -279,10 +279,15 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const paymentCreatedRef = useRef(false);
 
-  const handleCancel = async () => {
+  const handleCancel = async (reason: string) => {
+    if (!reason) {
+      toast.error("Silakan pilih alasan pembatalan");
+      return;
+    }
+
     setIsCancelling(true);
     try {
-      await cancelTrx(trx.id);
+      await cancelTrx(trx.id, reason);
       toast.success("Pesanan berhasil dibatalkan");
       setIsCancelDialogOpen(false);
       navigate({ to: "/akun/transaksi" });

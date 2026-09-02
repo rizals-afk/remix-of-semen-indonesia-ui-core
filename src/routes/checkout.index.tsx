@@ -168,6 +168,8 @@ function CheckoutPage() {
           shipping_phone: selectedLocation.phone,
           customer_location_address: selectedLocation.address,
           customer_location_phone: selectedLocation.phone,
+          customer_location_city: selectedLocation.city || "",
+          customer_location_postal_code: selectedLocation.postal_code || "",
           customer_location_lat: selectedLocation.lat || 0,
           customer_location_long: selectedLocation.long || 0,
           lines: lines,
