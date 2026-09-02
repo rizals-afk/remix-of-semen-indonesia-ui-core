@@ -81,6 +81,21 @@ function CheckoutPage() {
       return;
     }
 
+    // Validate delivery method selection for shipping mode
+    if (checkout.mode === "dikirim") {
+      const warehousesWithoutDeliveryRule = groups.filter(
+        (group) => !checkout.deliveryRuleIds[group.warehouse]
+      );
+      
+      if (warehousesWithoutDeliveryRule.length > 0) {
+        const warehouseNames = warehousesWithoutDeliveryRule
+          .map((g) => g.warehouse)
+          .join(", ");
+        toast.error(`Silakan pilih metode pengiriman untuk gudang: ${warehouseNames}`);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
