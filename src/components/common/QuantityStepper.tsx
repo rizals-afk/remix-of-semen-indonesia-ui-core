@@ -15,7 +15,7 @@ export function QuantityStepper({
   value,
   onChange,
   min = 1,
-  max = 99999,
+  max = 999999,
   step = 1,
   disabled = false,
 }: QuantityStepperProps) {
@@ -38,14 +38,14 @@ export function QuantityStepper({
 
   const handleInputBlur = () => {
     const num = Number(inputValue);
-    
-    // Validate: only allow positive integers
-    if (isNaN(num) || num < min || !Number.isInteger(num)) {
+
+    // Validate: only allow positive integers within min/max range
+    if (isNaN(num) || num < min || num > max || !Number.isInteger(num)) {
       // Restore previous value if invalid
       setInputValue(String(value));
       return;
     }
-    
+
     set(num);
   };
 
@@ -74,6 +74,7 @@ export function QuantityStepper({
         onBlur={handleInputBlur}
         onKeyDown={handleKeyDown}
         disabled={disabled}
+        max={999999}
         className="w-16 border-x border-border bg-background text-center text-sm font-semibold focus:outline-none disabled:opacity-40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
       <button

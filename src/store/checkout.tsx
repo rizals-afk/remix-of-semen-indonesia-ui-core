@@ -59,6 +59,14 @@ interface CheckoutState {
   /** Transaction codes from bulk order submission */
   transactionCodes: string[];
   setTransactionCodes: (codes: string[]) => void;
+  /** Order totals from last submission (for verifikasi page) */
+  orderTotals: {
+    subtotal: number;
+    shipping: number;
+    discount: number;
+    total: number;
+  } | null;
+  setOrderTotals: (totals: { subtotal: number; shipping: number; discount: number; total: number }) => void;
   submitOrder: (warehouses: string[]) => string;
   markVerified: (warehouses: string[]) => void;
   /** Single item for Buy Now flow (bypasses cart). */
@@ -90,6 +98,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [stage, setStage] = useState<CheckoutStage>("draft");
   const [orderId, setOrderId] = useState<string | null>(null);
   const [transactionCodes, setTransactionCodesState] = useState<string[]>([]);
+  const [orderTotals, setOrderTotalsState] = useState<{ subtotal: number; shipping: number; discount: number; total: number } | null>(null);
   const [buyNowItem, setBuyNowItemState] = useState<BuyNowItem | null>(null);
 
   // Load buyNowItem from localStorage on mount
@@ -130,6 +139,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     setTransactionCodesState(codes);
   }, []);
 
+  const setOrderTotals = useCallback((totals: { subtotal: number; shipping: number; discount: number; total: number }) => {
+    setOrderTotalsState(totals);
+  }, []);
+
   const submitOrder = useCallback((warehouses: string[]) => {
     const id = makeOrderId();
     setOrderId(id);
@@ -161,9 +174,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     estimatedShippingFor: (n) => (mode === "dikirim" ? n * ESTIMATED_GROUP_SHIPPING_FEE * 2 : 0),
     stage, setStage, orderId, setOrderId,
     transactionCodes, setTransactionCodes,
+    orderTotals, setOrderTotals,
     submitOrder, markVerified,
     buyNowItem, setBuyNowItem, clearBuyNowItem,
-  }), [mode, address, warehouse, voucher, payment, notes, setNote, cod, groupShippingFees, setGroupShippingFee, deliveryRuleIds, setDeliveryRuleId, stage, orderId, transactionCodes, setTransactionCodes, submitOrder, markVerified, buyNowItem, clearBuyNowItem]);
+  }), [mode, address, warehouse, voucher, payment, notes, setNote, cod, groupShippingFees, setGroupShippingFee, deliveryRuleIds, setDeliveryRuleId, stage, orderId, transactionCodes, setTransactionCodes, orderTotals, setOrderTotals, submitOrder, markVerified, buyNowItem, clearBuyNowItem]);
 
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;
 }

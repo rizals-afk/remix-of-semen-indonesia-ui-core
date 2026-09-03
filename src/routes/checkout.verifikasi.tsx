@@ -15,12 +15,13 @@ function VerifikasiPage() {
   const cart = useCart();
   const checkout = useCheckout();
 
-  const subtotalPesanan = cart.selectedGroups.reduce((s, g) => s + g.subTotal, 0);
-  const shipping = checkout.mode === "dikirim" && !checkout.cod
+  // Use stored order totals if available, otherwise fall back to cart calculation
+  const subtotalPesanan = checkout.orderTotals?.subtotal ?? cart.selectedGroups.reduce((s, g) => s + g.subTotal, 0);
+  const shipping = checkout.orderTotals?.shipping ?? (checkout.mode === "dikirim" && !checkout.cod
     ? cart.selectedGroups.length * ESTIMATED_GROUP_SHIPPING_FEE * 2
-    : 0;
-  const discount = checkout.voucher?.discount ?? 0;
-  const total = subtotalPesanan + shipping - discount;
+    : 0);
+  const discount = checkout.orderTotals?.discount ?? (checkout.voucher?.discount ?? 0);
+  const total = checkout.orderTotals?.total ?? (subtotalPesanan + shipping - discount);
 
   // Generate WhatsApp URL with transaction code
   const transactionCode = checkout.transactionCodes.length > 0

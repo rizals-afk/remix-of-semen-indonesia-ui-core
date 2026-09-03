@@ -219,11 +219,19 @@ function CheckoutPage() {
       };
 
       const response = await createBulkTrx(payload);
-      
+
       // Extract transaction codes from bulk response
       const codes = response.data.map((trx) => trx.code);
       checkout.setTransactionCodes(codes);
-      
+
+      // Save order totals for verifikasi page
+      checkout.setOrderTotals({
+        subtotal: originalSubtotal,
+        shipping: originalShipping,
+        discount: discount,
+        total: originalTotal,
+      });
+
       toast.success("Pesanan berhasil dibuat!");
       
       // Clear buyNowItem after successful order
@@ -275,7 +283,7 @@ function CheckoutPage() {
         customer_long: customerLocation.selectedLocation.long || 0,
         branch_lat: group.lat,
         branch_long: group.long,
-        tonase: Math.round(group.tonase),
+        tonase: Math.round(group.tonase) / 1000,
       };
 
       const response = await checkDelivery(request);
