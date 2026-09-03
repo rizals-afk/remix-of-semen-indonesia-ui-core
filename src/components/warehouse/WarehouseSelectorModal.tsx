@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Warehouse as ApiWarehouse } from "@/lib/api/warehouse";
 import { fetchWarehouses } from "@/lib/api/warehouse";
 import { WarehouseMap } from "./WarehouseMap";
+import { getUserLocation } from "@/lib/location";
 
 // Re-export the API type for compatibility
 export type Warehouse = ApiWarehouse;
@@ -46,7 +47,13 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchWarehouses({ per_page: 999, page: 1, is_active: true });
+        const userLocation = await getUserLocation();
+        const params: any = { per_page: 999, page: 1, is_active: true };
+        if (userLocation) {
+          params.lat = userLocation.lat;
+          params.long = userLocation.long;
+        }
+        const response = await fetchWarehouses(params);
         setWarehouses(response.data);
         setFilteredWarehouses(response.data);
       } catch (err) {
@@ -82,12 +89,18 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchWarehouses({ 
+        const userLocation = await getUserLocation();
+        const params: any = { 
           search: searchQuery, 
           per_page: 999, 
           page: 1,
           is_active: true
-        });
+        };
+        if (userLocation) {
+          params.lat = userLocation.lat;
+          params.long = userLocation.long;
+        }
+        const response = await fetchWarehouses(params);
         setFilteredWarehouses(response.data);
       } catch (err) {
         setError("Gagal memuat data gudang. Silakan coba lagi.");
@@ -118,7 +131,13 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchWarehouses({ per_page: 999, page: 1, search: searchQuery, is_active: true });
+        const userLocation = await getUserLocation();
+        const params: any = { per_page: 999, page: 1, search: searchQuery, is_active: true };
+        if (userLocation) {
+          params.lat = userLocation.lat;
+          params.long = userLocation.long;
+        }
+        const response = await fetchWarehouses(params);
         setWarehouses(response.data);
         setFilteredWarehouses(response.data);
       } catch (err) {

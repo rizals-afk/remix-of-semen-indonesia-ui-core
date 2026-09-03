@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Warehouse } from "@/lib/api/warehouse";
 import { fetchWarehouses } from "@/lib/api/warehouse";
+import { getUserLocation } from "@/lib/location";
 
 interface WarehouseContextValue {
   selectedWarehouse: Warehouse | null;
@@ -34,7 +35,13 @@ export function WarehouseProvider({ children }: { children: ReactNode }) {
 
     const loadDefaultWarehouse = async () => {
       try {
-        const response = await fetchWarehouses({ per_page: 999, page: 1, is_default: true });
+        const userLocation = await getUserLocation();
+        const params: any = { per_page: 999, page: 1, is_default: true };
+        if (userLocation) {
+          params.lat = userLocation.lat;
+          params.long = userLocation.long;
+        }
+        const response = await fetchWarehouses(params);
         if (response.data && response.data.length > 0) {
           const defaultWarehouse = response.data[0];
           setSelectedWarehouseState(defaultWarehouse);
