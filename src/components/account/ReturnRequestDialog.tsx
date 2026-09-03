@@ -136,7 +136,6 @@ export function ReturnRequestDialog({
       const payload: CreateReturnRequest = {
         lines,
         photos,
-        customer_location_id: address.id || 0,
         customer_location_name: address.name || "",
         customer_location_address: address.address || "",
         customer_location_city: address.city || "",

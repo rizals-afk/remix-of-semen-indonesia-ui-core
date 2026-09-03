@@ -243,7 +243,6 @@ export interface ReturnLine {
 export interface CreateReturnRequest {
   lines: ReturnLine[];
   photos: ReturnPhoto[];
-  customer_location_id: number;
   customer_location_name: string;
   customer_location_address: string;
   customer_location_city: string;
