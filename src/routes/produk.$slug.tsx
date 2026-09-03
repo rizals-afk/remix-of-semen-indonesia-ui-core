@@ -54,6 +54,13 @@ function ProductDetailPage() {
   const cart = useCart();
   const navigate = useNavigate();
 
+  // Generate WhatsApp URL with product and warehouse info
+  const whatsappUrl = product && selectedWarehouse
+    ? `https://wa.me/6281133331800?text=${encodeURIComponent(
+        `Saya ingin menanyakan ${product.name}${selectedVariantId ? ` (${product.variants.find(v => v.id === selectedVariantId)?.variant_name || ''})` : ''} pada gudang ${selectedWarehouse.name}`
+      )}`
+    : undefined;
+
   // Fetch product on mount
   useEffect(() => {
     const loadProduct = async () => {
@@ -323,7 +330,7 @@ function ProductDetailPage() {
   }
 
   return (
-    <MainLayout>
+    <MainLayout whatsappUrl={whatsappUrl}>
       <div className="container mx-auto max-w-7xl px-4 py-6">
         <Breadcrumbs
           items={[

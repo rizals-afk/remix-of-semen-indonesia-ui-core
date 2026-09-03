@@ -22,8 +22,18 @@ function VerifikasiPage() {
   const discount = checkout.voucher?.discount ?? 0;
   const total = subtotalPesanan + shipping - discount;
 
+  // Generate WhatsApp URL with transaction code
+  const transactionCode = checkout.transactionCodes.length > 0
+    ? checkout.transactionCodes.join(", ")
+    : "";
+  const whatsappUrl = transactionCode
+    ? `https://wa.me/6281133331800?text=${encodeURIComponent(
+        `Saya ingin menanyakan Order dengan nomor ${transactionCode}`
+      )}`
+    : "https://wa.me/6281133331800";
+
   return (
-    <MainLayout>
+    <MainLayout whatsappUrl={whatsappUrl}>
       <div className="border-b border-border bg-card">
         <div className="container mx-auto max-w-3xl px-4 py-5 text-center">
           <h1 className="text-2xl font-bold text-primary">Status Pesanan</h1>
@@ -88,7 +98,7 @@ function VerifikasiPage() {
 
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <a
-            href="https://wa.me/6281133331800"
+            href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-md border-2 border-primary px-5 py-3 text-sm font-bold text-primary hover:bg-primary/5"

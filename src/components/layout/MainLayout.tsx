@@ -7,20 +7,22 @@ interface MainLayoutProps {
   children: ReactNode;
   /** Deprecated: header reads the user from the store; kept for call-site compatibility. */
   user?: unknown;
+  /** Custom WhatsApp URL for the floating button */
+  whatsappUrl?: string;
 }
 
 /**
  * Standard page chrome: header on top, footer at the bottom,
  * a floating WhatsApp button bottom-right (matches every uploaded screen).
  */
-export function MainLayout({ children }: MainLayoutProps) {
+export function MainLayout({ children, whatsappUrl }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <a
-        href="https://wa.me/6281133331800"
+        href={whatsappUrl || "https://wa.me/6281133331800"}
         target="_blank"
         rel="noreferrer noopener"
         aria-label="Chat WhatsApp"
