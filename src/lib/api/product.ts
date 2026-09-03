@@ -97,10 +97,12 @@ export interface FetchProductsParams {
   sort?: "terbaru" | "termurah" | "termahal" | "terlaris";
   sort_by?: "name" | "created_at" | "most_bought" | "price";
   sort_order?: "asc" | "desc";
+  min_price?: number;
+  max_price?: number;
 }
 
 export async function fetchProducts(params: FetchProductsParams = {}): Promise<ProductListResponse> {
-  const { page = 1, per_page = 9, product_category_id, branch_id, search, sort, sort_by, sort_order } = params;
+  const { page = 1, per_page = 9, product_category_id, branch_id, search, sort, sort_by, sort_order, min_price, max_price } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
@@ -124,6 +126,14 @@ export async function fetchProducts(params: FetchProductsParams = {}): Promise<P
 
   if (sort_order) {
     queryParams.append("sort_order", sort_order);
+  }
+
+  if (min_price !== undefined) {
+    queryParams.append("min_price", min_price.toString());
+  }
+
+  if (max_price !== undefined) {
+    queryParams.append("max_price", max_price.toString());
   }
 
   console.log("Query Params:", queryParams.toString());

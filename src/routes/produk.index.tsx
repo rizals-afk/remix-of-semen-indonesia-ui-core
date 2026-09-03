@@ -18,6 +18,8 @@ const searchSchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
   sort: z.enum(["terbaru", "termurah", "termahal", "terlaris"]).optional(),
   category: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
+  min_price: z.coerce.number().min(0).optional(),
+  max_price: z.coerce.number().min(0).optional(),
 });
 
 export const Route = createFileRoute("/produk/")({
@@ -50,7 +52,7 @@ function mapSortToBackend(sort?: string): { sort_by?: string; sort_order?: strin
 }
 
 function ProductListingPage() {
-  const { q = "", page = 1, sort = "terbaru", category } = Route.useSearch();
+  const { q = "", page = 1, sort = "terbaru", category, min_price, max_price } = Route.useSearch();
   const navigate = useNavigate({ from: "/produk/" });
   const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();
   const user = getCurrentUserFromStorage();
@@ -61,6 +63,9 @@ function ProductListingPage() {
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [warehouseModalOpen, setWarehouseModalOpen] = useState(false);
+  const [priceMin, setPriceMin] = useState(min_price || 0);
+  const [priceMax, setPriceMax] = useState(max_price || 0);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(category);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -92,6 +97,8 @@ function ProductListingPage() {
           search: q || undefined,
           sort_by: sort_by as any,
           sort_order: sort_order as any,
+          min_price: min_price,
+          max_price: max_price,
         });
 
         console.log("Product List - API response:", response);
@@ -112,7 +119,12 @@ function ProductListingPage() {
     };
 
     loadProducts();
-  }, [page, category, selectedWarehouse, q, sort]);
+  }, [page, category, selectedWarehouse, q, sort, min_price, max_price]);
+
+  // Sync URL category to local state when URL changes
+  useEffect(() => {
+    setSelectedCategory(category);
+  }, [category]);
 
   // Expand parent category when category is selected
   useEffect(() => {
@@ -137,21 +149,50 @@ function ProductListingPage() {
     }
   }, [category, categories]);
 
-  // Sync category selection changes to URL
+  // Sync category selection changes to local state only
   const handleToggleCategory = (id: string) => {
-    // Calculate new selection based on current URL state
-    const isCurrentlySelected = String(category) === String(id);
+    const isCurrentlySelected = String(selectedCategory) === String(id);
     const newCategory = isCurrentlySelected ? undefined : String(id);
-    
-    // Update URL
+    setSelectedCategory(newCategory);
+  };
+
+  // Apply all filters (category and price) to URL
+  const handleApplyFilters = () => {
     navigate({
       search: (prev: z.infer<typeof searchSchema>) => {
         const newSearch = { ...prev };
-        if (newCategory) {
-          newSearch.category = newCategory;
+        if (selectedCategory) {
+          newSearch.category = selectedCategory;
         } else {
           delete newSearch.category;
         }
+        if (priceMin > 0) {
+          newSearch.min_price = priceMin;
+        } else {
+          delete newSearch.min_price;
+        }
+        if (priceMax > 0) {
+          newSearch.max_price = priceMax;
+        } else {
+          delete newSearch.max_price;
+        }
+        newSearch.page = 1;
+        return newSearch;
+      },
+    });
+  };
+
+  // Reset all filters
+  const handleResetFilters = () => {
+    setSelectedCategory(undefined);
+    setPriceMin(0);
+    setPriceMax(0);
+    navigate({
+      search: (prev: z.infer<typeof searchSchema>) => {
+        const newSearch = { ...prev };
+        delete newSearch.category;
+        delete newSearch.min_price;
+        delete newSearch.max_price;
         newSearch.page = 1;
         return newSearch;
       },
@@ -179,13 +220,14 @@ function ProductListingPage() {
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
           <FilterSidebar
             categories={categories}
-            selected={category ? [String(category)] : []}
+            selected={selectedCategory ? [String(selectedCategory)] : []}
             onToggleCategory={handleToggleCategory}
-            priceMin={0}
-            priceMax={0}
-            onPriceMinChange={() => {}}
-            onPriceMaxChange={() => {}}
-            onApply={() => {}}
+            priceMin={priceMin}
+            priceMax={priceMax}
+            onPriceMinChange={setPriceMin}
+            onPriceMaxChange={setPriceMax}
+            onApply={handleApplyFilters}
+            onReset={handleResetFilters}
             expandedCategories={expandedCategories}
             onToggleExpand={handleToggleExpand}
           />

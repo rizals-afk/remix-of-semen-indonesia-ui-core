@@ -18,6 +18,7 @@ interface FilterSidebarProps {
   onPriceMinChange: (n: number) => void;
   onPriceMaxChange: (n: number) => void;
   onApply: () => void;
+  onReset: () => void;
   expandedCategories?: Set<string>;
   onToggleExpand?: (id: string) => void;
 }
@@ -32,6 +33,7 @@ export function FilterSidebar({
   onPriceMinChange,
   onPriceMaxChange,
   onApply,
+  onReset,
   expandedCategories = new Set<string>(),
   onToggleExpand = () => {},
 }: FilterSidebarProps) {
@@ -69,13 +71,22 @@ export function FilterSidebar({
         <div className="mt-3 space-y-3">
           <PriceField label="Min" value={priceMin} onChange={onPriceMinChange} />
           <PriceField label="Max" value={priceMax} onChange={onPriceMaxChange} />
-          <button
-            type="button"
-            onClick={onApply}
-            className="w-full rounded-md bg-muted py-2.5 text-sm font-semibold text-foreground hover:bg-muted/70"
-          >
-            Terapkan
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onReset}
+              className="flex-1 rounded-md border border-border py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              onClick={onApply}
+              className="flex-1 rounded-md bg-muted py-2.5 text-sm font-semibold text-foreground hover:bg-muted/70"
+            >
+              Terapkan
+            </button>
+          </div>
         </div>
       </div>
     </aside>
@@ -102,7 +113,7 @@ function CategoryItem({
   const isExpanded = expandedCategories.has(category.id);
   const hasChildren = category.children.length > 0;
   const isChild = category.parent_id !== null;
-  const isSelected = selected.includes(category.id);
+  const isSelected = selected.includes(String(category.id));
 
   return (
     <li>
@@ -175,9 +186,11 @@ function PriceField({
     <label className="block rounded-md border border-border px-3 py-2">
       <span className="block text-xs text-muted-foreground">{label}</span>
       <input
+        type="number"
         inputMode="numeric"
-        value={formatRupiah(value)}
-        onChange={(e) => onChange(Number(e.target.value.replace(/\D/g, "")) || 0)}
+        value={value || ""}
+        onChange={(e) => onChange(Number(e.target.value) || 0)}
+        placeholder="0"
         className="w-full bg-transparent text-sm font-medium text-foreground focus:outline-none"
       />
     </label>
