@@ -24,6 +24,7 @@ import type { Product } from "@/lib/api/product";
 import { formatRupiah } from "@/lib/format";
 import { toggleFavourite } from "@/lib/api/favourite";
 import { getToken } from "@/lib/auth";
+import { getUserLocation, type UserLocation } from "@/lib/location";
 
 export const Route = createFileRoute("/produk/$slug")({
   component: ProductDetailPage,
@@ -45,14 +46,27 @@ function ProductDetailPage() {
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [warehouseModalOpen, setWarehouseModalOpen] = useState(false);
-  const [availableWarehouses, setAvailableWarehouses] = useState<Warehouse[]>([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
   const [isTogglingFavourite, setIsTogglingFavourite] = useState(false);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const cart = useCart();
   const navigate = useNavigate();
+  const { setSelectedWarehouse: setHeaderWarehouse } = useWarehouse();
+
+  const handleWarehouseSelect = (warehouse: Warehouse) => {
+    setSelectedWarehouse(warehouse);
+    setSelectedBranchId(warehouse.id);
+    setHeaderWarehouse(warehouse); // Sync with header warehouse
+    setWarehouseModalOpen(false);
+  };
+
+  // Format user location for display
+  const userLocationDisplay = userLocation
+    ? `${userLocation.lat}, ${userLocation.long}`
+    : "";
 
   // Generate WhatsApp URL with product and warehouse info
   const whatsappUrl = product && selectedWarehouse
@@ -90,46 +104,22 @@ function ProductDetailPage() {
     loadProduct();
   }, [slug, headerWarehouse]);
 
-  // Extract available warehouses from product pricelists
+  // Get user location on mount
   useEffect(() => {
-    if (!product) return;
+    const loadUserLocation = async () => {
+      const location = await getUserLocation();
+      setUserLocation(location);
+    };
+    loadUserLocation();
+  }, []);
 
-    const warehousesMap = new Map<string, Warehouse>();
-    
-    product.variants.forEach(variant => {
-      variant.pricelists?.forEach(pricelist => {
-        if (pricelist.branch) {
-          const warehouse: Warehouse = {
-            id: pricelist.branch.id,
-            name: pricelist.branch.name,
-            address: pricelist.branch.address || "Alamat tidak tersedia",
-            lat: pricelist.branch.lat,
-            long: pricelist.branch.long,
-          };
-          warehousesMap.set(warehouse.id, warehouse);
-        }
-      });
-    });
-
-    const warehouses = Array.from(warehousesMap.values());
-    setAvailableWarehouses(warehouses);
-
-    // Set selected warehouse based on selectedBranchId
-    if (selectedBranchId) {
-      const found = warehouses.find(w => w.id === selectedBranchId);
-      if (found) {
-        setSelectedWarehouse(found);
-      } else if (warehouses.length > 0) {
-        // Fallback to first available warehouse
-        setSelectedWarehouse(warehouses[0]);
-        setSelectedBranchId(warehouses[0].id);
-      }
-    } else if (warehouses.length > 0) {
-      // Initialize with first available warehouse
-      setSelectedWarehouse(warehouses[0]);
-      setSelectedBranchId(warehouses[0].id);
+  // Set selected warehouse based on header warehouse or user location
+  useEffect(() => {
+    if (headerWarehouse) {
+      setSelectedWarehouse(headerWarehouse);
+      setSelectedBranchId(headerWarehouse.id);
     }
-  }, [product, selectedBranchId]);
+  }, [headerWarehouse]);
 
   // Fetch related products
   useEffect(() => {
@@ -541,12 +531,8 @@ function ProductDetailPage() {
         open={warehouseModalOpen}
         onOpenChange={setWarehouseModalOpen}
         selectedWarehouse={selectedWarehouse}
-        onSelectWarehouse={(warehouse) => {
-          setSelectedWarehouse(warehouse);
-          setSelectedBranchId(warehouse.id);
-        }}
-        userLocation=""
-        warehouses={availableWarehouses}
+        onSelectWarehouse={handleWarehouseSelect}
+        userLocation={userLocationDisplay}
       />
     </MainLayout>
   );
