@@ -173,11 +173,25 @@ export function getProductPrice(
 
   if (!variant) return null;
 
-  // Future: Find pricelist by branch_id
-  // For now: Use first pricelist as fallback
+  console.log("getProductPrice - variant:", variant);
+  console.log("getProductPrice - variant.pricelists:", variant.pricelists);
+  console.log("getProductPrice - branchId:", branchId);
+
+  // Normalize pricelists to array (API returns either array or object)
+  const pricelists: ProductPricelist[] = Array.isArray(variant.pricelists)
+    ? variant.pricelists
+    : variant.pricelists && typeof variant.pricelists === "object"
+      ? Object.values(variant.pricelists) as ProductPricelist[]
+      : [];
+
+  console.log("getProductPrice - normalized pricelists:", pricelists);
+
+  // Find pricelist by branch_id
   const pricelist = branchId
-    ? variant.pricelists?.find((p) => p.branch_id === branchId) || variant.pricelists?.[0]
-    : variant.pricelists?.[0];
+    ? pricelists.find((p) => String(p.branch_id) === String(branchId))
+    : pricelists[0];
+
+  console.log("getProductPrice - found pricelist:", pricelist);
 
   if (!pricelist) return null;
 
@@ -210,7 +224,7 @@ export function getProductStock(
 
   // 1. Check stocks array grouped by branch
   if (variant.stocks && variant.stocks.length > 0 && branchId) {
-    const branchStock = variant.stocks.find((s) => s.branch_id === branchId);
+    const branchStock = variant.stocks.find((s) => String(s.branch_id) === String(branchId));
     if (branchStock) {
       return branchStock.online_stock;
     }
