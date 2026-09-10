@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatRupiah } from "@/lib/format";
-import { type Trx, cancelTrx, fetchTrxById } from "@/lib/api/trx";
+import { type Trx, cancelTrx } from "@/lib/api/trx";
 import { toast } from "sonner";
 import { CancelOrderDialog } from "@/components/account/CancelOrderDialog";
-import { ReviewDialog } from "@/components/account/ReviewDialog";
 
 const STATUS_LABELS: Record<Trx["status"], string> = {
   pending: "Menunggu Verifikasi",
@@ -40,9 +39,6 @@ function formatDate(dateString: string): string {
 export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) => void }) {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [isReviewOpen, setIsReviewOpen] = useState(false);
-  const [fullTrx, setFullTrx] = useState<Trx | null>(null);
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
 
   const handleCancel = async () => {
     setIsCancelling(true);
@@ -60,42 +56,6 @@ export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) =
   };
 
   const canCancel = trx.status === "pending" || trx.status === "approve";
-
-  // Find lines that need review (trx_review is null)
-  const linesNeedingReview = trx.lines?.filter(line => line.trx_review === null) || [];
-  const hasItemsToReview = linesNeedingReview.length > 0;
-
-  // Fetch full transaction details when opening review dialog
-  useEffect(() => {
-    if (isReviewOpen && !fullTrx) {
-      fetchTrxById(trx.id).then(setFullTrx).catch(console.error);
-    }
-  }, [isReviewOpen, trx.id, fullTrx]);
-
-  const currentReviewLine = fullTrx?.lines?.filter(line => line.trx_review === null)[currentReviewIndex];
-  const dialogProduct = currentReviewLine ? {
-    name: currentReviewLine.product?.name ?? "Produk",
-    variant: currentReviewLine.product_variant?.variant_name,
-    image: currentReviewLine.product_variant?.media?.[0]?.url ?? currentReviewLine.product?.photo,
-    trxLineId: currentReviewLine.trx_line_id ?? currentReviewLine.id,
-    productId: currentReviewLine.product_id,
-    productVariantId: currentReviewLine.product_variant_id,
-  } : null;
-
-  const handleReviewSubmit = async () => {
-    // Refresh transaction data
-    const updatedTrx = await fetchTrxById(trx.id);
-    setFullTrx(updatedTrx);
-    // Move to next item if there are more to review
-    const updatedLinesNeedingReview = updatedTrx.lines?.filter(line => line.trx_review === null) || [];
-    if (currentReviewIndex < updatedLinesNeedingReview.length - 1) {
-      setCurrentReviewIndex(currentReviewIndex + 1);
-    } else {
-      setIsReviewOpen(false);
-      setFullTrx(null);
-      setCurrentReviewIndex(0);
-    }
-  };
 
   return (
     <article className="rounded-2xl border border-border bg-card">
@@ -161,14 +121,6 @@ export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) =
               }
             />
           )}
-          {trx.status === "done" && hasItemsToReview && (
-            <button
-              onClick={() => setIsReviewOpen(true)}
-              className="rounded-md bg-primary px-5 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90"
-            >
-              Nilai
-            </button>
-          )}
           <Link
             to="/akun/transaksi/$id"
             params={{ id: trx.id.toString() }}
@@ -178,21 +130,6 @@ export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) =
           </Link>
         </div>
       </div>
-
-      {dialogProduct && (
-        <ReviewDialog
-          open={isReviewOpen}
-          onOpenChange={(open) => {
-            setIsReviewOpen(open);
-            if (!open) {
-              setFullTrx(null);
-              setCurrentReviewIndex(0);
-            }
-          }}
-          product={dialogProduct}
-          onSubmit={handleReviewSubmit}
-        />
-      )}
     </article>
   );
 }
