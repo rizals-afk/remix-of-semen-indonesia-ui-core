@@ -1,12 +1,13 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Bell, Building2, Heart, MapPin, MessageSquare, ShoppingCart, User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { SearchBar } from "@/components/search/SearchBar";
 import { useCart } from "@/store/cart";
 import { useWarehouse } from "@/store/warehouse";
 import { useCustomerLocation } from "@/store/customer-location";
 import { useUser } from "@/store/user";
+import { useNotification } from "@/store/notification";
 import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
 import { CustomerLocationSelectorModal } from "@/components/account/CustomerLocationSelectorModal";
 
@@ -20,15 +21,23 @@ export function SiteHeader() {
   const cart = useCart();
   const cartBadge = cart.cartCount > 0 ? cart.cartCount : undefined;
   const navigate = useNavigate();
-  
+  const { unreadCount, refreshUnreadCount } = useNotification();
+
   // Warehouse selector state
   const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
   const userLocation = "Jl. Veteran, Kebomas Gresik";
-  
+
   // Customer location state
   const { selectedLocation } = useCustomerLocation();
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    if (user) {
+      refreshUnreadCount();
+    }
+  }, [user, refreshUnreadCount]);
 
   const handleLocationClick = () => {
     if (!user) {
@@ -49,7 +58,7 @@ export function SiteHeader() {
         <div className="flex items-center justify-between gap-3 lg:justify-end">
           {user ? (
             <nav aria-label="Akun" className="flex items-center gap-4">
-              <IconButton label="Notifikasi" to="/akun/notifikasi">
+              <IconButton label="Notifikasi" to="/akun/notifikasi" badge={unreadCount > 0 ? unreadCount : undefined}>
                 <Bell className="h-5 w-5" />
               </IconButton>
               <IconButton label="Produk Favorit" to="/favorite">

@@ -1,9 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   NotificationItem,
   type AccountNotification,
 } from "@/components/account/NotificationItem";
+import { fetchNotifications, markAsRead, type Notification } from "@/lib/api/notification";
+import { useNotification } from "@/store/notification";
+import { Loader2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { id } from "date-fns/locale";
 
 export const Route = createFileRoute("/akun/notifikasi")({
   head: () => ({
@@ -25,54 +30,42 @@ export const Route = createFileRoute("/akun/notifikasi")({
   component: NotificationsPage,
 });
 
-const INITIAL_NOTIFICATIONS: AccountNotification[] = [
-  {
-    id: "recommendation-1",
-    type: "information",
-    title: "Rekomendasi Produk",
-    message: "Yuk, cek & beli rekomendasi produk pilihan untukmu berikut ini!",
-    timestamp: "2 jam yang lalu",
-    unread: true,
-  },
-  {
-    id: "voucher-1",
-    type: "information",
-    title: "Voucher Diskon 50%",
-    message: "Yuk, cek & beli rekomendasi produk pilihan untukmu berikut ini!",
-    timestamp: "2 jam yang lalu",
-    unread: true,
-  },
-  {
-    id: "recommendation-2",
-    type: "information",
-    title: "Rekomendasi Produk",
-    message: "Yuk, cek & beli rekomendasi produk pilihan untukmu berikut ini!",
-    timestamp: "2 jam yang lalu",
-    unread: true,
-  },
-  {
-    id: "transaction-verified",
-    type: "transaction",
-    title: "Pesanan Telah Diverifikasi",
-    message: "Pesananmu telah dikonfirmasi. Silakan lanjutkan ke pembayaran.",
-    timestamp: "1 jam yang lalu",
-    unread: true,
-  },
-  {
-    id: "transaction-shipped",
-    type: "transaction",
-    title: "Pesanan Sedang Dikirim",
-    message: "Pesanan dari Gudang Gresik sedang dalam perjalanan ke alamatmu.",
-    timestamp: "Kemarin",
-    unread: false,
-  },
-];
+function transformNotification(notification: Notification): AccountNotification {
+  const isTransaction = notification.data.type === "trx" || notification.data.type === "order";
+  return {
+    id: notification.id,
+    type: isTransaction ? "transaction" : "information",
+    title: notification.data.title,
+    message: notification.data.message,
+    timestamp: formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: id }),
+    unread: notification.read_at === null,
+  };
+}
 
 type NotificationTab = "Informasi" | "Transaksi";
 
 function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<NotificationTab>("Informasi");
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<AccountNotification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { refreshUnreadCount } = useNotification();
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const response = await fetchNotifications({ page: 1, per_page: 50 });
+        const transformed = response.data.map(transformNotification);
+        setNotifications(transformed);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadNotifications();
+  }, []);
+
   const visibleNotifications = useMemo(
     () =>
       notifications.filter((item) =>
@@ -81,10 +74,16 @@ function NotificationsPage() {
     [activeTab, notifications],
   );
 
-  const markAsRead = (id: string) => {
-    setNotifications((current) =>
-      current.map((item) => (item.id === id ? { ...item, unread: false } : item)),
-    );
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id);
+      setNotifications((current) =>
+        current.map((item) => (item.id === id ? { ...item, unread: false } : item)),
+      );
+      await refreshUnreadCount();
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
   };
 
   return (
@@ -115,13 +114,23 @@ function NotificationsPage() {
         </div>
 
         <div role="tabpanel" aria-label={`Notifikasi ${activeTab}`}>
-          {visibleNotifications.map((notification) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onRead={markAsRead}
-            />
-          ))}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : visibleNotifications.length === 0 ? (
+            <div className="flex items-center justify-center py-20 text-muted-foreground">
+              Tidak ada notifikasi
+            </div>
+          ) : (
+            visibleNotifications.map((notification) => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                onRead={handleMarkAsRead}
+              />
+            ))
+          )}
         </div>
       </div>
     </section>

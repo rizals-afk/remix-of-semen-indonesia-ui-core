@@ -4,6 +4,7 @@ import { CheckoutProvider } from "@/store/checkout";
 import { WarehouseProvider } from "@/store/warehouse";
 import { CustomerLocationProvider } from "@/store/customer-location";
 import { UserProvider } from "@/store/user";
+import { NotificationProvider } from "@/store/notification";
 import { Toaster } from "@/components/ui/sonner";
 import {
   Outlet,
@@ -128,15 +129,17 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <WarehouseProvider>
         <UserProvider>
-          <CustomerLocationProvider>
-            <CartProvider>
-              <CheckoutProvider>
-                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                <Outlet />
-                <Toaster richColors position="top-center" />
-              </CheckoutProvider>
-            </CartProvider>
-          </CustomerLocationProvider>
+          <NotificationProvider>
+            <CustomerLocationProvider>
+              <CartProvider>
+                <CheckoutProvider>
+                  {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                  <Outlet />
+                  <Toaster richColors position="top-center" />
+                </CheckoutProvider>
+              </CartProvider>
+            </CustomerLocationProvider>
+          </NotificationProvider>
         </UserProvider>
       </WarehouseProvider>
     </QueryClientProvider>
