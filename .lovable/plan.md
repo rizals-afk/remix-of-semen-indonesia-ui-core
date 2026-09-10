@@ -1,43 +1,30 @@
 ## Goal
 
-Connect the Sign In page (`/masuk`) to the real backend API at `https://2d4gssn7-8000.asse.devtunnels.ms/api`, store the token in `localStorage`, and show API errors as toast notifications.
-
-## Scope
-
-Only the login endpoint. Register, forgot-password, and other modules stay on their current mock flows and will be wired up later.
+Move the notification experience into the account area at `/akun/notifikasi` and match the uploaded BahanMaterial reference.
 
 ## Changes
 
-1. **API base config** — `src/lib/api.ts` (new)
-   - Export `API_BASE_URL = "https://2d4gssn7-8000.asse.devtunnels.ms/api"` (via `import.meta.env.VITE_API_BASE_URL` with the value above as fallback so it can be overridden later).
-   - Export `apiFetch(path, init)` helper that:
-     - Prefixes base URL, sets `Content-Type: application/json`.
-     - Attaches `Authorization: Bearer <token>` from `localStorage` if present.
-     - On non-2xx, throws an `ApiError` carrying `status` and the server `message` (falls back to generic text).
-   - Export `TOKEN_STORAGE_KEY = "bm_auth_token"` and `USER_STORAGE_KEY = "bm_auth_user"`.
+1. **Account route and navigation**
+   - Create the notification page as `src/routes/akun.notifikasi.tsx` so it inherits the existing account layout and sidebar.
+   - Update the sidebar and header bell to link to `/akun/notifikasi`.
+   - Keep `/notifikasi` working as a redirect to the new account route.
 
-2. **Auth service** — `src/lib/auth.ts` (new)
-   - `login({ email, password })` → `POST /login` with JSON body, returns parsed data.
-   - `saveSession(token, user?)` → writes to `localStorage`.
-   - `logout()` → clears both keys.
-   - `getToken()`, `getUser()` helpers.
+2. **Reusable notification UI**
+   - Add a reusable notification list item for icon, title, message, timestamp, and unread state.
+   - Build two tabs: `Informasi` and `Transaksi`, with tab-specific notification data.
+   - Allow an unread item to become read when selected.
 
-3. **Sign In page** — edit `src/routes/masuk.tsx`
-   - Convert inputs to controlled state (`email`, `password`), add `isLoading` state.
-   - Prefill remains `testadmin@email.com` / `testadmin` for convenience.
-   - On submit: call `login(...)`, on success save token + user then `navigate({ to: "/" })` and show success toast.
-   - On failure: `toast.error(err.message)` using `sonner` (already used in project via `Toaster` in root).
-   - Disable the submit button while loading and show "Signing in…" label.
+3. **Reference-matched presentation**
+   - Add the `Notifikasi` title above a bordered white panel.
+   - Match the compact tab header, pale blue circular icons, concise rows, right-aligned unread dots, and generous empty panel height shown in the attachment.
+   - Keep the page responsive: account content stacks naturally on smaller screens.
 
-4. **Toaster** — verify `<Toaster />` from `sonner` is mounted in `src/routes/__root.tsx`; if missing, add it. (Sonner is already a dependency per `src/components/ui/sonner.tsx`.)
+4. **Metadata and verification**
+   - Add page-specific title, description, Open Graph text, and Twitter card metadata.
+   - Verify the new route, old redirect, tab interaction, unread state, desktop layout, and mobile layout in the running preview.
 
 ## Out of scope
 
-- No changes to Sign Up, Forgot Password, Reset Password, or any other module.
-- No route guard / protected routes yet — just token storage.
-- No refresh-token handling.
-- No CORS proxy; assumes the dev-tunnel backend allows the preview origin. If CORS blocks, we'll address in a follow-up.
-
-## Notes for the user
-
-- The dev-tunnel URL (`*.devtunnels.ms`) must have CORS enabled for the Lovable preview origin, otherwise the browser will block the request. If you see a CORS error in the console after this ships, we'll need to whitelist the origin on the backend.
+- No backend/API changes.
+- No changes to push notification registration or Firebase behavior.
+- No redesign of unrelated account pages.
