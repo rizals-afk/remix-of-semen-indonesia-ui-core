@@ -464,13 +464,29 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   const whatsapp = "https://wa.me/6281133331800";
   const canCancel = trx.status === "pending" || trx.status === "approve";
 
+  // Find lines that need review (trx_review is null)
+  const linesNeedingReview = trx.lines?.filter(line => line.trx_review === null) || [];
+  const hasItemsToReview = linesNeedingReview.length > 0;
+
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const currentReviewLine = linesNeedingReview[currentReviewIndex];
+
   const firstLine = trx.lines?.[0];
-  const dialogProduct = {
-    name: firstLine?.product?.name ?? "Produk",
-    variant: firstLine?.product_variant?.variant_name,
-    image: firstLine?.product_variant?.media?.[0]?.url || firstLine?.product?.photo,
-    maxQty: typeof firstLine?.qty === "string" ? parseFloat(firstLine.qty) : firstLine?.qty,
-  };
+
+  // Only set dialogProduct if there's a line to review
+  // Reset index when linesNeedingReview changes (after refresh)
+  useEffect(() => {
+    setCurrentReviewIndex(0);
+  }, [linesNeedingReview.length]);
+
+  const dialogProduct = currentReviewLine ? {
+    name: currentReviewLine.product?.name ?? "Produk",
+    variant: currentReviewLine.product_variant?.variant_name,
+    image: currentReviewLine.product_variant?.media?.[0]?.url ?? currentReviewLine.product?.photo,
+    trxLineId: currentReviewLine.trx_line_id ?? currentReviewLine.id,
+    productId: currentReviewLine.product_id,
+    productVariantId: currentReviewLine.product_variant_id,
+  } : null;
 
   const cancelDialog = (
     <CancelOrderDialog
@@ -578,12 +594,24 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       content = (
         <>
           {outline("Beli Lagi")}
-          {primary("Nilai", undefined, () => setIsReviewOpen(true))}
-          <ReviewDialog
-            open={isReviewOpen}
-            onOpenChange={setIsReviewOpen}
-            product={dialogProduct}
-          />
+          {hasItemsToReview && primary("Nilai", undefined, () => setIsReviewOpen(true))}
+          {dialogProduct && (
+            <ReviewDialog
+              open={isReviewOpen}
+              onOpenChange={setIsReviewOpen}
+              product={dialogProduct}
+              onSubmit={async () => {
+                await onRefresh();
+                // Move to next item if there are more to review
+                if (currentReviewIndex < linesNeedingReview.length - 1) {
+                  setCurrentReviewIndex(currentReviewIndex + 1);
+                  setIsReviewOpen(true);
+                } else {
+                  setIsReviewOpen(false);
+                }
+              }}
+            />
+          )}
         </>
       );
       break;

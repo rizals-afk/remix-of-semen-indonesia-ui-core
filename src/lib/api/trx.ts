@@ -1,6 +1,8 @@
 import { apiFetch } from "../api";
 
 export interface TrxLine {
+  id?: number;
+  trx_line_id?: number;
   product_variant_id: number;
   product_id: number;
   price: number;
@@ -8,6 +10,7 @@ export interface TrxLine {
   subtotal: number;
   division?: string;
   delivery_date?: string;
+  trx_review?: unknown | null;
   product?: {
     id: number;
     name: string;
@@ -256,6 +259,22 @@ export interface CreateReturnRequest {
 
 export async function createReturn(trxId: number, data: CreateReturnRequest): Promise<unknown> {
   return apiFetch<unknown>(`/trx/${trxId}/retur`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export interface CreateReviewRequest {
+  trx_line_id: number;
+  rating: number;
+  product_id: number;
+  product_variant_id: number;
+  review: string;
+  photos: string;
+}
+
+export async function createReview(data: CreateReviewRequest): Promise<unknown> {
+  return apiFetch<unknown>("/trx-reviews", {
     method: "POST",
     body: JSON.stringify(data),
   });

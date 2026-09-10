@@ -1,16 +1,22 @@
 import { useState } from "react";
-import { Star, Camera, Video, CircleDollarSign, Check } from "lucide-react";
+import { Star, Camera, Video, CircleDollarSign, Check, X, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { apiFetch } from "@/lib/api";
+import { createReview } from "@/lib/api/trx";
+import { toast } from "sonner";
 
 export interface ReviewProduct {
   name: string;
   variant?: string;
   image?: string;
+  trxLineId?: number;
+  productId?: number;
+  productVariantId?: number;
 }
 
 interface ReviewDialogProps {
@@ -18,7 +24,7 @@ interface ReviewDialogProps {
   onOpenChange: (open: boolean) => void;
   product: ReviewProduct;
   coins?: number;
-  onSubmit?: (payload: { rating: number; comment: string }) => void | Promise<void>;
+  onSubmit?: () => void | Promise<void>;
 }
 
 /** "Penilaian Produk" modal with star rating, media pickers and review text. */
@@ -31,6 +37,8 @@ export function ReviewDialog({
 }: ReviewDialogProps) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,15 +49,88 @@ export function ReviewDialog({
         setSubmitted(false);
         setComment("");
         setRating(5);
+        setUploadedFiles([]);
       }, 200);
     }
   };
 
+  const handleFileUpload = async (fileType: 'image' | 'video') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = fileType === 'image' ? 'image/*' : 'video/*';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        setIsUploading(true);
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const headers = new Headers();
+          headers.set('Accept', 'application/json');
+          headers.set('ngrok-skip-browser-warning', 'true');
+          const token = localStorage.getItem('bm_auth_token');
+          if (token) {
+            headers.set('Authorization', `Bearer ${token}`);
+          }
+
+          const url = `${import.meta.env.VITE_API_BASE_URL || 'https://freewill-aftermost-elf.ngrok-free.dev/api'}/upload`;
+          const res = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: formData,
+          });
+
+          if (!res.ok) {
+            throw new Error('Upload failed');
+          }
+
+          const data = await res.json();
+          setUploadedFiles(prev => [...prev, data.url]);
+          toast.success('File berhasil diunggah');
+        } catch (error) {
+          console.error('Upload error:', error);
+          toast.error('Gagal mengunggah file');
+        } finally {
+          setIsUploading(false);
+        }
+      }
+    };
+    input.click();
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
+    if (!product.trxLineId || !product.productId || !product.productVariantId) {
+      toast.error('Informasi produk tidak lengkap');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await onSubmit?.({ rating, comment });
+      const payload: any = {
+        trx_line_id: product.trxLineId,
+        rating,
+        product_id: product.productId,
+        product_variant_id: product.productVariantId,
+        review: comment,
+      };
+
+      // Only include photos if there are uploaded files
+      if (uploadedFiles.length > 0) {
+        payload.photos = uploadedFiles;
+      }
+
+      await createReview(payload);
       setSubmitted(true);
+      toast.success('Penilaian berhasil dikirim');
+      await onSubmit?.();
+    } catch (error) {
+      console.error('Review submission error:', error);
+      toast.error('Gagal mengirim penilaian');
     } finally {
       setIsSubmitting(false);
     }
@@ -79,13 +160,6 @@ export function ReviewDialog({
             </DialogHeader>
 
             <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
-              <div className="flex items-center gap-3 rounded-lg bg-primary-soft/60 px-4 py-3">
-                <CircleDollarSign className="h-7 w-7 text-rating" />
-                <p className="text-sm font-bold text-foreground">
-                  Beri Penilaian &amp; Dapatkan {coins} Koin!
-                </p>
-              </div>
-
               <div className="mt-5 flex items-center gap-4">
                 <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
                   {product.image ? (
@@ -118,17 +192,36 @@ export function ReviewDialog({
                 </span>
               </div>
 
-              <p className="mt-6 text-sm font-bold text-foreground">Tambahkan foto dan video</p>
+              <p className="mt-6 text-sm font-bold text-foreground">Tambahkan foto</p>
               <div className="mt-2 flex gap-4">
-                <button type="button" className="grid h-20 w-20 place-items-center gap-1 rounded-md bg-muted text-muted-foreground hover:bg-muted/80">
-                  <Camera className="h-6 w-6" />
+                <button
+                  type="button"
+                  onClick={() => handleFileUpload('image')}
+                  disabled={isUploading}
+                  className="grid h-20 w-20 place-items-center gap-1 rounded-md bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50"
+                >
+                  {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Camera className="h-6 w-6" />}
                   <span className="text-xs font-semibold text-accent">Foto</span>
                 </button>
-                <button type="button" className="grid h-20 w-20 place-items-center gap-1 rounded-md bg-muted text-muted-foreground hover:bg-muted/80">
-                  <Video className="h-6 w-6" />
-                  <span className="text-xs font-semibold text-accent">Video</span>
-                </button>
               </div>
+
+              {uploadedFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {uploadedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 rounded-md border border-border p-2">
+                      <img src={file} alt="" className="h-12 w-12 object-cover rounded" />
+                      <span className="flex-1 truncate text-xs text-muted-foreground">{file}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(index)}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <p className="mt-6 text-sm font-bold text-foreground">Tuliskan Ulasan</p>
               <textarea
