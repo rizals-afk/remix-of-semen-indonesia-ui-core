@@ -28,8 +28,7 @@ interface AddressForm {
   street: string;
   city: string;
   postalCode: string;
-  lat: number;
-  lng: number;
+  coordinates: string;
   isPrimary: boolean;
 }
 
@@ -40,8 +39,7 @@ const EMPTY_FORM: AddressForm = {
   street: "",
   city: "",
   postalCode: "",
-  lat: -7.2504,
-  lng: 112.7688,
+  coordinates: "-7.2504, 112.7688",
   isPrimary: false,
 };
 
@@ -69,8 +67,7 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
         street: addressToEdit.address,
         city: addressToEdit.city || "",
         postalCode: addressToEdit.postal_code || "",
-        lat: addressToEdit.lat,
-        lng: addressToEdit.long,
+        coordinates: `${addressToEdit.lat}, ${addressToEdit.long}`,
         isPrimary: addressToEdit.is_default,
       });
     } else if (open) {
@@ -89,6 +86,13 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
       return;
     }
 
+    // Parse coordinates
+    const [lat, lng] = form.coordinates.split(',').map(c => parseFloat(c.trim()));
+    if (isNaN(lat) || isNaN(lng)) {
+      toast.error("Koordinat tidak valid");
+      return;
+    }
+
     setIsSaving(true);
     try {
       let savedLocation: CustomerLocation;
@@ -101,8 +105,8 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
           address: form.street,
           city: form.city || undefined,
           postal_code: form.postalCode || undefined,
-          lat: form.lat,
-          long: form.lng,
+          lat,
+          long: lng,
           is_default: form.isPrimary,
         });
         toast.success("Alamat berhasil diperbarui");
@@ -114,8 +118,8 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
           address: form.street,
           city: form.city || undefined,
           postal_code: form.postalCode || undefined,
-          lat: form.lat,
-          long: form.lng,
+          lat,
+          long: lng,
           is_default: form.isPrimary,
         });
         toast.success("Alamat berhasil ditambahkan");
@@ -194,6 +198,16 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
           </div>
 
           <div>
+            <label className="mb-1 block text-sm font-medium">Koordinat (Latitude, Longitude)</label>
+            <Input
+              value={form.coordinates}
+              onChange={(e) => setForm({ ...form, coordinates: e.target.value })}
+              placeholder="-7.2504, 112.7688"
+              className="h-11"
+            />
+          </div>
+
+          <div>
             <label className="mb-2 block text-sm font-medium">Titik Lokasi</label>
             <div className="overflow-hidden rounded-md border border-border">
               {mapReady ? (
@@ -206,12 +220,18 @@ export function AddressModal({ open, onOpenChange, addressToEdit, onSuccess }: A
                 >
                   <SearchableAddressMap
                     height="240px"
-                    lat={form.lat}
-                    lng={form.lng}
-                    onChange={(lat: number, lng: number, address?: string) => {
-                      setForm((f) => ({ ...f, lat, lng }));
+                    lat={parseFloat(form.coordinates.split(',')[0]) || -7.2504}
+                    lng={parseFloat(form.coordinates.split(',')[1]) || 112.7688}
+                    onChange={(lat: number, lng: number, address?: string, city?: string, postalCode?: string) => {
+                      setForm((f) => ({ ...f, coordinates: `${lat}, ${lng}` }));
                       if (address) {
                         setForm((f) => ({ ...f, street: address }));
+                      }
+                      if (city) {
+                        setForm((f) => ({ ...f, city }));
+                      }
+                      if (postalCode) {
+                        setForm((f) => ({ ...f, postalCode }));
                       }
                     }}
                   />

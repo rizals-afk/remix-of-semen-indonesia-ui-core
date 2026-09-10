@@ -19,7 +19,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 interface SearchableAddressMapProps {
   lat: number;
   lng: number;
-  onChange: (lat: number, lng: number, address?: string) => void;
+  onChange: (lat: number, lng: number, address?: string, city?: string, postalCode?: string) => void;
   height?: string;
 }
 
@@ -28,6 +28,16 @@ interface SearchResult {
   display_name: string;
   lat: string;
   lon: string;
+  address?: {
+    city?: string;
+    postcode?: string;
+    town?: string;
+    village?: string;
+    suburb?: string;
+    county?: string;
+    state?: string;
+    country?: string;
+  };
 }
 
 function ClickHandler({ onChange }: { onChange: (lat: number, lng: number) => void }) {
@@ -83,7 +93,7 @@ export default function SearchableAddressMap({ lat, lng, onChange, height = "260
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1`
         );
-        const data: SearchResult[] = await response.json();
+        const data = await response.json();
         setSearchResults(data);
         setShowResults(true);
       } catch (error) {
@@ -120,7 +130,11 @@ export default function SearchableAddressMap({ lat, lng, onChange, height = "260
         );
         const data = await response.json();
         if (data.display_name) {
-          onChange(lat, lng, data.display_name);
+          // Extract city and postal code from address details
+          const address = data.address || {};
+          const city = address.city || address.town || address.village || address.suburb || address.county || "";
+          const postalCode = address.postcode || "";
+          onChange(lat, lng, data.display_name, city, postalCode);
         }
       } catch (error) {
         console.error("Reverse geocoding error:", error);
@@ -133,7 +147,7 @@ export default function SearchableAddressMap({ lat, lng, onChange, height = "260
     performReverseGeocoding();
     setPrevLat(lat);
     setPrevLng(lng);
-  }, [lat, lng, prevLat, prevLng, skipReverseGeocoding]);
+  }, [lat, lng, prevLat, prevLng, skipReverseGeocoding, onChange]);
 
   const handleSearchResultClick = (result: SearchResult) => {
     const newLat = parseFloat(result.lat);
@@ -143,8 +157,13 @@ export default function SearchableAddressMap({ lat, lng, onChange, height = "260
     setShowResults(false);
     setSkipReverseGeocoding(true); // Skip reverse geocoding for this change
     
-    // Update coordinates and address immediately
-    onChange(newLat, newLng, result.display_name);
+    // Extract city and postal code from address details
+    const address = result.address || {};
+    const city = address.city || address.town || address.village || address.suburb || address.county || "";
+    const postalCode = address.postcode || "";
+    
+    // Update coordinates, address, city, and postal code immediately
+    onChange(newLat, newLng, result.display_name, city, postalCode);
   };
 
   const handleClearSearch = () => {
