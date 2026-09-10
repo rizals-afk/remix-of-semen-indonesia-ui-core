@@ -52,6 +52,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as BlogIdRouteImport } from './routes/blog.$id'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google-callback'
 import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
+import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
 import { Route as AkunCekEmailRouteImport } from './routes/akun.cek-email'
 import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
 import { Route as AkunAktivasiSuksesRouteImport } from './routes/akun.aktivasi-sukses'
@@ -275,6 +276,11 @@ const AkunUbahPasswordRoute = AkunUbahPasswordRouteImport.update({
   path: '/ubah-password',
   getParentRoute: () => AkunRoute,
 } as any)
+const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
+  id: '/notifikasi',
+  path: '/notifikasi',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunCekEmailRoute = AkunCekEmailRouteImport.update({
   id: '/cek-email',
   path: '/cek-email',
@@ -331,6 +337,7 @@ export interface FileRoutesByFullPath {
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/cek-email': typeof AkunCekEmailRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$id': typeof BlogIdRoute
@@ -382,6 +389,7 @@ export interface FileRoutesByTo {
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/cek-email': typeof AkunCekEmailRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$id': typeof BlogIdRoute
@@ -435,6 +443,7 @@ export interface FileRoutesById {
   '/akun/aktivasi-sukses': typeof AkunAktivasiSuksesRoute
   '/akun/alamat': typeof AkunAlamatRoute
   '/akun/cek-email': typeof AkunCekEmailRoute
+  '/akun/notifikasi': typeof AkunNotifikasiRoute
   '/akun/ubah-password': typeof AkunUbahPasswordRoute
   '/auth/google-callback': typeof AuthGoogleCallbackRoute
   '/blog/$id': typeof BlogIdRoute
@@ -489,6 +498,7 @@ export interface FileRouteTypes {
     | '/akun/aktivasi-sukses'
     | '/akun/alamat'
     | '/akun/cek-email'
+    | '/akun/notifikasi'
     | '/akun/ubah-password'
     | '/auth/google-callback'
     | '/blog/$id'
@@ -540,6 +550,7 @@ export interface FileRouteTypes {
     | '/akun/aktivasi-sukses'
     | '/akun/alamat'
     | '/akun/cek-email'
+    | '/akun/notifikasi'
     | '/akun/ubah-password'
     | '/auth/google-callback'
     | '/blog/$id'
@@ -592,6 +603,7 @@ export interface FileRouteTypes {
     | '/akun/aktivasi-sukses'
     | '/akun/alamat'
     | '/akun/cek-email'
+    | '/akun/notifikasi'
     | '/akun/ubah-password'
     | '/auth/google-callback'
     | '/blog/$id'
@@ -973,6 +985,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AkunUbahPasswordRouteImport
       parentRoute: typeof AkunRoute
     }
+    '/akun/notifikasi': {
+      id: '/akun/notifikasi'
+      path: '/notifikasi'
+      fullPath: '/akun/notifikasi'
+      preLoaderRoute: typeof AkunNotifikasiRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/cek-email': {
       id: '/akun/cek-email'
       path: '/cek-email'
@@ -1030,6 +1049,7 @@ interface AkunRouteChildren {
   AkunAktivasiSuksesRoute: typeof AkunAktivasiSuksesRoute
   AkunAlamatRoute: typeof AkunAlamatRoute
   AkunCekEmailRoute: typeof AkunCekEmailRoute
+  AkunNotifikasiRoute: typeof AkunNotifikasiRoute
   AkunUbahPasswordRoute: typeof AkunUbahPasswordRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AkunTransaksiIdRoute: typeof AkunTransaksiIdRoute
@@ -1041,6 +1061,7 @@ const AkunRouteChildren: AkunRouteChildren = {
   AkunAktivasiSuksesRoute: AkunAktivasiSuksesRoute,
   AkunAlamatRoute: AkunAlamatRoute,
   AkunCekEmailRoute: AkunCekEmailRoute,
+  AkunNotifikasiRoute: AkunNotifikasiRoute,
   AkunUbahPasswordRoute: AkunUbahPasswordRoute,
   AkunIndexRoute: AkunIndexRoute,
   AkunTransaksiIdRoute: AkunTransaksiIdRoute,

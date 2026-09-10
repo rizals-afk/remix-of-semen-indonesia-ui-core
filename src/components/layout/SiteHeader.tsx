@@ -49,7 +49,7 @@ export function SiteHeader() {
         <div className="flex items-center justify-between gap-3 lg:justify-end">
           {user ? (
             <nav aria-label="Akun" className="flex items-center gap-4">
-              <IconButton label="Notifikasi" to="/notifikasi">
+              <IconButton label="Notifikasi" to="/akun/notifikasi">
                 <Bell className="h-5 w-5" />
               </IconButton>
               <IconButton label="Produk Favorit" to="/favorite">
