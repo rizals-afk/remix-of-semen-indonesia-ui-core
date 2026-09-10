@@ -7,6 +7,16 @@ export interface ProductMedia {
   alt?: string;
 }
 
+export interface Stock {
+  id: number;
+  product_variant_id: number;
+  branch_id: number;
+  online_stock: number;
+  offline_stock: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CartItem {
   id: number;
   user_id: number;
@@ -45,6 +55,7 @@ export interface CartItem {
     volume: string;
     photo: string | null;
     media: ProductMedia[];
+    stocks?: Stock[];
   };
   branch: {
     id: number;

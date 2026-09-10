@@ -159,6 +159,8 @@ export interface CartProduct extends Product {
   branch_latitude?: number;
   /** Branch longitude from Cart API */
   branch_longitude?: number;
+  /** Available stock for this branch */
+  stock?: number;
 }
 
 export const DEMO_CART: CartProduct[] = [

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { DEMO_CART, type CartProduct } from "@/data/shopping";
 import { fetchCart, addToCart, fetchCartCount, updateCartQuantity, deleteCartItem, type CartItem } from "@/lib/api/cart";
 import { getToken } from "@/lib/auth";
@@ -51,26 +51,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const { isAuthenticated, user } = useUser();
-  const [hasFetchedAfterAuth, setHasFetchedAfterAuth] = useState(false);
 
   // Transform API cart item to CartProduct format
-  const transformApiItemToCartProduct = (item: CartItem): CartProduct => ({
-    id: String(item.id),
-    name: item.product.name,
-    price: item.price,
-    qty: item.qty,
-    warehouse: item.branch.name,
-    image: item.product_variant.media?.[0]?.url || item.product.photo || "",
-    weightKg: parseFloat(item.product_variant.weight) || 0,
-    division: item.product_variant.division,
-    unit: "Sak", // Default unit
-    variant: item.product_variant.variant_name,
-    variant_id: item.product_variant_id,
-    branch_id: item.branch_id,
-    product_id: item.product_id,
-    branch_latitude: parseFloat(item.branch.lat) || undefined,
-    branch_longitude: parseFloat(item.branch.long) || undefined,
-  });
+  const transformApiItemToCartProduct = (item: CartItem): CartProduct => {
+    // Find stock for this branch
+    const stock = item.product_variant.stocks?.find(s => s.branch_id === item.branch_id);
+    return {
+      id: String(item.id),
+      name: item.product.name,
+      price: item.price,
+      qty: item.qty,
+      warehouse: item.branch.name,
+      image: item.product_variant.media?.[0]?.url || item.product.photo || "",
+      weightKg: parseFloat(item.product_variant.weight) || 0,
+      division: item.product_variant.division,
+      unit: "Sak", // Default unit
+      variant: item.product_variant.variant_name,
+      variant_id: item.product_variant_id,
+      branch_id: item.branch_id,
+      product_id: item.product_id,
+      branch_latitude: parseFloat(item.branch.lat) || undefined,
+      branch_longitude: parseFloat(item.branch.long) || undefined,
+      stock: stock?.online_stock || 0,
+    };
+  };
 
   // Load cart from localStorage
   useEffect(() => {
@@ -114,30 +118,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Load cart count from API when authentication state changes
   useEffect(() => {
     const loadCartCount = async () => {
-      // Only clear cart if user is explicitly logged out (user is null)
-      if (!isAuthenticated && !user) {
+      const token = getToken();
+
+      // Only clear cart if no token
+      if (!token) {
         setCartCount(0);
         setItems([]);
         setSelectedIds(new Set());
-        setHasFetchedAfterAuth(false);
         return;
       }
 
-      // If not authenticated, don't fetch
-      if (!isAuthenticated) return;
-
-      // If we already fetched after auth, don't fetch again unless auth state changed
-      if (hasFetchedAfterAuth) return;
-
       // Retry mechanism for token availability
-      const retryWithDelay = async (retries = 3, delay = 100): Promise<void> => {
+      const retryWithDelay = async (retries = 5, delay = 200): Promise<void> => {
         for (let i = 0; i < retries; i++) {
-          const token = getToken();
-          if (token) {
+          const currentToken = getToken();
+          if (currentToken) {
             try {
               const response = await fetchCartCount();
               setCartCount(response.count);
-              setHasFetchedAfterAuth(true);
               return;
             } catch (error) {
               console.error("Failed to load cart count from API:", error);
@@ -154,7 +152,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     loadCartCount();
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

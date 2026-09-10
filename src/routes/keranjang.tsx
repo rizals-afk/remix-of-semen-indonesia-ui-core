@@ -104,7 +104,7 @@ function CartPage() {
 
             <div className="hidden rounded-2xl border border-border bg-card px-5 py-4 md:block">
 
-              <div className="grid grid-cols-[auto_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-4 text-sm font-semibold text-foreground">
+              <div className="grid grid-cols-[auto_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-4 text-sm font-semibold text-foreground">
 
                 <span />
 
@@ -113,6 +113,8 @@ function CartPage() {
                 <span>Harga Satuan</span>
 
                 <span>Kuantitas</span>
+
+                <span>Stok Tersedia</span>
 
                 <span>Total Harga</span>
 
