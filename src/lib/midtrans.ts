@@ -17,8 +17,8 @@ export function loadMidtransSnap(): Promise<void> {
     }
 
     const script = document.createElement('script');
-    // Use proxied URL to avoid CORS issues in development
-    script.src = '/snap.js';
+    // Use official Midtrans CDN URL
+    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
     script.setAttribute('data-client-key', 'SB-Mid-client-'); // Client key will be set by the backend
     script.onload = () => {
       console.log('Midtrans Snap SDK loaded successfully');
