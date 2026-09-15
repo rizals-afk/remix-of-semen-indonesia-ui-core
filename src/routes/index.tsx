@@ -103,8 +103,8 @@ function HomePage() {
         );
         setFeaturedProducts(transformedProducts);
 
-        setBlogs(blogsResponse.data);
-        setBanners(bannersResponse.data);
+        setBlogs(blogsResponse.data || []);
+        setBanners(bannersResponse.data || []);
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
