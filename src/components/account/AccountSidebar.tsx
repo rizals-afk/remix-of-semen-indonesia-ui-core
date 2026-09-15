@@ -46,17 +46,13 @@ const GROUPS: MenuGroup[] = [
     items: [
       { to: "/akun", label: "Affiliate", icon: Users },
       { to: "/akun/notifikasi", label: "Notifikasi", icon: Bell },
-      { to: "/akun", label: "Terakhir Dilihat", icon: Clock },
       { to: "/favorite", label: "Produk Favorit", icon: Heart },
-      { to: "/wishlist", label: "Wishlist", icon: Bookmark },
-      { to: "/akun", label: "BM-VIP", icon: Gem },
     ],
   },
   {
     title: "Dompet Saya",
     items: [
       { to: "/checkout/voucher", label: "Voucher", icon: Ticket },
-      { to: "/akun", label: "Koin", icon: Coins },
     ],
   },
 ];
