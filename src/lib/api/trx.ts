@@ -8,6 +8,7 @@ export interface TrxLine {
   price: number;
   qty: number;
   subtotal: number;
+  tonase?: number;
   division?: string;
   delivery_date?: string;
   trx_review?: unknown | null;

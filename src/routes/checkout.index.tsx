@@ -160,6 +160,7 @@ function CheckoutPage() {
           price: item.price,
           qty: item.qty,
           subtotal: item.price * item.qty,
+          tonase: item.weightKg * item.qty,
           division: checkout.buyNowItem?.division || item.division,
         }));
 
