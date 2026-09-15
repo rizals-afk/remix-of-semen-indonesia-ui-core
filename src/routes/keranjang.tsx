@@ -197,6 +197,10 @@ function CartPage() {
                     toast.error("Silahkan Login Terlebih Dahulu");
                     return;
                   }
+                  // Store selected cart IDs for cleanup after successful checkout
+                  const selectedIds = Array.from(cart.selectedIds);
+                  checkout.setSelectedCartIds(selectedIds);
+                  console.log("[Cart] Selected cart IDs stored for checkout:", selectedIds);
                   navigate({ to: "/checkout" });
                 }}
 

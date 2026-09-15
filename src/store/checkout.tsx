@@ -73,6 +73,10 @@ interface CheckoutState {
   buyNowItem: BuyNowItem | null;
   setBuyNowItem: (item: BuyNowItem | null) => void;
   clearBuyNowItem: () => void;
+  /** Selected cart item IDs from cart (for cleanup after successful checkout) */
+  selectedCartIds: string[];
+  setSelectedCartIds: (ids: string[]) => void;
+  clearSelectedCartIds: () => void;
 }
 
 const CheckoutContext = createContext<CheckoutState | null>(null);
@@ -100,6 +104,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [transactionCodes, setTransactionCodesState] = useState<string[]>([]);
   const [orderTotals, setOrderTotalsState] = useState<{ subtotal: number; shipping: number; discount: number; total: number } | null>(null);
   const [buyNowItem, setBuyNowItemState] = useState<BuyNowItem | null>(null);
+  const [selectedCartIds, setSelectedCartIdsState] = useState<string[]>([]);
 
   // Load buyNowItem from localStorage on mount
   useEffect(() => {
@@ -165,6 +170,14 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     setBuyNowItemState(item);
   }, []);
 
+  const setSelectedCartIds = useCallback((ids: string[]) => {
+    setSelectedCartIdsState(ids);
+  }, []);
+
+  const clearSelectedCartIds = useCallback(() => {
+    setSelectedCartIdsState([]);
+  }, []);
+
   const value = useMemo<CheckoutState>(() => ({
     mode, setMode, address, setAddress, warehouse, setWarehouse,
     voucher, setVoucher, payment, setPayment,
@@ -177,7 +190,8 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     orderTotals, setOrderTotals,
     submitOrder, markVerified,
     buyNowItem, setBuyNowItem, clearBuyNowItem,
-  }), [mode, address, warehouse, voucher, payment, notes, setNote, cod, groupShippingFees, setGroupShippingFee, deliveryRuleIds, setDeliveryRuleId, stage, orderId, transactionCodes, setTransactionCodes, orderTotals, setOrderTotals, submitOrder, markVerified, buyNowItem, clearBuyNowItem]);
+    selectedCartIds, setSelectedCartIds, clearSelectedCartIds,
+  }), [mode, address, warehouse, voucher, payment, notes, setNote, cod, groupShippingFees, setGroupShippingFee, deliveryRuleIds, setDeliveryRuleId, stage, orderId, transactionCodes, setTransactionCodes, orderTotals, setOrderTotals, submitOrder, markVerified, buyNowItem, clearBuyNowItem, selectedCartIds, setSelectedCartIds, clearSelectedCartIds]);
 
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;
 }

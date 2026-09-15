@@ -13,6 +13,7 @@ import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
 import type { CartWarehouseGroup } from "@/store/cart";
 import { createBulkTrx, type BulkTrxRequest } from "@/lib/api/trx";
 import { checkDelivery, type CheckDeliveryRequest } from "@/lib/api/delivery";
+import { deleteCartItem } from "@/lib/api/cart";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -232,12 +233,55 @@ function CheckoutPage() {
         total: originalTotal,
       });
 
-      toast.success("Pesanan berhasil dibuat!");
-      
+      console.log("[Checkout] Order created successfully");
+
       // Clear buyNowItem after successful order
       if (checkout.buyNowItem) {
         checkout.clearBuyNowItem();
+        console.log("[Checkout] Origin: buyNow - no cart cleanup needed");
+      } else {
+        // Cart checkout: delete selected cart items after successful order
+        console.log("[Checkout] Origin: cart");
+        console.log("[Checkout] Selected cart IDs:", checkout.selectedCartIds);
+
+        if (checkout.selectedCartIds.length > 0) {
+          try {
+            // Delete all selected cart items
+            const deletePromises = checkout.selectedCartIds.map(async (cartIdStr) => {
+              const cartId = parseInt(cartIdStr, 10);
+              console.log(`[Checkout] Deleting cart item: ${cartId}`);
+              try {
+                await deleteCartItem(cartId);
+                console.log(`[Checkout] Cart item deleted successfully: ${cartId}`);
+              } catch (deleteError) {
+                console.error(`[Checkout] Failed to delete cart item ${cartId}:`, deleteError);
+                throw deleteError;
+              }
+            });
+
+            await Promise.all(deletePromises);
+            console.log("[Checkout] Cart cleanup completed");
+
+            // Refresh cart to update state
+            await cart.refreshCart();
+            console.log("[Checkout] Cart refreshed after cleanup");
+          } catch (cartDeleteError) {
+            console.error("[Checkout] Cart deletion failed:", cartDeleteError);
+            // Order was already created successfully, so don't show error to user
+            // Just refresh cart to reflect actual server state
+            try {
+              await cart.refreshCart();
+            } catch (refreshError) {
+              console.error("[Checkout] Failed to refresh cart after deletion error:", refreshError);
+            }
+          }
+        }
+
+        // Clear selected cart IDs after cleanup
+        checkout.clearSelectedCartIds();
       }
+
+      toast.success("Pesanan berhasil dibuat!");
 
       // Navigate to verification or success page
       const warehouses = groups.map((g) => g.warehouse);
