@@ -83,11 +83,7 @@ function SignInPage() {
             }
           />
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="inline-flex items-center gap-2 text-foreground">
-              <input type="checkbox" className="h-4 w-4 rounded border-border accent-primary" />
-              Remember me?
-            </label>
+          <div className="flex items-center justify-end text-sm">
             <Link to="/lupa-password" className="font-bold text-destructive hover:underline">
               Forgot Password
             </Link>
