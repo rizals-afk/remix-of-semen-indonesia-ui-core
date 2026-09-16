@@ -291,8 +291,30 @@ function ProductDetailPage() {
 
     // Fallback: Copy to clipboard
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success("Link produk berhasil disalin ke clipboard.");
+      // Check if clipboard API is available
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Link produk berhasil disalin ke clipboard.");
+      } else {
+        // Fallback for older browsers or non-HTTPS contexts
+        const textArea = document.createElement("textarea");
+        textArea.value = window.location.href;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          toast.success("Link produk berhasil disalin ke clipboard.");
+        } catch (err) {
+          console.error("Failed to copy using execCommand:", err);
+          toast.error("Gagal membagikan produk. Silakan coba lagi.");
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
       toast.error("Gagal membagikan produk. Silakan coba lagi.");
