@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import {
   NotificationItem,
@@ -39,12 +39,14 @@ function transformNotification(notification: Notification): AccountNotification 
     message: notification.data.message,
     timestamp: formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: id }),
     unread: notification.read_at === null,
+    orderId: typeof notification.data.data?.id === 'number' ? notification.data.data.id : undefined,
   };
 }
 
 type NotificationTab = "Informasi" | "Transaksi";
 
 function NotificationsPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<NotificationTab>("Informasi");
   const [notifications, setNotifications] = useState<AccountNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,6 +130,11 @@ function NotificationsPage() {
                 key={notification.id}
                 notification={notification}
                 onRead={handleMarkAsRead}
+                onClick={() => {
+                  if (notification.type === "transaction" && notification.orderId) {
+                    navigate({ to: "/akun/transaksi/$id", params: { id: notification.orderId.toString() } });
+                  }
+                }}
               />
             ))
           )}

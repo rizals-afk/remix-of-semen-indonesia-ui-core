@@ -8,14 +8,17 @@ export interface AccountNotification {
   message: string;
   timestamp: string;
   unread: boolean;
+  orderId?: number;
 }
 
 export function NotificationItem({
   notification,
   onRead,
+  onClick,
 }: {
   notification: AccountNotification;
   onRead: (id: string) => void;
+  onClick?: () => void;
 }) {
   const Icon = notification.type === "transaction" ? ReceiptText : BellRing;
 
@@ -23,7 +26,10 @@ export function NotificationItem({
     <Button
       type="button"
       variant="ghost"
-      onClick={() => onRead(notification.id)}
+      onClick={() => {
+        onRead(notification.id);
+        if (onClick) onClick();
+      }}
       className="group h-auto w-full justify-start rounded-none px-5 py-3 text-left hover:bg-muted/50 sm:px-7"
     >
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
