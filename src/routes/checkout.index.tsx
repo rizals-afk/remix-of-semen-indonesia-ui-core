@@ -97,6 +97,24 @@ function CheckoutPage() {
       }
     }
 
+    // Validate user identity documents
+    const isNik = user?.is_nik === true;
+    const nik = user?.nik_ktp;
+    const npwp1 = user?.npwp_1;
+    const npwp2 = user?.npwp_2;
+
+    if (isNik) {
+      if (!nik || nik.trim() === "") {
+        toast.error("Silakan lengkapi NIK KTP pada profil Anda sebelum melakukan checkout.");
+        return;
+      }
+    } else {
+      if (!npwp1 || npwp1.trim() === "" || !npwp2 || npwp2.trim() === "") {
+        toast.error("Silakan lengkapi NPWP pada profil Anda sebelum melakukan checkout.");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
