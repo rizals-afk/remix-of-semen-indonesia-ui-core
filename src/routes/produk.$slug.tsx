@@ -14,7 +14,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { SpecsTable } from "@/components/product/SpecsTable";
-import { ReviewItem } from "@/components/review/ReviewItem";
+import { ReviewItem, transformTrxReviewToReview } from "@/components/review/ReviewItem";
 import { ReviewSummary } from "@/components/review/ReviewSummary";
 import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
 import type { Warehouse } from "@/lib/api/warehouse";
@@ -25,6 +25,7 @@ import { formatRupiah } from "@/lib/format";
 import { toggleFavourite } from "@/lib/api/favourite";
 import { getToken } from "@/lib/auth";
 import { getUserLocation, type UserLocation } from "@/lib/location";
+import { fetchTrxReviews } from "@/lib/api/review";
 
 export const Route = createFileRoute("/produk/$slug")({
   component: ProductDetailPage,
@@ -44,6 +45,8 @@ function ProductDetailPage() {
   const [reviewPage, setReviewPage] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [totalReviewPages, setTotalReviewPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [warehouseModalOpen, setWarehouseModalOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
@@ -139,6 +142,23 @@ function ProductDetailPage() {
 
     loadRelated();
   }, [product, headerWarehouse]);
+
+  // Fetch reviews
+  useEffect(() => {
+    const loadReviews = async () => {
+      if (!product) return;
+      try {
+        const response = await fetchTrxReviews({ product_id: parseInt(product.id), page: reviewPage, per_page: 5 });
+        const transformed = response.data.map(transformTrxReviewToReview);
+        setReviews(transformed);
+        setTotalReviewPages(response.last_page);
+      } catch (error) {
+        console.error("Failed to load reviews:", error);
+      }
+    };
+
+    loadReviews();
+  }, [product, reviewPage]);
 
   const selectedVariant = product?.variants.find((v) => v.id === selectedVariantId) || product?.variants[0];
   const price = product ? getProductPrice(product, selectedVariantId, selectedBranchId) : null;
@@ -517,21 +537,26 @@ function ProductDetailPage() {
                 <div className="flex items-center justify-between">
                   <ReviewSummary
                     average={product.rating ?? 4.8}
-                    count={product.reviewCount || 0}
+                    count={reviews.length || 0}
                     satisfactionPercent={product.satisfactionPercent || 98}
                   />
-                  <Link to="/produk/$slug" params={{ slug: product.id }} className="text-sm font-semibold text-primary hover:underline">
-                    Lihat Semua Ulasan
-                  </Link>
                 </div>
                 <div className="mt-4 divide-y divide-border">
-                  {(product.reviews || []).map((r: import("@/components/review/ReviewItem").Review) => (
-                    <ReviewItem key={r.id} review={r} />
-                  ))}
+                  {reviews.length > 0 ? (
+                    reviews.map((r) => (
+                      <ReviewItem key={r.id} review={r} />
+                    ))
+                  ) : (
+                    <div className="py-8 text-center text-sm text-muted-foreground">
+                      Belum ada ulasan untuk produk ini.
+                    </div>
+                  )}
                 </div>
-                <div className="mt-6">
-                  <Pagination page={reviewPage} totalPages={5} onChange={setReviewPage} />
-                </div>
+                {totalReviewPages > 1 && (
+                  <div className="mt-6">
+                    <Pagination page={reviewPage} totalPages={totalReviewPages} onChange={setReviewPage} />
+                  </div>
+                )}
               </div>
             )}
           </div>
