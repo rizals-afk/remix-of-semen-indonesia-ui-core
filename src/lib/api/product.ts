@@ -19,6 +19,8 @@ export interface ProductVariant {
   pricelists?: ProductPricelist[];
   online_stock?: number;
   stocks?: ProductVariantStock[];
+  average_rating?: number;
+  total_sales?: number;
 }
 
 export interface ProductVariantStock {

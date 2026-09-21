@@ -15,13 +15,50 @@ export interface Review {
 }
 
 export function transformTrxReviewToReview(trxReview: TrxReview): Review {
+  console.log('Raw trxReview.photos:', trxReview.photos);
+  
+  let photosArray: string[] = [];
+  
+  // Handle different photo data formats
+  if (Array.isArray(trxReview.photos)) {
+    photosArray = trxReview.photos.map((photo, index) => {
+      // Photo might be an object with a 'photo' property or a string
+      let photoStr: string;
+      if (typeof photo === 'string') {
+        photoStr = photo;
+      } else if (photo && typeof photo === 'object' && 'photo' in photo) {
+        photoStr = (photo as any).photo;
+      } else {
+        photoStr = String(photo);
+      }
+      const cleanedPhoto = photoStr.replace(/\\\//g, '/');
+      console.log(`Photo ${index}:`, { original: photo, cleaned: cleanedPhoto });
+      return cleanedPhoto;
+    });
+  } else if (typeof trxReview.photos === 'string') {
+    // Photos might be a JSON string
+    try {
+      const parsed = JSON.parse(trxReview.photos);
+      if (Array.isArray(parsed)) {
+        photosArray = parsed.map((photo: any) => {
+          const photoStr = typeof photo === 'string' ? photo : (photo.photo || String(photo));
+          return photoStr.replace(/\\\//g, '/');
+        });
+      }
+    } catch (e) {
+      console.error('Failed to parse photos string:', e);
+    }
+  }
+  
+  console.log('Final processed photos:', photosArray);
+
   return {
     id: trxReview.id.toString(),
     author: "Pelanggan",
     rating: trxReview.rating,
     date: formatDistanceToNow(new Date(trxReview.created_at), { addSuffix: true, locale: id }),
     body: trxReview.review,
-    photos: trxReview.photos,
+    photos: photosArray,
     variant: trxReview.product_variant?.variant_name,
     comments: trxReview.comments.map(c => ({
       user: c.user.name,

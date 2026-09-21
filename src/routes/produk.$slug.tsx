@@ -45,8 +45,10 @@ function ProductDetailPage() {
   const [reviewPage, setReviewPage] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [totalReviewPages, setTotalReviewPages] = useState(1);
+  const [totalReviewCount, setTotalReviewCount] = useState(0);
+  const [satisfactionPercent, setSatisfactionPercent] = useState(0);
   const [loading, setLoading] = useState(true);
   const [warehouseModalOpen, setWarehouseModalOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
@@ -148,10 +150,18 @@ function ProductDetailPage() {
     const loadReviews = async () => {
       if (!selectedVariantId) return;
       try {
+        console.log("Fetching reviews for variant:", selectedVariantId);
         const response = await fetchTrxReviews({ product_variant_id: parseInt(selectedVariantId), page: reviewPage, per_page: 5 });
+        console.log("Reviews API response:", response);
+        console.log("Reviews data:", response.data);
         const transformed = response.data.map(transformTrxReviewToReview);
         setReviews(transformed);
         setTotalReviewPages(response.last_page);
+        setTotalReviewCount(response.total);
+        // Calculate satisfaction percentage (reviews with rating >= 4)
+        const satisfiedCount = response.data.filter(r => r.rating >= 4).length;
+        const satisfactionPercent = response.data.length > 0 ? Math.round((satisfiedCount / response.data.length) * 100) : 0;
+        setSatisfactionPercent(satisfactionPercent);
       } catch (error) {
         console.error("Failed to load reviews:", error);
       }
@@ -389,12 +399,12 @@ function ProductDetailPage() {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1 font-semibold text-foreground">
                     <Star className="h-4 w-4 fill-rating text-rating" />
-                    {(product.rating ?? 4.8).toFixed(1)}
+                    {(selectedVariant?.average_rating ?? 4.8).toFixed(1)}
                   </span>
                   <span>|</span>
-                  <span>{product.reviewCount || 0} penilaian</span>
+                  <span>{reviews.length || 0} penilaian</span>
                   <span>|</span>
-                  <span>{product.sold || 0} terjual</span>
+                  <span>{selectedVariant?.total_sales ?? 0} terjual</span>
                 </div>
 
                 <div className="space-y-2">
@@ -536,9 +546,9 @@ function ProductDetailPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <ReviewSummary
-                    average={product.rating ?? 4.8}
-                    count={reviews.length || 0}
-                    satisfactionPercent={product.satisfactionPercent || 98}
+                    average={selectedVariant?.average_rating ?? 4.8}
+                    count={totalReviewCount}
+                    satisfactionPercent={satisfactionPercent}
                   />
                 </div>
                 <div className="mt-4 divide-y divide-border">
