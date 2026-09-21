@@ -368,11 +368,64 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       (window as any).snap.pay(response.token, {
         onSuccess: async (result: any) => {
           console.log("Snap onSuccess:", result);
-          toast.success("Pembayaran berhasil");
-          await onRefresh();
+          console.log("Snap onSuccess - expiry_time:", result.expiry_time);
+          // Prevent duplicate payment creation
+          if (paymentCreatedRef.current) {
+            console.log("Payment already created, skipping");
+            toast.success("Pembayaran berhasil");
+            await onRefresh();
+            return;
+          }
+
+          console.log("Creating payment record for successful payment...");
+          setIsSavingPayment(true);
+          try {
+            // Format today's date as YYYY-MM-DD
+            const today = new Date();
+            const paymentDate = today.toISOString().split('T')[0];
+
+            const paymentData = {
+              trx_id: trx.id,
+              customer_id: trx.customer_id || 0,
+              payment_method: "midtrans",
+              payment_date: paymentDate,
+              total: trx.total.toString(),
+              status: result.transaction_status || "success",
+              reference_id: trx.code,
+              reference_type: "midtrans",
+              transaction_id: result.transaction_id,
+              gross_amount: result.gross_amount,
+              currency: result.currency,
+              payment_type: result.payment_type,
+              transaction_status: result.transaction_status,
+              fraud_status: result.fraud_status,
+              merchant_id: result.merchant_id,
+              va_number: result.va_numbers?.[0]?.va_number,
+              bank: result.va_numbers?.[0]?.bank,
+              transaction_time: result.transaction_time,
+              settlement_time: result.settlement_time,
+              expiry_date: result.expiry_time || result.expiry,
+            };
+
+            console.log("Payment data:", paymentData);
+
+            // Create payment record
+            await createPayment(paymentData);
+
+            paymentCreatedRef.current = true;
+            console.log("Payment record created successfully");
+            toast.success("Pembayaran berhasil");
+            await onRefresh();
+          } catch (error) {
+            console.error("Failed to create payment record:", error);
+            toast.error("Gagal menyimpan pembayaran. Silakan coba lagi.");
+          } finally {
+            setIsSavingPayment(false);
+          }
         },
         onPending: async (result: any) => {
           console.log("Snap onPending:", result);
+          console.log("Snap onPending - expiry_time:", result.expiry_time);
           // Prevent duplicate payment creation
           if (paymentCreatedRef.current) {
             console.log("Payment already created, skipping");
@@ -393,9 +446,20 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
               payment_method: "midtrans",
               payment_date: paymentDate,
               total: trx.total.toString(),
-              status: "pending",
+              status: result.transaction_status || "pending",
               reference_id: trx.code,
               reference_type: "midtrans",
+              transaction_id: result.transaction_id,
+              gross_amount: result.gross_amount,
+              currency: result.currency,
+              payment_type: result.payment_type,
+              transaction_status: result.transaction_status,
+              fraud_status: result.fraud_status,
+              merchant_id: result.merchant_id,
+              va_number: result.va_numbers?.[0]?.va_number,
+              bank: result.va_numbers?.[0]?.bank,
+              transaction_time: result.transaction_time,
+              expiry_date: result.expiry_time || result.expiry,
             };
 
             console.log("Payment data:", paymentData);
@@ -420,7 +484,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
         },
         onClose: () => {
           console.log("Snap onClose triggered");
-          // onClose is not creating payment since onPending already handles it
+          // onClose is not creating payment since onPending/onSuccess already handles it
         },
       });
     } catch (error) {

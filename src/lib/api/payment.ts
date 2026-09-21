@@ -9,6 +9,18 @@ export interface CreatePaymentRequest {
   status: string;
   reference_id: string;
   reference_type: string;
+  transaction_id?: string;
+  gross_amount?: string;
+  currency?: string;
+  payment_type?: string;
+  transaction_status?: string;
+  fraud_status?: string;
+  merchant_id?: string;
+  va_number?: string;
+  bank?: string;
+  transaction_time?: string;
+  settlement_time?: string;
+  expiry_date?: string;
 }
 
 export interface PaymentResponse {
