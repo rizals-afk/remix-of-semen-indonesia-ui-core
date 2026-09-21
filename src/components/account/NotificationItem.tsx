@@ -9,6 +9,7 @@ export interface AccountNotification {
   timestamp: string;
   unread: boolean;
   orderId?: number;
+  hyperlinkProduct?: string;
 }
 
 export function NotificationItem({

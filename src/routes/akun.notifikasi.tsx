@@ -40,6 +40,7 @@ function transformNotification(notification: Notification): AccountNotification 
     timestamp: formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: id }),
     unread: notification.read_at === null,
     orderId: typeof notification.data.data?.id === 'number' ? notification.data.data.id : undefined,
+    hyperlinkProduct: typeof notification.data.data?.hyperlink_product === 'string' ? notification.data.data.hyperlink_product : undefined,
   };
 }
 
@@ -131,7 +132,11 @@ function NotificationsPage() {
                 notification={notification}
                 onRead={handleMarkAsRead}
                 onClick={() => {
-                  if (notification.type === "transaction" && notification.orderId) {
+                  console.log("Notification clicked:", notification);
+                  if (notification.hyperlinkProduct) {
+                    console.log("Redirecting to hyperlink_product:", notification.hyperlinkProduct);
+                    window.location.href = notification.hyperlinkProduct;
+                  } else if (notification.type === "transaction" && notification.orderId) {
                     navigate({ to: "/akun/transaksi/$id", params: { id: notification.orderId.toString() } });
                   }
                 }}
