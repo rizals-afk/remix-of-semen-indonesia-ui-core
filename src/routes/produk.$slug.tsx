@@ -146,9 +146,9 @@ function ProductDetailPage() {
   // Fetch reviews
   useEffect(() => {
     const loadReviews = async () => {
-      if (!product) return;
+      if (!selectedVariantId) return;
       try {
-        const response = await fetchTrxReviews({ product_id: parseInt(product.id), page: reviewPage, per_page: 5 });
+        const response = await fetchTrxReviews({ product_variant_id: parseInt(selectedVariantId), page: reviewPage, per_page: 5 });
         const transformed = response.data.map(transformTrxReviewToReview);
         setReviews(transformed);
         setTotalReviewPages(response.last_page);
@@ -158,7 +158,7 @@ function ProductDetailPage() {
     };
 
     loadReviews();
-  }, [product, reviewPage]);
+  }, [selectedVariantId, reviewPage]);
 
   const selectedVariant = product?.variants.find((v) => v.id === selectedVariantId) || product?.variants[0];
   const price = product ? getProductPrice(product, selectedVariantId, selectedBranchId) : null;

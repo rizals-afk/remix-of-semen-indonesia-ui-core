@@ -62,14 +62,14 @@ export interface TrxReviewListResponse {
 }
 
 export interface FetchTrxReviewsParams {
-  product_id?: number;
+  product_variant_id?: number;
   page?: number;
   per_page?: number;
 }
 
 export async function fetchTrxReviews(params?: FetchTrxReviewsParams): Promise<TrxReviewListResponse> {
   const queryParams = new URLSearchParams();
-  if (params?.product_id) queryParams.append("product_id", params.product_id.toString());
+  if (params?.product_variant_id) queryParams.append("product_variant_id", params.product_variant_id.toString());
   if (params?.page) queryParams.append("page", params.page.toString());
   if (params?.per_page) queryParams.append("per_page", params.per_page.toString());
   const queryString = queryParams.toString();
