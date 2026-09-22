@@ -131,7 +131,14 @@ function ProductDetailPage() {
     const loadRelated = async () => {
       if (!product) return;
       try {
-        const response = await fetchProducts({ page: 1, per_page: 5, branch_id: headerWarehouse?.id });
+        console.log("Product object keys:", Object.keys(product));
+        console.log("Product category_id:", product.category_id);
+        console.log("Product category:", product.category);
+        console.log("Product category_name:", product.category_name);
+        const categoryId = product.category_id || product.category?.id;
+        console.log("Using category_id:", categoryId);
+        const response = await fetchProducts({ page: 1, per_page: 5, branch_id: headerWarehouse?.id, product_category_id: categoryId });
+        console.log("Related products response:", response);
         const filtered = response.data.filter((p) => p.id !== product.id).slice(0, 5);
         const transformed = filtered.map((p) =>
           transformProductToCard(p, headerWarehouse?.name, undefined, headerWarehouse?.id)
