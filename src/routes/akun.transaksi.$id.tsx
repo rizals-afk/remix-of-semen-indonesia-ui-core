@@ -359,6 +359,10 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       console.log("Generating Snap token for trx_id:", trx.id);
       const response = await generateSnapToken(trx.id);
       console.log("Snap token generated:", response.token);
+      console.log("Snap token response expiry_time:", response.expiry_time);
+
+      // Store expiry_time from token response for use in callbacks
+      const expiryTime = response.expiry_time;
 
       // Reset loading state before opening Snap popup
       setIsProcessingPayment(false);
@@ -368,19 +372,15 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       (window as any).snap.pay(response.token, {
         onSuccess: async (result: any) => {
           console.log("Snap onSuccess:", result);
-          console.log("Snap onSuccess - expiry_time:", result.expiry_time);
           // Prevent duplicate payment creation
           if (paymentCreatedRef.current) {
             console.log("Payment already created, skipping");
-            toast.success("Pembayaran berhasil");
             await onRefresh();
             return;
           }
 
-          console.log("Creating payment record for successful payment...");
           setIsSavingPayment(true);
           try {
-            // Format today's date as YYYY-MM-DD
             const today = new Date();
             const paymentDate = today.toISOString().split('T')[0];
 
@@ -404,7 +404,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
               bank: result.va_numbers?.[0]?.bank,
               transaction_time: result.transaction_time,
               settlement_time: result.settlement_time,
-              expiry_date: result.expiry_time || result.expiry,
+              expiry_date: result.expiry_time,
             };
 
             console.log("Payment data:", paymentData);
@@ -425,7 +425,6 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
         },
         onPending: async (result: any) => {
           console.log("Snap onPending:", result);
-          console.log("Snap onPending - expiry_time:", result.expiry_time);
           // Prevent duplicate payment creation
           if (paymentCreatedRef.current) {
             console.log("Payment already created, skipping");
@@ -459,7 +458,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
               va_number: result.va_numbers?.[0]?.va_number,
               bank: result.va_numbers?.[0]?.bank,
               transaction_time: result.transaction_time,
-              expiry_date: result.expiry_time || result.expiry,
+              expiry_date: result.expiry_time,
             };
 
             console.log("Payment data:", paymentData);
@@ -581,7 +580,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
         <>
           {cancelDialog}
           {outline("Hubungi Penjual", whatsapp)}
-          {!trx.payment_id && (
+          {(!trx.payments || trx.payments.length === 0) && (
             <button
               onClick={handlePayment}
               disabled={isProcessingPayment || isSavingPayment}

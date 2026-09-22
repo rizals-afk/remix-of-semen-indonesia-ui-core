@@ -20,7 +20,7 @@ export interface CreatePaymentRequest {
   bank?: string;
   transaction_time?: string;
   settlement_time?: string;
-  expiry_date?: string;
+  expiry_date?: string | null;
 }
 
 export interface PaymentResponse {

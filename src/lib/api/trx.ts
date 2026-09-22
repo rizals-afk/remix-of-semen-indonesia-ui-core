@@ -67,6 +67,23 @@ export interface Trx {
   verification_date?: string;
   date_done?: string;
   lines: TrxLine[];
+  payments?: Array<{
+    id: number;
+    code: string;
+    trx_id: number;
+    payment_method: string;
+    payment_date: string;
+    total: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    customer_id: number;
+    reference_id: string;
+    reference_type: string;
+    bank?: string;
+    va_number?: string;
+    expiry_date?: string | null;
+  }>;
 }
 
 export interface TrxListResponse {
@@ -227,6 +244,7 @@ export async function markTrxDone(id: number): Promise<Trx> {
 export interface SnapTokenResponse {
   token: string;
   redirect_url: string;
+  expiry_time?: string;
 }
 
 export async function generateSnapToken(trxId: number): Promise<SnapTokenResponse> {
