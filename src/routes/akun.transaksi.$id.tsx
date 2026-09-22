@@ -656,7 +656,6 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     case "done":
       content = (
         <>
-          {outline("Beli Lagi")}
           {hasItemsToReview && primary("Nilai", undefined, () => setIsReviewOpen(true))}
           {dialogProduct && (
             <ReviewDialog
@@ -683,7 +682,6 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
         <>
           {outline("Ajukan Pengembalian", undefined, () => setIsReturnOpen(true))}
           {outline("Rincian Pembatalan")}
-          {primary("Beli Lagi")}
           <ReturnRequestDialog
             open={isReturnOpen}
             onOpenChange={setIsReturnOpen}
@@ -720,7 +718,6 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       content = (
         <>
           {outline("Hubungi Penjual", whatsapp)}
-          {primary("Beli Lagi")}
         </>
       );
       break;
