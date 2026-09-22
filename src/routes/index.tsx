@@ -84,13 +84,44 @@ function HomePage() {
   const [bannersLoading, setBannersLoading] = useState(true);
   const [api, setApi] = useState<CarouselApi>();
   const pluginIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
+
+  const loadProducts = async (tabIndex: number) => {
+    setLoading(true);
+    try {
+      let sortParams = {};
+      if (tabIndex === 0) {
+        // Terlaris
+        sortParams = { sort: "terlaris", sort_by: "most_bought", sort_order: "desc" };
+      } else if (tabIndex === 2) {
+        // Baru Masuk
+        sortParams = { sort_by: "created_at", sort_order: "desc" };
+      }
+      // Promo Spesial (tabIndex === 1) uses default sorting
+
+      const productsResponse = await fetchProducts({
+        page: 1,
+        per_page: 6,
+        branch_id: selectedWarehouse?.id,
+        ...sortParams,
+      });
+
+      const transformedProducts = productsResponse.data.map((product) =>
+        transformProductToCard(product, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
+      );
+      setFeaturedProducts(transformedProducts);
+    } catch (error) {
+      console.error("Failed to load products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [categoriesResponse, productsResponse, blogsResponse, bannersResponse] = await Promise.all([
+        const [categoriesResponse, blogsResponse, bannersResponse] = await Promise.all([
           fetchCategories({ per_page: 999, page: 1 }),
-          fetchProducts({ page: 1, per_page: 6, sort: "terlaris", branch_id: selectedWarehouse?.id }),
           fetchBlogs({ page: 1, per_page: 3 }),
           fetchBanners({ per_page: 99, page: 1, is_website: 1, active: true }),
         ]);
@@ -98,17 +129,14 @@ function HomePage() {
         const childCategories = getChildCategories(categoriesResponse.data);
         setCategories(childCategories);
 
-        const transformedProducts = productsResponse.data.map((product) =>
-          transformProductToCard(product, selectedWarehouse?.name, undefined, selectedWarehouse?.id)
-        );
-        setFeaturedProducts(transformedProducts);
-
         setBlogs(blogsResponse.data || []);
         setBanners(bannersResponse.data || []);
+
+        // Load products for the default tab (Terlaris)
+        await loadProducts(0);
       } catch (error) {
         console.error("Failed to load data:", error);
       } finally {
-        setLoading(false);
         setBannersLoading(false);
       }
     };
@@ -267,9 +295,13 @@ function HomePage() {
             <button
               key={tab}
               type="button"
+              onClick={() => {
+                setActiveTab(i);
+                loadProducts(i);
+              }}
               className={
                 "relative pb-3 text-sm font-semibold transition-colors " +
-                (i === 0
+                (i === activeTab
                   ? "text-accent after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-accent"
                   : "text-muted-foreground hover:text-foreground")
               }
