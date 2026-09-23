@@ -14,7 +14,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { SpecsTable } from "@/components/product/SpecsTable";
-import { ReviewItem, transformTrxReviewToReview } from "@/components/review/ReviewItem";
+import { Review, ReviewItem, transformTrxReviewToReview } from "@/components/review/ReviewItem";
 import { ReviewSummary } from "@/components/review/ReviewSummary";
 import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
 import type { Warehouse } from "@/lib/api/warehouse";
