@@ -569,6 +569,9 @@ function CheckoutPage() {
             <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-sm">
               <h2 className="text-base font-bold text-foreground">Informasi Penting</h2>
               <ul className="mt-4 space-y-4 text-sm text-muted-foreground">
+                <InfoItem icon={<Info className="h-4 w-4" />}>
+                  Harga yang tertera masih belum termasuk ongkir.
+                </InfoItem>
                 <InfoItem icon={<Package className="h-4 w-4" />}>
                   Pesanan akan dibuat terpisah berdasarkan gudang pengirim.
                 </InfoItem>
