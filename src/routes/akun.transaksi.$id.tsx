@@ -177,7 +177,27 @@ function OrderDetailPage() {
             <p className="mt-1 text-sm text-muted-foreground">{safeBanner.subtitle}</p>
           </div>
         </div>
-        {currentTrx.status === "delivery" ? (
+        {currentTrx.status === "process" && currentTrx.shipping_method === "LOC" && currentTrx.est_date_picking ? (
+          <div className="text-right text-sm">
+            <p className="text-muted-foreground">Estimasi Pengambilan Pesanan</p>
+            <p className="mt-0.5 font-bold text-foreground">{formatDate(currentTrx.est_date_picking)}</p>
+          </div>
+        ) : currentTrx.status === "process" && currentTrx.shipping_method === "FRC" && currentTrx.est_date_delivery ? (
+          <div className="text-right text-sm">
+            <p className="text-muted-foreground">Estimasi Tiba</p>
+            <p className="mt-0.5 font-bold text-foreground">{formatDate(currentTrx.est_date_delivery)}</p>
+          </div>
+        ) : currentTrx.status === "delivery" && currentTrx.shipping_method === "LOC" && currentTrx.est_date_picking ? (
+          <div className="text-right text-sm">
+            <p className="text-muted-foreground">Estimasi Pengambilan Pesanan</p>
+            <p className="mt-0.5 font-bold text-foreground">{formatDate(currentTrx.est_date_picking)}</p>
+          </div>
+        ) : currentTrx.status === "delivery" && currentTrx.shipping_method === "FRC" && currentTrx.est_date_delivery ? (
+          <div className="text-right text-sm">
+            <p className="text-muted-foreground">Estimasi Tiba</p>
+            <p className="mt-0.5 font-bold text-foreground">{formatDate(currentTrx.est_date_delivery)}</p>
+          </div>
+        ) : currentTrx.status === "delivery" ? (
           <div className="text-right text-sm">
             <p className="text-muted-foreground">Estimasi Tiba</p>
             <p className="mt-0.5 font-bold text-foreground">Sedang dalam perjalanan</p>

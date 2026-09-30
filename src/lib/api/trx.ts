@@ -66,6 +66,9 @@ export interface Trx {
   customer_location_long?: number;
   verification_date?: string;
   date_done?: string;
+  shipping_method?: string;
+  est_date_picking?: string;
+  est_date_delivery?: string;
   lines: TrxLine[];
   payments?: Array<{
     id: number;
