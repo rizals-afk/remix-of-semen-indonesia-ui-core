@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ClipboardList, Search, Loader2 } from "lucide-react";
 import { UnderlineTabs } from "@/components/common/Tabs";
 import { TrxCard } from "@/components/account/TrxCard";
@@ -41,8 +41,6 @@ function TransactionsPage() {
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const loadTransactions = useCallback(async (pageNum: number = 1, isLoadMore: boolean = false) => {
     if (isLoadMore) {
@@ -87,29 +85,11 @@ function TransactionsPage() {
     loadTransactions(1, false);
   }, [tab, searchQuery, loadTransactions]);
 
-  // Infinite scroll
-  useEffect(() => {
-    if (isLoadingMore || !hasMore) return;
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadTransactions(page + 1, true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current);
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      loadTransactions(page + 1, true);
     }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [isLoadingMore, hasMore, page, loadTransactions]);
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -190,12 +170,24 @@ function TransactionsPage() {
               setTransactions((prev) => prev.filter((t) => t.id !== id));
             }} />
           ))}
-          {isLoadingMore && (
-            <div className="flex items-center justify-center py-4">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className="rounded-md border-2 border-primary px-8 py-2.5 text-sm font-bold text-primary hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Memuat...
+                  </>
+                ) : (
+                  "Muat Lebih Banyak"
+                )}
+              </button>
             </div>
           )}
-          <div ref={loadMoreRef} className="h-4" />
         </div>
       )}
     </div>
