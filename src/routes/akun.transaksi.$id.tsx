@@ -51,19 +51,21 @@ function formatTimestamp(dateString: string): string {
 }
 
 function bannerFor(trx: Trx): BannerCopy {
+  const isReturType = trx.trx_type === "retur";
+
   switch (trx.status) {
     case "pending":
       return {
         icon: Hourglass,
         title: "Menunggu Verifikasi",
-        subtitle: "Pesanan anda sedang dalam proses peninjauan oleh tim admin pusat kami.",
+        subtitle: isReturType ? "Pengajuan pengembalian Anda sedang diproses oleh Admin." : "Pesanan anda sedang dalam proses peninjauan oleh tim admin pusat kami.",
         tone: "primary",
       };
     case "approve":
       return {
         icon: Wallet,
-        title: "Menunggu Pembayaran",
-        subtitle: "Silahkan lakukan pembayaran untuk melanjutkan pesanan.",
+        title: isReturType ? "Pengembalian Diproses" : "Menunggu Pembayaran",
+        subtitle: isReturType ? "Harap tunggu, proses pengembalian sedang dilakukan." : "Silahkan lakukan pembayaran untuk melanjutkan pesanan.",
         tone: "primary",
       };
     case "process":
@@ -76,15 +78,15 @@ function bannerFor(trx: Trx): BannerCopy {
     case "delivery":
       return {
         icon: Truck,
-        title: "Pesanan Dikirim",
-        subtitle: "Pesanan sedang dalam perjalanan menuju lokasi Anda.",
+        title: isReturType ? "Pengembalian Dikirim" : "Pesanan Dikirim",
+        subtitle: isReturType ? "Permintaan retur Anda telah diproses dan akan segera dikirimkan." : "Pesanan sedang dalam perjalanan menuju lokasi Anda.",
         tone: "primary",
       };
     case "done":
       return {
         icon: CheckCircle2,
-        title: "Pesanan Selesai",
-        subtitle: `Pesanan Diterima pada ${formatDate(trx.updated_at)}`,
+        title: isReturType ? "Pengembalian Selesai" : "Pesanan Selesai",
+        subtitle: isReturType ? "Barang pengembalian telah diterima." : `Pesanan Diterima pada ${formatDate(trx.updated_at)}`,
         tone: "success",
         invoice: true,
       };
@@ -248,6 +250,7 @@ function OrderDetailPage() {
 
       {/* Stepper */}
       <OrderStatusStepper
+        isRetur={currentTrx.trx_type === "retur"}
         status={currentTrx.status === "pending" ? "menunggu-verifikasi" :
                currentTrx.status === "approve" ? "menunggu-pembayaran" :
                currentTrx.status === "process" ? "diproses" :
@@ -261,6 +264,21 @@ function OrderDetailPage() {
           selesai: currentTrx.date_done ? formatTimestamp(currentTrx.date_done) : undefined,
         }}
       />
+
+      {/* Alasan Pengembalian - only for retur type */}
+      {currentTrx.trx_type === "retur" && (currentTrx.retur_reason || currentTrx.retur_additional_reason) && (
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="text-base font-bold text-foreground">Alasan Pengembalian</h3>
+          <dl className="mt-4 space-y-3 text-sm">
+            {currentTrx.retur_reason && (
+              <Row label="Alasan Utama" value={currentTrx.retur_reason} />
+            )}
+            {currentTrx.retur_additional_reason && (
+              <Row label="Alasan Tambahan" value={currentTrx.retur_additional_reason} />
+            )}
+          </dl>
+        </section>
+      )}
 
       {/* Products */}
       <section className="rounded-2xl border border-border bg-card">
@@ -296,25 +314,46 @@ function OrderDetailPage() {
         </div>
       </section>
 
-      {/* Rincian Pembayaran */}
-      <section className="rounded-2xl border border-border bg-card p-5">
-        <h3 className="text-base font-bold text-foreground">Rincian Pembayaran</h3>
-        <dl className="mt-4 space-y-3 text-sm">
-          <Row label="No. Pesanan" value={currentTrx.code} />
-          <Row label="Tipe Transaksi" value={currentTrx.trx_type} />
-          <Row label="Subtotal Pesanan" value={formatRupiah(typeof currentTrx.subtotal === 'string' ? parseFloat(currentTrx.subtotal) : currentTrx.subtotal)} />
-          <Row label="Biaya Pengiriman" value={formatRupiah(typeof currentTrx.shipping_cost === 'string' ? parseFloat(currentTrx.shipping_cost) : currentTrx.shipping_cost)} />
-        </dl>
-        <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
-          <span className="text-base font-bold text-foreground">Total Pembayaran</span>
-          <span className="text-xl font-bold text-accent">{formatRupiah(typeof currentTrx.total === 'string' ? parseFloat(currentTrx.total) : currentTrx.total)}</span>
-        </div>
+      {/* Metode Pengembalian Dana - only for retur type with retur_type=dana */}
+      {currentTrx.trx_type === "retur" && currentTrx.retur_type === "dana" && (
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="text-base font-bold text-foreground">Rincian Pengembalian Dana</h3>
+          <dl className="mt-4 space-y-3 text-sm">
+            <Row label="Metode Pengembalian Dana" value="Transfer" />
+            <Row label="Jumlah Pengembalian Dana" value={formatRupiah(typeof currentTrx.total === 'string' ? parseFloat(currentTrx.total) : currentTrx.total)} />
+          </dl>
+        </section>
+      )}
 
+      {/* Rincian Pembayaran - hide for retur type */}
+      {currentTrx.trx_type !== "retur" && (
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="text-base font-bold text-foreground">Rincian Pembayaran</h3>
+          <dl className="mt-4 space-y-3 text-sm">
+            <Row label="No. Pesanan" value={currentTrx.code} />
+            <Row label="Tipe Transaksi" value={currentTrx.trx_type} />
+            <Row label="Subtotal Pesanan" value={formatRupiah(typeof currentTrx.subtotal === 'string' ? parseFloat(currentTrx.subtotal) : currentTrx.subtotal)} />
+            <Row label="Biaya Pengiriman" value={formatRupiah(typeof currentTrx.shipping_cost === 'string' ? parseFloat(currentTrx.shipping_cost) : currentTrx.shipping_cost)} />
+          </dl>
+          <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
+            <span className="text-base font-bold text-foreground">Total Pembayaran</span>
+            <span className="text-xl font-bold text-accent">{formatRupiah(typeof currentTrx.total === 'string' ? parseFloat(currentTrx.total) : currentTrx.total)}</span>
+          </div>
+
+          <DetailActions trx={currentTrx} onRefresh={async () => {
+            const updatedTrx = await fetchTrxById(currentTrx.id);
+            setCurrentTrx(updatedTrx);
+          }} />
+        </section>
+      )}
+
+      {/* DetailActions for retur type */}
+      {currentTrx.trx_type === "retur" && (
         <DetailActions trx={currentTrx} onRefresh={async () => {
           const updatedTrx = await fetchTrxById(currentTrx.id);
           setCurrentTrx(updatedTrx);
         }} />
-      </section>
+      )}
     </div>
   );
 }

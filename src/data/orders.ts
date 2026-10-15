@@ -150,7 +150,7 @@ export function orderTotal(o: Order) {
 }
 export function orderTonase(o: Order) {
   return o.groups.reduce(
-    (s, g) => s + g.items.reduce((ss, i) => ss + ((i.weightKg ?? 0) * i.qty) / 1000, 0),
+    (s, g) => s + g.items.reduce((ss, i) => ss + ((i.weightKg ?? 0) * i.qty), 0),
     0,
   );
 }

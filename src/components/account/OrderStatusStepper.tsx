@@ -11,7 +11,7 @@ interface Step {
   icon: string;
 }
 
-const STEPS: Step[] = [
+const ORDER_STEPS: Step[] = [
   { key: "dibuat", label: "Pesanan Dibuat", icon: pesananDibuatIcon },
   { key: "verifikasi", label: "Pesanan Diverifikasi", icon: pesananDiverfikasiIcon },
   { key: "pembayaran", label: "Pembayaran", icon: pembayaranIcon },
@@ -19,21 +19,28 @@ const STEPS: Step[] = [
   { key: "selesai", label: "Pesanan Selesai", icon: pesananSelesaiIcon },
 ];
 
+const RETUR_STEPS: Step[] = [
+  { key: "dibuat", label: "Pengembalian Diajukan", icon: pesananDibuatIcon },
+  { key: "verifikasi", label: "Pengembalian Diverifikasi", icon: pesananDiverfikasiIcon },
+  { key: "dikirim", label: "Pengembalian Dikirimkan", icon: pesananDikirimIcon },
+  { key: "selesai", label: "Pengembalian Selesai", icon: pesananSelesaiIcon },
+];
+
 /** Map an order status to the index of the LAST completed step. */
-function activeIndex(status: OrderStatus): number {
+function activeIndex(status: OrderStatus, isRetur: boolean = false): number {
   switch (status) {
     case "menunggu-verifikasi":
       return 0;
     case "menunggu-pembayaran":
-      return 1;
+      return isRetur ? 1 : 1; // For retur, this maps to verifikasi step
     case "diproses":
-      return 2;
+      return isRetur ? 1 : 2;
     case "dikirim":
-      return 3;
+      return isRetur ? 2 : 3;
     case "selesai":
-      return 4;
+      return isRetur ? 3 : 4;
     case "pengembalian":
-      return 4;
+      return isRetur ? 3 : 4;
     case "dibatalkan":
       return 0;
   }
@@ -42,16 +49,20 @@ function activeIndex(status: OrderStatus): number {
 export function OrderStatusStepper({
   status,
   timestamps,
+  isRetur = false,
 }: {
   status: OrderStatus;
   /** Optional per-step timestamp shown below the step label. */
   timestamps?: Partial<Record<Step["key"], string>>;
+  /** Whether this is a retur transaction (removes pembayaran step) */
+  isRetur?: boolean;
 }) {
-  const active = activeIndex(status);
+  const active = activeIndex(status, isRetur);
+  const steps = isRetur ? RETUR_STEPS : ORDER_STEPS;
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <ol className="flex items-start justify-between gap-2">
-        {STEPS.map((step, idx) => {
+        {steps.map((step, idx) => {
           const done = idx <= active;
           const current = idx === active;
           return (

@@ -69,6 +69,9 @@ export interface Trx {
   shipping_method?: string;
   est_date_picking?: string;
   est_date_delivery?: string;
+  retur_reason?: string;
+  retur_additional_reason?: string;
+  retur_type?: "barang" | "dana";
   lines: TrxLine[];
   payments?: Array<{
     id: number;
