@@ -15,7 +15,8 @@ import { createBulkTrx, type BulkTrxRequest } from "@/lib/api/trx";
 import { checkDelivery, type CheckDeliveryRequest } from "@/lib/api/delivery";
 import { deleteCartItem } from "@/lib/api/cart";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/checkout/")({
   head: () => ({ meta: [{ title: "Checkout — BahanMaterial.com" }] }),
@@ -62,6 +63,25 @@ function CheckoutPage() {
   const [shippingFees, setShippingFees] = useState<Record<string, number>>({});
   const [shippingDistances, setShippingDistances] = useState<Record<string, number>>({});
 
+  // Fetch fresh user data from server on mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const freshUserData = await getCurrentUser();
+        if (freshUserData && user) {
+          user.setUser(freshUserData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch fresh user data:", error);
+        // Don't show error to user, continue with localStorage data
+      }
+    };
+
+    if (user && user.isAuthenticated) {
+      fetchUserData();
+    }
+  }, [user, user.isAuthenticated, user.setUser]);
+
   // Use buyNowItem if set, otherwise use cart groups
   const groups = checkout.buyNowItem
     ? [createGroupFromBuyNowItem(checkout.buyNowItem)]
@@ -99,9 +119,9 @@ function CheckoutPage() {
 
     // Validate user identity documents
     const isNik = user?.is_nik === true;
-    const nik = user?.nik_ktp;
-    const npwp1 = user?.npwp_1;
-    const npwp2 = user?.npwp_2;
+    const nik = user?.nik_ktp as string | undefined;
+    const npwp1 = user?.npwp_1 as string | undefined;
+    const npwp2 = user?.npwp_2 as string | undefined;
 
     if (isNik) {
       if (!nik || nik.trim() === "") {
@@ -178,7 +198,7 @@ function CheckoutPage() {
           price: item.price,
           qty: item.qty,
           subtotal: item.price * item.qty,
-          tonase: item.weightKg * item.qty,
+          tonase: (item.weightKg || 0) * item.qty,
           division: checkout.buyNowItem?.division || item.division,
         }));
 
