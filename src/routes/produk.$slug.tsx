@@ -155,10 +155,10 @@ function ProductDetailPage() {
   // Fetch reviews
   useEffect(() => {
     const loadReviews = async () => {
-      if (!selectedVariantId) return;
+      if (!product?.id) return;
       try {
-        console.log("Fetching reviews for variant:", selectedVariantId);
-        const response = await fetchTrxReviews({ product_variant_id: parseInt(selectedVariantId), page: reviewPage, per_page: 5 });
+        console.log("Fetching reviews for product:", product.id);
+        const response = await fetchTrxReviews({ product_id: parseInt(product.id), page: reviewPage, per_page: 5 });
         console.log("Reviews API response:", response);
         console.log("Reviews data:", response.data);
         const transformed = response.data.map(transformTrxReviewToReview);
@@ -175,7 +175,7 @@ function ProductDetailPage() {
     };
 
     loadReviews();
-  }, [selectedVariantId, reviewPage]);
+  }, [product?.id, reviewPage]);
 
   const selectedVariant = product?.variants.find((v) => v.id === selectedVariantId) || product?.variants[0];
   const price = product ? getProductPrice(product, selectedVariantId, selectedBranchId) : null;
@@ -406,7 +406,7 @@ function ProductDetailPage() {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1 font-semibold text-foreground">
                     <Star className="h-4 w-4 fill-rating text-rating" />
-                    {(selectedVariant?.average_rating ?? 4.8).toFixed(1)}
+                    {(product?.average_rating ?? 4.8).toFixed(1)}
                   </span>
                   <span>|</span>
                   <span>{reviews.length || 0} penilaian</span>
@@ -553,7 +553,7 @@ function ProductDetailPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <ReviewSummary
-                    average={selectedVariant?.average_rating ?? 4.8}
+                    average={product?.average_rating ?? 4.8}
                     count={totalReviewCount}
                     satisfactionPercent={satisfactionPercent}
                   />

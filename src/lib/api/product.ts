@@ -69,6 +69,7 @@ export interface Product {
   variants: ProductVariant[];
   pricelists: ProductPricelist[];
   is_favourite: boolean;
+  average_rating?: number;
   // Additional fields for UI compatibility
   rating?: number;
   reviewCount?: number;
