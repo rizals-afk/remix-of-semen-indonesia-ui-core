@@ -102,13 +102,17 @@ export interface FetchBlogsParams {
   page?: number;
   per_page?: number;
   search?: string;
+  sort_by?: string;
+  sort_order?: string;
 }
 
 export async function fetchBlogs(params: FetchBlogsParams = {}): Promise<BlogListResponse> {
-  const { page = 1, per_page = 10, search } = params;
+  const { page = 1, per_page = 10, search, sort_by = 'created_at', sort_order = 'desc' } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
+    sort_by,
+    sort_order,
   });
 
   if (search) {
