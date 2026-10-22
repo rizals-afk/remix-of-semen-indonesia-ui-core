@@ -46,24 +46,37 @@ function BlogDetailPage() {
     loadRelatedBlogs();
   }, []);
 
-  // Map blog_products to product card format
-  const mappedProducts = blog?.blog_products?.map((item) => {
-    const variant = item.product_variant;
-    const product = item.product;
-    const pricelist = variant.pricelists?.[0];
-    const media = variant.media?.[0] || product.media?.[0];
+  // Map blog_products to product card format, grouped by product ID
+  const mappedProducts = (() => {
+    if (!blog?.blog_products) return [];
 
-    return {
-      id: String(product.id),
-      name: product.name,
-      price: pricelist ? parseFloat(String(pricelist.branch_price_max)) : 0,
-      image: media?.url || product.photo || '',
-      warehouse: pricelist?.branch?.name || 'Gudang Utama',
-      rating: undefined,
-      categorySlug: product.category?.name?.toLowerCase().replace(/\s+/g, '-'),
-      variantName: variant.variant_name,
-    };
-  }) || [];
+    const productMap = new Map<number, any>();
+
+    blog.blog_products.forEach((item) => {
+      const variant = item.product_variant;
+      const product = item.product;
+      const pricelist = variant.pricelists?.[0];
+      const media = variant.media?.[0] || product.media?.[0];
+
+      const productData = {
+        id: String(product.id),
+        name: product.name,
+        price: pricelist ? parseFloat(String(pricelist.branch_price_max)) : 0,
+        image: media?.url || product.photo || '',
+        warehouse: pricelist?.branch?.name || 'Gudang Utama',
+        rating: undefined,
+        categorySlug: product.category?.name?.toLowerCase().replace(/\s+/g, '-'),
+        variantName: variant.variant_name,
+      };
+
+      // Only add if this product ID hasn't been added yet
+      if (!productMap.has(product.id)) {
+        productMap.set(product.id, productData);
+      }
+    });
+
+    return Array.from(productMap.values());
+  })();
 
   if (loading) {
     return (
