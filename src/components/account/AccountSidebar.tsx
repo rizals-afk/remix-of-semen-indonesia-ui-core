@@ -52,7 +52,7 @@ const GROUPS: MenuGroup[] = [
   {
     title: "Dompet Saya",
     items: [
-      { to: "/checkout/voucher", label: "Voucher", icon: Ticket },
+      { to: "/akun/voucher", label: "Voucher", icon: Ticket },
     ],
   },
 ];

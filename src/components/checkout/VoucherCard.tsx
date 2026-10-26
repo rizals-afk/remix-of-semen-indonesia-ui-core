@@ -38,7 +38,11 @@ export function VoucherCard({ voucher, selected, disabled, onSelect }: VoucherCa
           <span className="text-muted-foreground">Berakhir {voucher.expiresAt}</span>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          Hemat hingga <span className="font-semibold text-foreground">{formatRupiah(voucher.discount)}</span>
+          {voucher.type === "discount" ? (
+            <>Diskon <span className="font-semibold text-foreground">{voucher.discount}%</span></>
+          ) : (
+            <>Hemat hingga <span className="font-semibold text-foreground">{formatRupiah(voucher.discount)}</span></>
+          )}
         </p>
       </div>
     </button>
