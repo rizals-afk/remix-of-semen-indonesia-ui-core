@@ -1,5 +1,34 @@
 import { apiFetch } from "../api";
 
+export interface VoucherLine {
+  id: number;
+  trx_id: number;
+  voucher_id: number;
+  amount: number;
+  trx_line_id: number;
+  voucher?: {
+    id: number;
+    name: string;
+    description: string;
+    code: string;
+    valid_start: string;
+    valid_end: string;
+    quota_promo: number;
+    type: string;
+    max_discount: string;
+    discount_amount: string | null;
+    discount_percentage: string;
+    min_purchase: string;
+    apply_on: string;
+    apply_on_id: string | null;
+    created_at: string;
+    updated_at: string;
+    discount_type: string;
+    branch_id: number;
+    is_claim: boolean;
+  };
+}
+
 export interface TrxLine {
   id?: number;
   trx_line_id?: number;
@@ -73,6 +102,7 @@ export interface Trx {
   retur_additional_reason?: string;
   retur_type?: "barang" | "dana";
   lines: TrxLine[];
+  voucher_lines?: VoucherLine[];
   payments?: Array<{
     id: number;
     code: string;
@@ -167,6 +197,7 @@ export interface BulkTrxItem {
   customer_location_phone?: string;
   customer_location_lat?: number;
   customer_location_long?: number;
+  voucher_ids?: number[];
   lines: TrxLine[];
 }
 
@@ -300,6 +331,75 @@ export interface CreateReviewRequest {
 
 export async function createReview(data: CreateReviewRequest): Promise<unknown> {
   return apiFetch<unknown>("/trx-reviews", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export interface CalculateLineDiscount {
+  product_id: number;
+  product_variant_id: number;
+  discount: number;
+}
+
+export interface CalculateVoucherDetail {
+  voucher_id: number;
+  voucher_code: string;
+  discount: number;
+  line_discounts: CalculateLineDiscount[];
+}
+
+export interface CalculateRequest {
+  customer_id?: number;
+  customer_location_address: string;
+  customer_location_phone: string;
+  customer_location_name: string;
+  customer_location_city: string;
+  customer_location_postal_code: string;
+  customer_location_lat: number;
+  customer_location_long: number;
+  doc_type: string;
+  trx_type: "order";
+  subtotal: number;
+  shipping_cost: number;
+  total: number;
+  branch_id: number;
+  shipping_address: string;
+  shipping_phone: string;
+  shipping_method: string;
+  shipping_type?: string;
+  email?: string;
+  is_billing_sap?: boolean;
+  is_post_payment?: boolean;
+  notes?: string;
+  voucher_ids?: number[];
+  lines: Array<{
+    product_id: number;
+    product_variant_id: number;
+    price: number;
+    qty: number;
+    subtotal: number;
+    tonase: number;
+  }>;
+}
+
+export interface CalculateResponse {
+  subtotal: number;
+  shipping_cost: number;
+  total_discount: number;
+  total: number;
+  lines: Array<{
+    product_id: number;
+    product_variant_id: number;
+    price: number;
+    qty: number;
+    subtotal: number;
+  }>;
+  voucher_details: CalculateVoucherDetail[];
+}
+
+export async function calculateTrx(data: CalculateRequest): Promise<CalculateResponse> {
+  return apiFetch<CalculateResponse>("/trx/calculate", {
     method: "POST",
     body: JSON.stringify(data),
   });

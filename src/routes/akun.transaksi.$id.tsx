@@ -287,29 +287,63 @@ function OrderDetailPage() {
           <span className="text-sm font-semibold text-primary">Selesai</span>
         </div>
         <ul className="px-5 py-4">
-          {currentTrx.lines.map((line, idx) => (
-            <li key={`${line.product_id}-${line.product_variant_id}-${idx}`} className="flex items-center gap-4 py-2">
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
-                <img
-                  src={line.product_variant?.media?.[0]?.url || line.product?.photo || "/placeholder.png"}
-                  alt={line.product?.name || "Produk"}
-                  className="h-full w-full object-contain p-1"
-                  loading="lazy"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="line-clamp-1 text-sm font-bold text-foreground">{line.product?.name || "Produk"}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{line.product_variant?.variant_name || ""}</p>
-                <p className="mt-1 text-sm font-bold text-foreground">{formatRupiah(typeof line.price === 'string' ? parseFloat(line.price) : line.price)}</p>
-              </div>
-              <p className="text-right text-sm text-muted-foreground">x{(typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty).toLocaleString('id-ID')}</p>
-            </li>
-          ))}
+          {currentTrx.lines.map((line, idx) => {
+            // Find voucher discount for this line
+            const lineVoucher = currentTrx.voucher_lines?.find(
+              (vl) => vl.trx_line_id === line.id || vl.trx_line_id === line.trx_line_id
+            );
+            const lineId = line.id || line.trx_line_id;
+            const qty = typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty;
+            const price = typeof line.price === 'string' ? parseFloat(line.price) : line.price;
+
+            // Calculate unit discount from total voucher amount
+            const unitDiscount = lineVoucher ? (typeof lineVoucher.amount === 'string' ? parseFloat(lineVoucher.amount) : lineVoucher.amount) / qty : 0;
+            const discountedPrice = price - unitDiscount;
+
+            return (
+              <li key={`${line.product_id}-${line.product_variant_id}-${idx}`} className="flex items-center gap-4 py-2">
+                <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                  <img
+                    src={line.product_variant?.media?.[0]?.url || line.product?.photo || "/placeholder.png"}
+                    alt={line.product?.name || "Produk"}
+                    className="h-full w-full object-contain p-1"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-1 text-sm font-bold text-foreground">{line.product?.name || "Produk"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{line.product_variant?.variant_name || ""}</p>
+                  {unitDiscount > 0 ? (
+                    <div className="mt-1">
+                      <p className="text-xs text-muted-foreground line-through">{formatRupiah(price)}</p>
+                      <p className="text-sm font-bold text-accent">{formatRupiah(discountedPrice)}</p>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm font-bold text-foreground">{formatRupiah(price)}</p>
+                  )}
+                </div>
+                <p className="text-right text-sm text-muted-foreground">x{qty.toLocaleString('id-ID')}</p>
+              </li>
+            );
+          })}
         </ul>
         <div className="grid gap-2 border-t border-border px-5 py-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Total Pesanan:</span>
-            <span className="font-bold text-accent">{formatRupiah(typeof currentTrx.total === 'string' ? parseFloat(currentTrx.total) : currentTrx.total)}</span>
+            <span className="font-bold text-accent">
+              {formatRupiah(
+                currentTrx.lines.reduce((sum, line) => {
+                  const lineVoucher = currentTrx.voucher_lines?.find(
+                    (vl) => vl.trx_line_id === line.id || vl.trx_line_id === line.trx_line_id
+                  );
+                  const qty = typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty;
+                  const price = typeof line.price === 'string' ? parseFloat(line.price) : line.price;
+                  const unitDiscount = lineVoucher ? (typeof lineVoucher.amount === 'string' ? parseFloat(lineVoucher.amount) : lineVoucher.amount) / qty : 0;
+                  const discountedPrice = price - unitDiscount;
+                  return sum + (discountedPrice * qty);
+                }, 0)
+              )}
+            </span>
           </div>
         </div>
       </section>
@@ -334,6 +368,13 @@ function OrderDetailPage() {
             <Row label="Tipe Transaksi" value={currentTrx.trx_type} />
             <Row label="Subtotal Pesanan" value={formatRupiah(typeof currentTrx.subtotal === 'string' ? parseFloat(currentTrx.subtotal) : currentTrx.subtotal)} />
             <Row label="Biaya Pengiriman" value={formatRupiah(typeof currentTrx.shipping_cost === 'string' ? parseFloat(currentTrx.shipping_cost) : currentTrx.shipping_cost)} />
+            {currentTrx.voucher_lines && currentTrx.voucher_lines.length > 0 && (
+              <Row
+                label={`Voucher ${currentTrx.voucher_lines[0].voucher?.name || ""}`}
+                value={`- ${formatRupiah(currentTrx.voucher_lines.reduce((sum, vl) => sum + (typeof vl.amount === 'string' ? parseFloat(vl.amount) : vl.amount), 0))}`}
+                accent="success"
+              />
+            )}
           </dl>
           <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
             <span className="text-base font-bold text-foreground">Total Pembayaran</span>
@@ -789,11 +830,11 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, accent }: { label: string; value: string; accent?: "success" }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="font-semibold text-foreground">{value}</dd>
+      <dd className={`font-semibold ${accent === "success" ? "text-success" : "text-foreground"}`}>{value}</dd>
     </div>
   );
 }

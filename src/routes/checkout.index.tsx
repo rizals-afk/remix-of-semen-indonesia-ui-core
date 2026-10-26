@@ -11,7 +11,7 @@ import { useUser } from "@/store/user";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
 import type { CartWarehouseGroup } from "@/store/cart";
-import { createBulkTrx, type BulkTrxRequest } from "@/lib/api/trx";
+import { createBulkTrx, type BulkTrxRequest, calculateTrx, type CalculateRequest } from "@/lib/api/trx";
 import { checkDelivery, type CheckDeliveryRequest } from "@/lib/api/delivery";
 import { deleteCartItem } from "@/lib/api/cart";
 import { toast } from "sonner";
@@ -62,6 +62,7 @@ function CheckoutPage() {
   const [shippingStates, setShippingStates] = useState<Record<string, 'initial' | 'loading' | 'calculated'>>({});
   const [shippingFees, setShippingFees] = useState<Record<string, number>>({});
   const [shippingDistances, setShippingDistances] = useState<Record<string, number>>({});
+  const [isCalculatingDiscount, setIsCalculatingDiscount] = useState(false);
 
   // Fetch fresh user data from server on mount
   useEffect(() => {
@@ -69,7 +70,10 @@ function CheckoutPage() {
       try {
         const freshUserData = await getCurrentUser();
         if (freshUserData && user) {
-          user.setUser(freshUserData);
+          const typedUser = user as { setUser: (data: any) => void };
+          if ('setUser' in typedUser) {
+            typedUser.setUser(freshUserData);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch fresh user data:", error);
@@ -77,22 +81,130 @@ function CheckoutPage() {
       }
     };
 
-    if (user && user.isAuthenticated) {
+    if (user?.isAuthenticated) {
       fetchUserData();
     }
-  }, [user, user.isAuthenticated, user.setUser]);
+  }, [user?.isAuthenticated]);
 
   // Use buyNowItem if set, otherwise use cart groups
   const groups = checkout.buyNowItem
     ? [createGroupFromBuyNowItem(checkout.buyNowItem)]
     : cart.selectedGroups;
 
+  // Calculate discounts for each warehouse when voucher, shipping method, or address changes
+  useEffect(() => {
+    const calculateDiscounts = async () => {
+      if (!checkout.voucher || !customerLocation.selectedLocation) {
+        checkout.clearCalculatedDiscounts();
+        return;
+      }
+
+      const selectedLocation = customerLocation.selectedLocation;
+      const userId = user?.id as number | undefined;
+      const voucherId = checkout.voucher.id;
+
+      setIsCalculatingDiscount(true);
+
+      try {
+        // Calculate for each warehouse group
+        const calculations = await Promise.all(
+          groups.map(async (group) => {
+            const firstItemBranchId = group.selectedItems[0]?.branch_id;
+            const branchId = checkout.buyNowItem
+              ? parseInt(checkout.buyNowItem.branchId)
+              : (typeof firstItemBranchId === 'number' ? firstItemBranchId : 0);
+
+            if (!branchId) {
+              console.warn(`No branch_id for warehouse ${group.warehouse}`);
+              return null;
+            }
+
+            const request: CalculateRequest = {
+              customer_id: userId,
+              customer_location_address: selectedLocation.address,
+              customer_location_phone: selectedLocation.phone,
+              customer_location_name: selectedLocation.name,
+              customer_location_city: selectedLocation.city || "",
+              customer_location_postal_code: selectedLocation.postal_code || "",
+              customer_location_lat: selectedLocation.lat || 0,
+              customer_location_long: selectedLocation.long || 0,
+              doc_type: "ZEO1",
+              trx_type: "order",
+              subtotal: group.subTotal,
+              shipping_cost: shippingFees[group.warehouse] || 0,
+              total: group.subTotal + (shippingFees[group.warehouse] || 0),
+              branch_id: branchId,
+              shipping_address: selectedLocation.address,
+              shipping_phone: selectedLocation.phone,
+              shipping_method: checkout.mode === "dikirim" ? "FRC" : "LOC",
+              notes: checkout.notes[group.warehouse] || "",
+              voucher_ids: [parseInt(voucherId)],
+              lines: group.selectedItems.map((item) => ({
+                product_id: checkout.buyNowItem
+                  ? parseInt(checkout.buyNowItem.productId)
+                  : (item.product_id || 0),
+                product_variant_id: checkout.buyNowItem
+                  ? parseInt(checkout.buyNowItem.variantId)
+                  : (item.variant_id || 0),
+                price: item.price,
+                qty: item.qty,
+                subtotal: item.price * item.qty,
+                tonase: (item.weightKg || 0) * item.qty,
+              })),
+            };
+
+            const response = await calculateTrx(request);
+
+            // Map line discounts to key format: "productId_variantId"
+            const lineDiscountsMap: Record<string, number> = {};
+            response.voucher_details.forEach((voucherDetail) => {
+              voucherDetail.line_discounts.forEach((lineDiscount) => {
+                const key = `${lineDiscount.product_id}_${lineDiscount.product_variant_id}`;
+                lineDiscountsMap[key] = lineDiscount.discount;
+              });
+            });
+
+            return {
+              warehouse: group.warehouse,
+              totalDiscount: response.total_discount,
+              lineDiscounts: lineDiscountsMap,
+            };
+          })
+        );
+
+        // Store calculated discounts
+        calculations.forEach((calc) => {
+          if (calc) {
+            checkout.setCalculatedDiscount(calc.warehouse, {
+              totalDiscount: calc.totalDiscount,
+              lineDiscounts: calc.lineDiscounts,
+            });
+          }
+        });
+      } catch (error) {
+        console.error("Failed to calculate discounts:", error);
+        // Clear discounts on error, fallback to frontend calculation
+        checkout.clearCalculatedDiscounts();
+      } finally {
+        setIsCalculatingDiscount(false);
+      }
+    };
+
+    calculateDiscounts();
+  }, [checkout.voucher?.id, checkout.mode, customerLocation.selectedLocation?.address, groups.length, user?.id]);
+
   const subtotalPesanan = groups.reduce((s, g) => s + g.subTotal, 0);
   const totalTonase = groups.reduce((s, g) => s + g.tonase, 0);
   // Pre-verification shipping estimate: per-group fee, only when "dikirim" and not COD.
   const showShipping = checkout.mode === "dikirim";
   const subtotalShipping = showShipping ? Object.values(shippingFees).reduce((sum, fee) => sum + fee, 0) : 0;
-  const discount = checkout.voucher?.discount ?? 0;
+
+  // Calculate total discount from calculated discounts
+  const totalCalculatedDiscount = Object.values(checkout.calculatedDiscounts).reduce(
+    (sum, d) => sum + d.totalDiscount,
+    0
+  );
+  const discount = totalCalculatedDiscount || (checkout.voucher?.discount ?? 0);
   const total = subtotalPesanan + subtotalShipping - discount;
 
   const submit = async () => {
@@ -153,10 +265,10 @@ function CheckoutPage() {
         });
       });
 
-      // Calculate original totals for validation
+      // Calculate original totals for validation (pre-discount for comparison with backend request)
       const originalSubtotal = subtotalPesanan;
       const originalShipping = subtotalShipping;
-      const originalTotal = total;
+      const originalTotal = subtotalPesanan + subtotalShipping; // Compare pre-discount totals
 
       // Build bulk transaction items
       const bulkItems = Array.from(warehouseDivisionGroups.entries()).map(([key, items]) => {
@@ -227,6 +339,7 @@ function CheckoutPage() {
           customer_location_postal_code: selectedLocation.postal_code || "",
           customer_location_lat: selectedLocation.lat || 0,
           customer_location_long: selectedLocation.long || 0,
+          voucher_ids: checkout.voucher ? [parseInt(checkout.voucher.id)] : undefined,
           lines: lines,
         };
       });
@@ -264,12 +377,12 @@ function CheckoutPage() {
       const codes = response.data.map((trx) => trx.code);
       checkout.setTransactionCodes(codes);
 
-      // Save order totals for verifikasi page
+      // Save order totals for verifikasi page (with discount for display)
       checkout.setOrderTotals({
         subtotal: originalSubtotal,
         shipping: originalShipping,
         discount: discount,
-        total: originalTotal,
+        total: subtotalPesanan + subtotalShipping - discount, // Final total with discount
       });
 
       console.log("[Checkout] Order created successfully");
@@ -331,19 +444,6 @@ function CheckoutPage() {
       toast.error("Gagal membuat pesanan. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleQtyChange = (itemId: string, newQty: number) => {
-    if (checkout.buyNowItem) {
-      // Update buyNowItem quantity
-      checkout.setBuyNowItem({
-        ...checkout.buyNowItem,
-        qty: newQty,
-      });
-    } else {
-      // Update cart item quantity
-      cart.updateQty(itemId, newQty);
     }
   };
 
@@ -508,7 +608,7 @@ function CheckoutPage() {
                 note={checkout.notes[g.warehouse] ?? ""}
                 onNoteChange={(t) => checkout.setNote(g.warehouse, t)}
                 shippingFee={showShipping && shippingStates[g.warehouse] === 'calculated' ? shippingFees[g.warehouse] : undefined}
-                onQtyChange={handleQtyChange}
+                readOnly={true}
                 address={g.warehouse}
                 etaLabel={shippingStates[g.warehouse] === 'calculated' ? `${shippingDistances[g.warehouse]?.toFixed(1)} km` : ""}
                 onViewMap={() => handleViewMap(g)}
@@ -516,6 +616,7 @@ function CheckoutPage() {
                 onCalculateShipping={() => handleCalculateShipping(g)}
                 onChangeShipping={() => handleChangeShipping(g.warehouse)}
                 hideShipping={checkout.mode === "diambil"}
+                calculatedDiscount={checkout.calculatedDiscounts[g.warehouse]}
               />
             ))}
 
