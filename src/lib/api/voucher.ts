@@ -20,6 +20,7 @@ export interface Voucher {
   discount_type: string;
   branch_id: number | null;
   is_claim: boolean;
+  claimed: boolean;
   voucher_apply_lines: VoucherApplyLine[];
   branch: Branch | null;
 }
@@ -114,14 +115,18 @@ export interface FetchVouchersParams {
   per_page?: number;
   type?: string;
   search?: string;
+  sort_by?: string;
+  sort_order?: string;
 }
 
 export async function fetchVouchers(params: FetchVouchersParams = {}): Promise<VoucherListResponse> {
-  const { page = 1, per_page = 15, type = "voucher", search } = params;
+  const { page = 1, per_page = 15, type = "voucher", search, sort_by = "created_at", sort_order = "desc" } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
     type,
+    sort_by,
+    sort_order,
   });
 
   if (search) {
@@ -129,4 +134,10 @@ export async function fetchVouchers(params: FetchVouchersParams = {}): Promise<V
   }
 
   return apiFetch<VoucherListResponse>(`/vouchers?${queryParams.toString()}`);
+}
+
+export async function claimVoucher(voucherId: number): Promise<Voucher> {
+  return apiFetch<Voucher>(`/vouchers/${voucherId}/claim`, {
+    method: "POST",
+  });
 }

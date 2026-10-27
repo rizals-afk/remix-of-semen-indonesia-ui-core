@@ -7,6 +7,10 @@ interface VoucherCardProps {
   selected?: boolean;
   disabled?: boolean;
   onSelect?: () => void;
+  isClaimed?: boolean;
+  isClaimable?: boolean;
+  onClaim?: () => void;
+  isClaiming?: boolean;
 }
 
 const TYPE_COLORS: Record<Voucher["type"], string> = {
@@ -16,17 +20,9 @@ const TYPE_COLORS: Record<Voucher["type"], string> = {
 };
 
 /** Reusable voucher tile for the voucher picker. */
-export function VoucherCard({ voucher, selected, disabled, onSelect }: VoucherCardProps) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onSelect}
-      className={
-        "flex w-full items-stretch gap-0 overflow-hidden rounded-xl border text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 " +
-        (selected ? "border-primary bg-primary-soft/30" : "border-border bg-card hover:border-primary/60")
-      }
-    >
+export function VoucherCard({ voucher, selected, disabled, onSelect, isClaimed, isClaimable, onClaim, isClaiming }: VoucherCardProps) {
+  const content = (
+    <>
       <div className={"grid w-24 shrink-0 place-items-center " + TYPE_COLORS[voucher.type]}>
         <Ticket className="h-7 w-7" />
       </div>
@@ -44,7 +40,52 @@ export function VoucherCard({ voucher, selected, disabled, onSelect }: VoucherCa
             <>Hemat hingga <span className="font-semibold text-foreground">{formatRupiah(voucher.discount)}</span></>
           )}
         </p>
+        {onClaim && isClaimable && !isClaimed && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClaim();
+            }}
+            disabled={isClaiming}
+            className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isClaiming ? "Memproses..." : "Pakai"}
+          </button>
+        )}
+        {isClaimed && (
+          <span className="mt-2 inline-block rounded-md bg-success/15 px-3 py-1.5 text-xs font-semibold text-success">
+            Sudah Dipakai
+          </span>
+        )}
       </div>
-    </button>
+    </>
+  );
+
+  if (onSelect) {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onSelect}
+        className={
+          "flex w-full items-stretch gap-0 overflow-hidden rounded-xl border text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 " +
+          (selected ? "border-primary bg-primary-soft/30" : "border-border bg-card hover:border-primary/60")
+        }
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className={
+        "flex w-full items-stretch gap-0 overflow-hidden rounded-xl border text-left transition-colors " +
+        (selected ? "border-primary bg-primary-soft/30" : "border-border bg-card")
+      }
+    >
+      {content}
+    </div>
   );
 }

@@ -29,6 +29,10 @@ export interface Voucher {
   minSpend: number;
   expiresAt: string;
   type: "shipping" | "discount" | "cashback";
+  isClaimed?: boolean;
+  isClaimable?: boolean;
+  validEnd?: string | null;
+  apiVoucher?: any;
 }
 
 export interface PaymentMethod {
