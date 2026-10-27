@@ -56,6 +56,8 @@ function TransactionsPage() {
         per_page: 10,
         status: TAB_TO_STATUS[tab],
         search: searchQuery,
+        sort_by: "created_at",
+        sort_order: "desc",
       };
 
       const response = await fetchTrx(params);

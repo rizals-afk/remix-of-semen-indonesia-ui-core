@@ -135,6 +135,8 @@ export interface FetchTrxParams {
   per_page?: number;
   search?: string;
   status?: string;
+  sort_by?: string;
+  sort_order?: string;
 }
 
 export interface CreateTrxRequest {
@@ -230,16 +232,18 @@ export interface TrxResponse {
 }
 
 export async function fetchTrx(params: FetchTrxParams = {}): Promise<TrxListResponse> {
-  const { page = 1, per_page = 10, search = "", status = "" } = params;
+  const { page = 1, per_page = 10, search = "", status = "", sort_by = "created_at", sort_order = "desc" } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
+    sort_by,
+    sort_order,
   });
-  
+
   if (search) {
     queryParams.append("search", search);
   }
-  
+
   if (status) {
     queryParams.append("status", status);
   }
