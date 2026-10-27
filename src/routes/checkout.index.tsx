@@ -181,10 +181,28 @@ function CheckoutPage() {
             });
           }
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to calculate discounts:", error);
-        // Clear discounts on error, fallback to frontend calculation
-        checkout.clearCalculatedDiscounts();
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || error?.message || error?.toString() || "";
+
+        // If there's an error message, show it to the user
+        if (errorMessage) {
+          // Check if error is related to voucher validation
+          if (errorMessage.toLowerCase().includes("voucher") || errorMessage.toLowerCase().includes("not valid")) {
+            // Clear the voucher if it's invalid
+            checkout.setVoucher(null);
+            toast.error(errorMessage);
+          } else {
+            // For other errors, just clear discounts and show the message
+            checkout.clearCalculatedDiscounts();
+            toast.error(errorMessage);
+          }
+        } else {
+          // Fallback to clearing discounts
+          checkout.clearCalculatedDiscounts();
+        }
       } finally {
         setIsCalculatingDiscount(false);
       }

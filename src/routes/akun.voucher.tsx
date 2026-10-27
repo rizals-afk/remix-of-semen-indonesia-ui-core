@@ -72,10 +72,10 @@ function AccountVoucherPage() {
       const response = await fetchVouchers({
         per_page: 15,
         page: pageNum,
-        type: "voucher",
         search: searchQuery || undefined,
         sort_by: "created_at",
         sort_order: "desc",
+        applicable: true,
       });
 
       // Filter out expired vouchers

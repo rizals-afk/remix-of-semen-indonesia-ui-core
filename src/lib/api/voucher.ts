@@ -113,20 +113,20 @@ export interface VoucherListResponse {
 export interface FetchVouchersParams {
   page?: number;
   per_page?: number;
-  type?: string;
   search?: string;
   sort_by?: string;
   sort_order?: string;
+  applicable?: boolean;
 }
 
 export async function fetchVouchers(params: FetchVouchersParams = {}): Promise<VoucherListResponse> {
-  const { page = 1, per_page = 15, type = "voucher", search, sort_by = "created_at", sort_order = "desc" } = params;
+  const { page = 1, per_page = 15, search, sort_by = "created_at", sort_order = "desc", applicable = true } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
-    type,
     sort_by,
     sort_order,
+    applicable: applicable.toString(),
   });
 
   if (search) {

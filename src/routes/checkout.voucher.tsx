@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { VoucherCard } from "@/components/checkout/VoucherCard";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -7,6 +7,8 @@ import { VOUCHERS } from "@/data/shopping";
 import { useCart } from "@/store/cart";
 import { useCheckout } from "@/store/checkout";
 import { fetchVouchers, type Voucher as ApiVoucher } from "@/lib/api/voucher";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/checkout/voucher")({
   head: () => ({ meta: [{ title: "Pilih Voucher — BahanMaterial.com" }] }),
@@ -19,69 +21,120 @@ function VoucherPickerPage() {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(checkout.voucher?.id ?? null);
   const [code, setCode] = useState("");
-  const [vouchers, setVouchers] = useState<typeof VOUCHERS>(VOUCHERS);
+  const [vouchers, setVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch vouchers from API
-  useEffect(() => {
-    const loadVouchers = async () => {
-      try {
-        const response = await fetchVouchers({ per_page: 15, page: 1, type: "voucher", search: searchQuery });
-        console.log("Vouchers API response:", response);
+  const mapApiVoucherToVoucher = (apiVoucher: ApiVoucher) => {
+    // Calculate discount value
+    let discount = 0;
+    if (apiVoucher.discount_amount) {
+      discount = parseFloat(apiVoucher.discount_amount);
+    } else if (apiVoucher.discount_percentage) {
+      discount = parseFloat(apiVoucher.discount_percentage);
+    }
 
-        // Map API vouchers to frontend format
-        const mappedVouchers = response.data.map((apiVoucher: ApiVoucher) => {
-          // Calculate discount value
-          let discount = 0;
-          if (apiVoucher.discount_amount) {
-            discount = parseFloat(apiVoucher.discount_amount);
-          } else if (apiVoucher.discount_percentage) {
-            // For percentage, we'll show the percentage value (this might need adjustment based on requirements)
-            discount = parseFloat(apiVoucher.discount_percentage);
-          }
+    // Format expiry date
+    let expiresAt = "Tidak ada batas";
+    if (apiVoucher.valid_end) {
+      const date = new Date(apiVoucher.valid_end);
+      expiresAt = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
 
-          // Format expiry date
-          let expiresAt = "Tidak ada batas";
-          if (apiVoucher.valid_end) {
-            const date = new Date(apiVoucher.valid_end);
-            expiresAt = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-          }
+    // Map discount_type to frontend type
+    let type: "shipping" | "discount" | "cashback" = "discount";
+    if (apiVoucher.discount_type === "percentage") {
+      type = "discount";
+    } else if (apiVoucher.discount_type === "amount" || apiVoucher.discount_type === "fixed") {
+      type = "cashback";
+    }
 
-          // Map discount_type to frontend type
-          let type: "shipping" | "discount" | "cashback" = "discount";
-          if (apiVoucher.discount_type === "percentage") {
-            type = "discount";
-          } else if (apiVoucher.discount_type === "amount" || apiVoucher.discount_type === "fixed") {
-            type = "cashback";
-          }
-
-          return {
-            id: String(apiVoucher.id),
-            code: apiVoucher.code,
-            title: apiVoucher.name,
-            description: apiVoucher.description || "",
-            discount: discount,
-            minSpend: parseFloat(apiVoucher.min_purchase),
-            expiresAt: expiresAt,
-            type: type,
-          };
-        });
-
-        setVouchers(mappedVouchers);
-      } catch (error) {
-        console.error("Failed to load vouchers:", error);
-        // Fallback to static data
-        setVouchers(VOUCHERS);
-      } finally {
-        setLoading(false);
-      }
+    return {
+      id: String(apiVoucher.id),
+      code: apiVoucher.code,
+      title: apiVoucher.name,
+      description: apiVoucher.description || "",
+      discount: discount,
+      minSpend: parseFloat(apiVoucher.min_purchase),
+      expiresAt: expiresAt,
+      type: type,
+      isClaimable: apiVoucher.is_claim,
+      isClaimed: apiVoucher.claimed,
+      validEnd: apiVoucher.valid_end,
+      apiVoucher: apiVoucher,
     };
+  };
 
-    loadVouchers();
+  const loadVouchers = useCallback(async (pageNum: number = 1, isLoadMore: boolean = false) => {
+    if (isLoadMore) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      const response = await fetchVouchers({
+        per_page: 15,
+        page: pageNum,
+        search: searchQuery || undefined,
+        sort_by: "created_at",
+        sort_order: "desc",
+        applicable: true,
+      });
+
+      // Filter out expired vouchers
+      const now = new Date();
+      const activeVouchers = response.data.filter((apiVoucher: ApiVoucher) => {
+        if (!apiVoucher.valid_end) return true;
+        const validEnd = new Date(apiVoucher.valid_end);
+        return validEnd >= now;
+      });
+
+      // Map API vouchers to frontend format
+      const mappedVouchers = activeVouchers.map(mapApiVoucherToVoucher);
+
+      if (isLoadMore) {
+        setVouchers((prev) => [...prev, ...mappedVouchers]);
+      } else {
+        setVouchers(mappedVouchers);
+      }
+
+      setHasMore(response.next_page_url !== null);
+      setPage(pageNum);
+    } catch (error) {
+      console.error("Failed to load vouchers:", error);
+      if (!isLoadMore) {
+        // Fallback to static data only on initial load
+        setVouchers(VOUCHERS.map((v) => ({ ...v, isClaimed: false, isClaimable: false, validEnd: null, apiVoucher: null as any })) as any);
+      }
+      toast.error("Gagal memuat voucher");
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
   }, [searchQuery]);
 
-  const eligible = (v: (typeof VOUCHERS)[number]) => cart.subTotal >= v.minSpend;
+  // Fetch vouchers on mount
+  useEffect(() => {
+    loadVouchers(1, false);
+  }, [loadVouchers]);
+
+  const handleSearch = () => {
+    setPage(1);
+    setHasMore(true);
+    loadVouchers(1, false);
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      loadVouchers(page + 1, true);
+    }
+  };
+
+  const eligible = (v: any) => cart.subTotal >= v.minSpend;
 
   const confirm = () => {
     const v = vouchers.find((x) => x.id === selectedId) ?? null;
@@ -103,19 +156,16 @@ function VoucherPickerPage() {
 
         <div className="mt-4 flex gap-2">
           <input
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="Masukkan kode voucher"
-            className="flex-1 rounded-md border border-border bg-background px-3 py-2.5 text-sm uppercase focus:border-primary focus:outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari voucher..."
+            className="flex-1 rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
           />
           <button
-            onClick={() => {
-              const v = vouchers.find((x) => x.code === code);
-              if (v && eligible(v)) setSelectedId(v.id);
-            }}
+            onClick={handleSearch}
             className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           >
-            Pakai
+            Cari
           </button>
         </div>
 
@@ -125,22 +175,43 @@ function VoucherPickerPage() {
               <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
             ))}
           </div>
+        ) : vouchers.length === 0 ? (
+          <div className="mt-5 text-center text-sm text-muted-foreground">
+            {searchQuery ? "Tidak ada voucher yang cocok dengan pencarian Anda" : "Tidak ada voucher tersedia"}
+          </div>
         ) : (
-          <div className="mt-5 space-y-3">
-            {vouchers.length > 0 ? (
-              vouchers.map((v) => (
+          <>
+            <div className="mt-5 space-y-3">
+              {vouchers.map((v) => (
                 <VoucherCard
                   key={v.id}
                   voucher={v}
                   selected={v.id === selectedId}
                   disabled={!eligible(v)}
                   onSelect={() => setSelectedId(v.id)}
+                  isClaimed={v.isClaimed}
                 />
-              ))
-            ) : (
-              <p className="text-center text-sm text-muted-foreground">Tidak ada voucher tersedia</p>
+              ))}
+            </div>
+            {hasMore && (
+              <div className="mt-5 flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="rounded-md border-2 border-primary px-8 py-2.5 text-sm font-bold text-primary hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Memuat...
+                    </>
+                  ) : (
+                    "Muat Lebih Banyak"
+                  )}
+                </button>
+              </div>
             )}
-          </div>
+          </>
         )}
 
         <div className="mt-6 flex justify-end gap-3">
