@@ -6,7 +6,6 @@ export interface CreatePaymentRequest {
   payment_method: string;
   payment_date: string;
   total: string;
-  status: string;
   reference_id: string;
   reference_type: string;
   transaction_id?: string;
