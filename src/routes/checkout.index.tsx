@@ -103,6 +103,9 @@ function CheckoutPage() {
       const userId = user?.id as number | undefined;
       const voucherId = checkout.voucher.id;
 
+      console.log("[Checkout] Calculating discount with voucher ID:", voucherId);
+      console.log("[Checkout] Full voucher object:", checkout.voucher);
+
       setIsCalculatingDiscount(true);
 
       try {
