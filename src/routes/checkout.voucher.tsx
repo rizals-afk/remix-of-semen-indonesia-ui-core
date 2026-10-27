@@ -134,7 +134,13 @@ function VoucherPickerPage() {
     }
   };
 
-  const eligible = (v: any) => cart.subTotal >= v.minSpend;
+  const eligible = (v: any) => {
+    // Calculate total based on flow: buy now or cart
+    const total = checkout.buyNowItem
+      ? checkout.buyNowItem.price * checkout.buyNowItem.qty
+      : cart.subTotal;
+    return total >= v.minSpend;
+  };
 
   const confirm = () => {
     const v = vouchers.find((x) => x.id === selectedId) ?? null;
