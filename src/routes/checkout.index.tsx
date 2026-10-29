@@ -94,17 +94,18 @@ function CheckoutPage() {
   // Calculate discounts for each warehouse when voucher, shipping method, or address changes
   useEffect(() => {
     const calculateDiscounts = async () => {
-      if (!checkout.voucher || !customerLocation.selectedLocation) {
+      if (checkout.vouchers.length === 0 || !customerLocation.selectedLocation) {
         checkout.clearCalculatedDiscounts();
         return;
       }
 
       const selectedLocation = customerLocation.selectedLocation;
       const userId = user?.id as number | undefined;
-      const voucherId = checkout.voucher.id;
+      // Combine all selected voucher and promo IDs
+      const voucherIds = checkout.vouchers.map((v) => parseInt(v.id));
 
-      console.log("[Checkout] Calculating discount with voucher ID:", voucherId);
-      console.log("[Checkout] Full voucher object:", checkout.voucher);
+      console.log("[Checkout] Calculating discount with voucher IDs:", voucherIds);
+      console.log("[Checkout] Full vouchers object:", checkout.vouchers);
 
       setIsCalculatingDiscount(true);
 
@@ -141,7 +142,7 @@ function CheckoutPage() {
               shipping_phone: selectedLocation.phone,
               shipping_method: checkout.mode === "dikirim" ? "FRC" : "LOC",
               notes: checkout.notes[group.warehouse] || "",
-              voucher_ids: [parseInt(voucherId)],
+              voucher_ids: voucherIds,
               lines: group.selectedItems.map((item) => ({
                 product_id: checkout.buyNowItem
                   ? parseInt(checkout.buyNowItem.productId)
@@ -194,8 +195,8 @@ function CheckoutPage() {
         if (errorMessage) {
           // Check if error is related to voucher validation
           if (errorMessage.toLowerCase().includes("voucher") || errorMessage.toLowerCase().includes("not valid")) {
-            // Clear the voucher if it's invalid
-            checkout.setVoucher(null);
+            // Clear the vouchers if it's invalid
+            checkout.setVouchers([]);
             toast.error(errorMessage);
           } else {
             // For other errors, just clear discounts and show the message
@@ -212,7 +213,7 @@ function CheckoutPage() {
     };
 
     calculateDiscounts();
-  }, [checkout.voucher?.id, checkout.mode, customerLocation.selectedLocation?.address, groups.length, user?.id]);
+  }, [checkout.vouchers.map((v) => v.id).join(","), checkout.mode, customerLocation.selectedLocation?.address, groups.length, user?.id]);
 
   const subtotalPesanan = groups.reduce((s, g) => s + g.subTotal, 0);
   const totalTonase = groups.reduce((s, g) => s + g.tonase, 0);
@@ -225,7 +226,7 @@ function CheckoutPage() {
     (sum, d) => sum + d.totalDiscount,
     0
   );
-  const discount = totalCalculatedDiscount || (checkout.voucher?.discount ?? 0);
+  const discount = totalCalculatedDiscount || checkout.vouchers.reduce((sum, v) => sum + (v.discount ?? 0), 0);
   const total = subtotalPesanan + subtotalShipping - discount;
 
   const submit = async () => {
@@ -360,7 +361,8 @@ function CheckoutPage() {
           customer_location_postal_code: selectedLocation.postal_code || "",
           customer_location_lat: selectedLocation.lat || 0,
           customer_location_long: selectedLocation.long || 0,
-          voucher_ids: checkout.voucher ? [parseInt(checkout.voucher.id)] : undefined,
+          // Combine all selected voucher and promo IDs
+          voucher_ids: checkout.vouchers.length > 0 ? checkout.vouchers.map((v) => parseInt(v.id)) : undefined,
           lines: lines,
         };
       });
@@ -644,6 +646,7 @@ function CheckoutPage() {
             {/* Voucher — below all warehouse cards */}
             <Link
               to="/checkout/voucher"
+              state={{ type: "voucher" } as any}
               className="flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-colors hover:border-primary"
             >
               <div className="flex min-w-0 items-center gap-3">
@@ -653,12 +656,42 @@ function CheckoutPage() {
                 <div className="min-w-0">
                   <p className="text-base font-bold text-foreground">Gunakan Voucher</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {checkout.voucher?.title ?? "Pilih voucher untuk mendapatkan potongan harga"}
+                    {checkout.vouchers.filter((v) => v.backendType === "voucher").length > 0
+                      ? `${checkout.vouchers.filter((v) => v.backendType === "voucher").length} voucher dipilih`
+                      : "Pilih voucher untuk mendapatkan potongan harga"}
                   </p>
                 </div>
               </div>
-              {checkout.voucher ? (
+              {checkout.vouchers.filter((v) => v.backendType === "voucher").length > 0 ? (
                 <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                  <Check className="h-3.5 w-3.5" />
+                </span>
+              ) : (
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              )}
+            </Link>
+
+            {/* Promo — below voucher */}
+            <Link
+              to="/checkout/voucher"
+              state={{ type: "promo" } as any}
+              className="flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm transition-colors hover:border-primary"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+                  <Ticket className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-base font-bold text-foreground">Gunakan Promo</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {checkout.vouchers.filter((v) => v.backendType === "promo").length > 0
+                      ? `${checkout.vouchers.filter((v) => v.backendType === "promo").length} promo dipilih`
+                      : "Pilih promo untuk mendapatkan keuntungan lain"}
+                  </p>
+                </div>
+              </div>
+              {checkout.vouchers.filter((v) => v.backendType === "promo").length > 0 ? (
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
                   <Check className="h-3.5 w-3.5" />
                 </span>
               ) : (
@@ -677,12 +710,15 @@ function CheckoutPage() {
                 {showShipping ? (
                   <Row label="Subtotal Ongkir" value={formatRupiah(subtotalShipping)} />
                 ) : null}
-                {checkout.voucher ? (
-                  <Row
-                    label={checkout.voucher.type === "shipping" ? "Voucher Gratis Ongkir" : `Voucher ${checkout.voucher.title}`}
-                    value={`- ${formatRupiah(discount)}`}
-                    accent="success"
-                  />
+                {checkout.vouchers.length > 0 ? (
+                  checkout.vouchers.map((v) => (
+                    <Row
+                      key={v.id}
+                      label={v.type === "shipping" ? "Voucher Gratis Ongkir" : `Voucher ${v.title}`}
+                      value={`- ${formatRupiah(v.discount ?? 0)}`}
+                      accent="success"
+                    />
+                  ))
                 ) : null}
               </dl>
               <div className="mt-5 flex items-baseline justify-between gap-3 border-t border-border pt-5">

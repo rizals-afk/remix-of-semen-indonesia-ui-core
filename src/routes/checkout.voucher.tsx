@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useLocation } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { VoucherCard } from "@/components/checkout/VoucherCard";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
@@ -8,7 +8,7 @@ import { useCart } from "@/store/cart";
 import { useCheckout } from "@/store/checkout";
 import { fetchVouchers, type Voucher as ApiVoucher } from "@/lib/api/voucher";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 
 export const Route = createFileRoute("/checkout/voucher")({
   head: () => ({ meta: [{ title: "Pilih Voucher — BahanMaterial.com" }] }),
@@ -19,7 +19,10 @@ function VoucherPickerPage() {
   const cart = useCart();
   const checkout = useCheckout();
   const navigate = useNavigate();
-  const [selectedId, setSelectedId] = useState<string | null>(checkout.voucher?.id ?? null);
+  const location = useLocation();
+  const state = location.state as { type?: "voucher" | "promo" } | undefined;
+  const initialTab = state?.type || "voucher";
+  const [selectedIds, setSelectedIds] = useState<string[]>(checkout.vouchers.map((v) => v.id));
   const [code, setCode] = useState("");
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +30,7 @@ function VoucherPickerPage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"voucher" | "promo">(initialTab);
 
   const mapApiVoucherToVoucher = (apiVoucher: ApiVoucher) => {
     // Calculate discount value
@@ -61,6 +65,8 @@ function VoucherPickerPage() {
       minSpend: parseFloat(apiVoucher.min_purchase),
       expiresAt: expiresAt,
       type: type,
+      // Store the backend type (voucher/promo) separately
+      backendType: apiVoucher.type as "voucher" | "promo",
       isClaimable: apiVoucher.is_claim,
       isClaimed: apiVoucher.claimed,
       validEnd: apiVoucher.valid_end,
@@ -83,6 +89,7 @@ function VoucherPickerPage() {
         sort_by: "created_at",
         sort_order: "desc",
         applicable: true,
+        type: activeTab,
       });
 
       // Filter out expired vouchers
@@ -115,9 +122,9 @@ function VoucherPickerPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [searchQuery]);
+  }, [searchQuery, activeTab]);
 
-  // Fetch vouchers on mount
+  // Fetch vouchers on mount and when tab changes
   useEffect(() => {
     loadVouchers(1, false);
   }, [loadVouchers]);
@@ -126,6 +133,12 @@ function VoucherPickerPage() {
     setPage(1);
     setHasMore(true);
     loadVouchers(1, false);
+  };
+
+  const handleTabChange = (tab: "voucher" | "promo") => {
+    setActiveTab(tab);
+    setPage(1);
+    setHasMore(true);
   };
 
   const handleLoadMore = () => {
@@ -142,9 +155,30 @@ function VoucherPickerPage() {
     return total >= v.minSpend;
   };
 
+  const handleSelectVoucher = (v: any) => {
+    if (selectedIds.includes(v.id)) {
+      // Deselect
+      setSelectedIds((prev) => prev.filter((id) => id !== v.id));
+    } else {
+      // Select
+      setSelectedIds((prev) => [...prev, v.id]);
+    }
+  };
+
   const confirm = () => {
-    const v = vouchers.find((x) => x.id === selectedId) ?? null;
-    checkout.setVoucher(v);
+    // Get all selected vouchers from the current checkout state plus newly selected ones
+    const existingVouchers = checkout.vouchers;
+    const newSelectedVouchers = vouchers.filter((v) => selectedIds.includes(v.id));
+
+    // Combine existing vouchers with new selections, avoiding duplicates
+    const allVouchers = [...existingVouchers];
+    newSelectedVouchers.forEach((newV) => {
+      if (!allVouchers.some((v) => v.id === newV.id)) {
+        allVouchers.push(newV);
+      }
+    });
+
+    checkout.setVouchers(allVouchers);
     navigate({ to: "/checkout" });
   };
 
@@ -155,16 +189,42 @@ function VoucherPickerPage() {
           items={[
             { label: "Home", to: "/" },
             { label: "Checkout", to: "/checkout" },
-            { label: "Voucher Saya" },
+            { label: activeTab === "voucher" ? "Voucher Saya" : "Promo Saya" },
           ]}
         />
-        <h1 className="mt-6 text-2xl font-bold text-foreground">Voucher Saya</h1>
+        <h1 className="mt-6 text-2xl font-bold text-foreground">
+          {activeTab === "voucher" ? "Voucher Saya" : "Promo Saya"}
+        </h1>
+
+        {/* Tab buttons */}
+        <div className="mt-4 flex gap-2 border-b border-border">
+          <button
+            onClick={() => handleTabChange("voucher")}
+            className={`px-4 py-2.5 text-sm font-semibold transition-colors ${
+              activeTab === "voucher"
+                ? "border-b-2 border-primary text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Voucher
+          </button>
+          <button
+            onClick={() => handleTabChange("promo")}
+            className={`px-4 py-2.5 text-sm font-semibold transition-colors ${
+              activeTab === "promo"
+                ? "border-b-2 border-primary text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Promo
+          </button>
+        </div>
 
         <div className="mt-4 flex gap-2">
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari voucher..."
+            placeholder={`Cari ${activeTab}...`}
             className="flex-1 rounded-md border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
           />
           <button
@@ -187,14 +247,31 @@ function VoucherPickerPage() {
           </div>
         ) : (
           <>
+            {/* Show selected vouchers summary */}
+            {selectedIds.length > 0 && (
+              <div className="mt-5 rounded-xl bg-primary-soft/50 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-primary">
+                    {selectedIds.length} {activeTab} dipilih
+                  </span>
+                  <button
+                    onClick={() => setSelectedIds([])}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="mt-5 space-y-3">
               {vouchers.map((v) => (
                 <VoucherCard
                   key={v.id}
                   voucher={v}
-                  selected={v.id === selectedId}
+                  selected={selectedIds.includes(v.id)}
                   disabled={!eligible(v)}
-                  onSelect={() => setSelectedId(v.id)}
+                  onSelect={() => handleSelectVoucher(v)}
                   isClaimed={v.isClaimed}
                 />
               ))}
@@ -222,17 +299,17 @@ function VoucherPickerPage() {
 
         <div className="mt-6 flex justify-end gap-3">
           <button
-            onClick={() => { setSelectedId(null); checkout.setVoucher(null); navigate({ to: "/checkout" }); }}
+            onClick={() => { setSelectedIds([]); checkout.setVouchers([]); navigate({ to: "/checkout" }); }}
             className="rounded-md border border-border px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
           >
             Tanpa Voucher
           </button>
           <button
             onClick={confirm}
-            disabled={!selectedId}
+            disabled={selectedIds.length === 0}
             className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
-            Gunakan Voucher
+            Gunakan {selectedIds.length} {activeTab}
           </button>
         </div>
       </div>

@@ -33,7 +33,13 @@ interface CheckoutState {
   setAddress: (a: Address) => void;
   warehouse: Warehouse;
   setWarehouse: (w: Warehouse) => void;
+  vouchers: Voucher[];
+  setVouchers: (v: Voucher[]) => void;
+  addVoucher: (v: Voucher) => void;
+  removeVoucher: (voucherId: string) => void;
+  /** Backward compatibility: single voucher (first in array) */
   voucher: Voucher | null;
+  /** Backward compatibility: set single voucher (replaces all) */
   setVoucher: (v: Voucher | null) => void;
   payment: PaymentMethod | null;
   setPayment: (p: PaymentMethod | null) => void;
@@ -100,7 +106,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<FulfillmentMode>("dikirim");
   const [address, setAddress] = useState<Address>(ADDRESSES[0]);
   const [warehouse, setWarehouse] = useState<Warehouse>(WAREHOUSES[0]);
-  const [voucher, setVoucher] = useState<Voucher | null>(null);
+  const [vouchers, setVouchersState] = useState<Voucher[]>([]);
   const [payment, setPayment] = useState<PaymentMethod | null>(PAYMENT_METHODS[0]);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [cod, setCod] = useState(false);
@@ -194,9 +200,37 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     setCalculatedDiscountsState({});
   }, []);
 
+  const setVouchers = useCallback((v: Voucher[]) => {
+    setVouchersState(v);
+  }, []);
+
+  const addVoucher = useCallback((v: Voucher) => {
+    setVouchersState((prev) => {
+      // Check if voucher already exists
+      if (prev.some((vouch) => vouch.id === v.id)) {
+        return prev;
+      }
+      return [...prev, v];
+    });
+  }, []);
+
+  const removeVoucher = useCallback((voucherId: string) => {
+    setVouchersState((prev) => prev.filter((v) => v.id !== voucherId));
+  }, []);
+
+  // Backward compatibility: single voucher methods
+  const voucher = vouchers.length > 0 ? vouchers[0] : null;
+  const setVoucher = useCallback((v: Voucher | null) => {
+    if (v) {
+      setVouchersState([v]);
+    } else {
+      setVouchersState([]);
+    }
+  }, []);
+
   const value = useMemo<CheckoutState>(() => ({
     mode, setMode, address, setAddress, warehouse, setWarehouse,
-    voucher, setVoucher, payment, setPayment,
+    vouchers, setVouchers, addVoucher, removeVoucher, voucher, setVoucher, payment, setPayment,
     notes, setNote, cod, setCod,
     groupShippingFees, setGroupShippingFee,
     deliveryRuleIds, setDeliveryRuleId,
@@ -208,7 +242,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     buyNowItem, setBuyNowItem, clearBuyNowItem,
     selectedCartIds, setSelectedCartIds, clearSelectedCartIds,
     calculatedDiscounts, setCalculatedDiscount, clearCalculatedDiscounts,
-  }), [mode, address, warehouse, voucher, payment, notes, setNote, cod, groupShippingFees, setGroupShippingFee, deliveryRuleIds, setDeliveryRuleId, stage, orderId, transactionCodes, setTransactionCodes, orderTotals, setOrderTotals, submitOrder, markVerified, buyNowItem, clearBuyNowItem, selectedCartIds, setSelectedCartIds, clearSelectedCartIds, calculatedDiscounts, setCalculatedDiscount, clearCalculatedDiscounts]);
+  }), [mode, address, warehouse, vouchers, setVouchers, addVoucher, removeVoucher, voucher, setVoucher, payment, notes, setNote, cod, groupShippingFees, setGroupShippingFee, deliveryRuleIds, setDeliveryRuleId, stage, orderId, transactionCodes, setTransactionCodes, orderTotals, setOrderTotals, submitOrder, markVerified, buyNowItem, clearBuyNowItem, selectedCartIds, setSelectedCartIds, clearSelectedCartIds, calculatedDiscounts, setCalculatedDiscount, clearCalculatedDiscounts]);
 
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;
 }

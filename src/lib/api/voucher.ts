@@ -117,10 +117,11 @@ export interface FetchVouchersParams {
   sort_by?: string;
   sort_order?: string;
   applicable?: boolean;
+  type?: "voucher" | "promo";
 }
 
 export async function fetchVouchers(params: FetchVouchersParams = {}): Promise<VoucherListResponse> {
-  const { page = 1, per_page = 15, search, sort_by = "created_at", sort_order = "desc", applicable = true } = params;
+  const { page = 1, per_page = 15, search, sort_by = "created_at", sort_order = "desc", applicable = true, type } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
@@ -131,6 +132,10 @@ export async function fetchVouchers(params: FetchVouchersParams = {}): Promise<V
 
   if (search) {
     queryParams.append("search", search);
+  }
+
+  if (type) {
+    queryParams.append("type", type);
   }
 
   return apiFetch<VoucherListResponse>(`/vouchers?${queryParams.toString()}`);
