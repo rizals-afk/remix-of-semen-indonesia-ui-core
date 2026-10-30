@@ -73,7 +73,7 @@ export interface CustomerLocation {
 export interface Trx {
   id: number;
   code: string;
-  status: "pending" | "approve" | "process" | "delivery" | "done" | "cancel" | "retur";
+  status: "pending" | "approve" | "process" | "delivery" | "done" | "cancel" | "retur" | "reject";
   trx_type: string;
   created_at: string;
   updated_at: string;

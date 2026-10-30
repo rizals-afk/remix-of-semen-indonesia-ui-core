@@ -13,6 +13,7 @@ const STATUS_LABELS: Record<Trx["status"], string> = {
   done: "Selesai",
   cancel: "Dibatalkan",
   retur: "Dikembalikan",
+  reject: "Ditolak",
 };
 
 const STATUS_COLORS: Record<Trx["status"], string> = {
@@ -23,6 +24,7 @@ const STATUS_COLORS: Record<Trx["status"], string> = {
   done: "bg-green-100 text-green-800",
   cancel: "bg-red-100 text-red-800",
   retur: "bg-gray-100 text-gray-800",
+  reject: "bg-red-100 text-red-800",
 };
 
 function formatDate(dateString: string): string {

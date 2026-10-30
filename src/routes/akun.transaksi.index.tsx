@@ -19,6 +19,7 @@ const TABS = [
   "Selesai",
   "Dikembalikan",
   "Dibatalkan",
+  "Ditolak",
 ] as const;
 type Tab = (typeof TABS)[number];
 
@@ -30,6 +31,7 @@ const TAB_TO_STATUS: Record<Tab, string> = {
   Selesai: "done",
   Dikembalikan: "retur",
   Dibatalkan: "cancel",
+  Ditolak: "reject",
 };
 
 function TransactionsPage() {

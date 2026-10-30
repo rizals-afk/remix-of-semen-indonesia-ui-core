@@ -104,6 +104,13 @@ function bannerFor(trx: Trx): BannerCopy {
         subtitle: "Pesanan ini sedang dalam proses pengembalian.",
         tone: "accent",
       };
+    case "reject":
+      return {
+        icon: XCircle,
+        title: "Pesanan Ditolak",
+        subtitle: "Pesanan ini telah ditolak oleh admin.",
+        tone: "destructive",
+      };
   }
 }
 
@@ -255,7 +262,8 @@ function OrderDetailPage() {
                currentTrx.status === "approve" ? "menunggu-pembayaran" :
                currentTrx.status === "process" ? "diproses" :
                currentTrx.status === "delivery" ? "dikirim" :
-               currentTrx.status === "done" ? "selesai" : "dibatalkan"}
+               currentTrx.status === "done" ? "selesai" :
+               currentTrx.status === "reject" ? "dibatalkan" : "dibatalkan"}
         timestamps={{
           dibuat: formatTimestamp(currentTrx.created_at),
           verifikasi: currentTrx.verification_date ? formatTimestamp(currentTrx.verification_date) : undefined,
@@ -374,6 +382,13 @@ function OrderDetailPage() {
                 value={`- ${formatRupiah(currentTrx.voucher_lines.reduce((sum, vl) => sum + (typeof vl.amount === 'string' ? parseFloat(vl.amount) : vl.amount), 0))}`}
                 accent="success"
               />
+            )}
+            {currentTrx.payments && currentTrx.payments.length > 0 && (
+              <>
+                <Row label="Metode Pembayaran" value={currentTrx.payments[0].payment_method} />
+                {currentTrx.payments[0].bank && <Row label="Bank" value={currentTrx.payments[0].bank} />}
+                {currentTrx.payments[0].va_number && <Row label="Nomor VA" value={currentTrx.payments[0].va_number} />}
+              </>
             )}
           </dl>
           <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
@@ -813,6 +828,13 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       );
       break;
     case "retur":
+      content = (
+        <>
+          {outline("Hubungi Penjual", whatsapp)}
+        </>
+      );
+      break;
+    case "reject":
       content = (
         <>
           {outline("Hubungi Penjual", whatsapp)}
