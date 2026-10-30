@@ -15,7 +15,7 @@ import { createBulkTrx, type BulkTrxRequest, calculateTrx, type CalculateRequest
 import { checkDelivery, type CheckDeliveryRequest } from "@/lib/api/delivery";
 import { deleteCartItem } from "@/lib/api/cart";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/checkout/")({
@@ -27,6 +27,7 @@ export const Route = createFileRoute("/checkout/")({
 function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
   const cartItem = {
     id: item.productId,
+    product_id: parseInt(item.productId),  // Add product_id for discount matching
     name: item.name,
     price: item.price,
     qty: item.qty,
@@ -60,9 +61,9 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shippingStates, setShippingStates] = useState<Record<string, 'initial' | 'loading' | 'calculated'>>({});
-  const [shippingFees, setShippingFees] = useState<Record<string, number>>({});
   const [shippingDistances, setShippingDistances] = useState<Record<string, number>>({});
   const [isCalculatingDiscount, setIsCalculatingDiscount] = useState(false);
+  const isProcessingRef = useRef(false);
 
   // Fetch fresh user data from server on mount
   useEffect(() => {
@@ -91,9 +92,41 @@ function CheckoutPage() {
     ? [createGroupFromBuyNowItem(checkout.buyNowItem)]
     : cart.selectedGroups;
 
+  // Restore shipping states from delivery rule IDs on mount
+  useEffect(() => {
+    const restoredStates: Record<string, 'initial' | 'loading' | 'calculated'> = {};
+    groups.forEach((group) => {
+      if (checkout.deliveryRuleIds[group.warehouse] && checkout.calculatedShippingFees[group.warehouse] > 0) {
+        restoredStates[group.warehouse] = 'calculated';
+      }
+    });
+    setShippingStates(restoredStates);
+  }, [groups, checkout.deliveryRuleIds, checkout.calculatedShippingFees]);
+
+  // Trigger shipping recalculation when address changes
+  useEffect(() => {
+    if (customerLocation.selectedLocation) {
+      console.log("[Checkout] Address changed, resetting shipping fees");
+      // Reset states to 'initial' to indicate recalculation is needed
+      setShippingStates({});
+      // Clear calculated shipping fees when address changes
+      checkout.clearCalculatedShippingFees();
+      // Clear delivery rule IDs when address changes
+      Object.keys(checkout.deliveryRuleIds).forEach(warehouse => {
+        checkout.setDeliveryRuleId(warehouse, 0);
+      });
+    }
+  }, [customerLocation.selectedLocation?.address]);
+
   // Calculate discounts for each warehouse when voucher, shipping method, or address changes
   useEffect(() => {
     const calculateDiscounts = async () => {
+      // Prevent concurrent calculations
+      if (isProcessingRef.current) {
+        console.log("[Checkout] Already processing discount calculation, skipping");
+        return;
+      }
+
       if (checkout.vouchers.length === 0 || !customerLocation.selectedLocation) {
         checkout.clearCalculatedDiscounts();
         return;
@@ -107,6 +140,7 @@ function CheckoutPage() {
       console.log("[Checkout] Calculating discount with voucher IDs:", voucherIds);
       console.log("[Checkout] Full vouchers object:", checkout.vouchers);
 
+      isProcessingRef.current = true;
       setIsCalculatingDiscount(true);
 
       try {
@@ -135,8 +169,8 @@ function CheckoutPage() {
               doc_type: "ZEO1",
               trx_type: "order",
               subtotal: group.subTotal,
-              shipping_cost: shippingFees[group.warehouse] || 0,
-              total: group.subTotal + (shippingFees[group.warehouse] || 0),
+              shipping_cost: checkout.calculatedShippingFees[group.warehouse] || 0,
+              total: group.subTotal + (checkout.calculatedShippingFees[group.warehouse] || 0),
               branch_id: branchId,
               shipping_address: selectedLocation.address,
               shipping_phone: selectedLocation.phone,
@@ -161,17 +195,23 @@ function CheckoutPage() {
 
             // Map line discounts to key format: "productId_variantId"
             const lineDiscountsMap: Record<string, number> = {};
+            const appliedVoucherIds: number[] = [];
             response.voucher_details.forEach((voucherDetail) => {
-              voucherDetail.line_discounts.forEach((lineDiscount) => {
-                const key = `${lineDiscount.product_id}_${lineDiscount.product_variant_id}`;
-                lineDiscountsMap[key] = lineDiscount.discount;
-              });
+              // Only include vouchers that actually have a discount applied
+              if (voucherDetail.discount > 0 || voucherDetail.line_discounts.length > 0) {
+                appliedVoucherIds.push(voucherDetail.voucher_id);
+                voucherDetail.line_discounts.forEach((lineDiscount) => {
+                  const key = `${lineDiscount.product_id}_${lineDiscount.product_variant_id}`;
+                  lineDiscountsMap[key] = lineDiscount.discount;
+                });
+              }
             });
 
             return {
               warehouse: group.warehouse,
               totalDiscount: response.total_discount,
               lineDiscounts: lineDiscountsMap,
+              appliedVoucherIds: appliedVoucherIds,
             };
           })
         );
@@ -185,6 +225,52 @@ function CheckoutPage() {
             });
           }
         });
+
+        // Collect all applied voucher IDs from all warehouses
+        const allAppliedVoucherIds = new Set<number>();
+        calculations.forEach((calc) => {
+          if (calc && calc.appliedVoucherIds) {
+            calc.appliedVoucherIds.forEach(id => allAppliedVoucherIds.add(id));
+          }
+        });
+
+        console.log("[Checkout] Applied voucher IDs from backend:", Array.from(allAppliedVoucherIds));
+
+        // Filter vouchers to keep only those that were actually applied
+        const originalVoucherCount = checkout.vouchers.length;
+        const appliedVouchers = checkout.vouchers.filter((v) => allAppliedVoucherIds.has(parseInt(v.id)));
+
+        // Check if this is a user-initiated voucher change
+        const isUserVoucherChange = typeof window !== 'undefined' && window.sessionStorage.getItem('userVoucherChange') === 'true';
+
+        // If some vouchers were not applied, update the voucher list
+        if (appliedVouchers.length !== originalVoucherCount) {
+          console.log("[Checkout] Some vouchers were not applied, updating voucher list");
+          console.log("[Checkout] Original count:", originalVoucherCount, "Applied count:", appliedVouchers.length);
+          checkout.setVouchers(appliedVouchers);
+
+          if (appliedVouchers.length > 0) {
+            toast.info(`${originalVoucherCount - appliedVouchers.length} voucher/promo tidak dapat diterapkan dan telah dihapus.`);
+          } else if (isUserVoucherChange) {
+            // All vouchers were rejected and this was a user-initiated change
+            toast.error("Voucher atau promo tidak dapat diterapkan. Silakan pilih yang lain.");
+          }
+        }
+
+        // Clear the user voucher change flag
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.removeItem('userVoucherChange');
+        }
+
+        // Check if any warehouse has a valid discount
+        const hasValidDiscount = calculations.some(calc => calc && calc.totalDiscount > 0);
+
+        // If no valid discounts were calculated but we have vouchers selected, this might be a temporary state
+        // (e.g., shipping fee not yet calculated). Don't clear vouchers, just log it.
+        if (!hasValidDiscount && checkout.vouchers.length > 0) {
+          console.log("[Checkout] No valid discounts calculated but vouchers are selected. This might be temporary (e.g., shipping fee not calculated).");
+          // Don't clear vouchers - they might become valid once shipping is calculated
+        }
       } catch (error: any) {
         console.error("Failed to calculate discounts:", error);
 
@@ -194,9 +280,10 @@ function CheckoutPage() {
         // If there's an error message, show it to the user
         if (errorMessage) {
           // Check if error is related to voucher validation
-          if (errorMessage.toLowerCase().includes("voucher") || errorMessage.toLowerCase().includes("not valid")) {
+          if (errorMessage.toLowerCase().includes("voucher") || errorMessage.toLowerCase().includes("not valid") || errorMessage.toLowerCase().includes("tidak valid")) {
             // Clear the vouchers if it's invalid
             checkout.setVouchers([]);
+            checkout.clearCalculatedDiscounts();
             toast.error(errorMessage);
           } else {
             // For other errors, just clear discounts and show the message
@@ -204,29 +291,32 @@ function CheckoutPage() {
             toast.error(errorMessage);
           }
         } else {
-          // Fallback to clearing discounts
+          // Fallback to clearing discounts and vouchers
+          checkout.setVouchers([]);
           checkout.clearCalculatedDiscounts();
+          toast.error("Gagal menerapkan voucher atau promo. Silakan coba lagi.");
         }
       } finally {
         setIsCalculatingDiscount(false);
+        isProcessingRef.current = false;
       }
     };
 
     calculateDiscounts();
-  }, [checkout.vouchers.map((v) => v.id).join(","), checkout.mode, customerLocation.selectedLocation?.address, groups.length, user?.id]);
+  }, [checkout.vouchers.map((v) => v.id).join(","), checkout.mode, customerLocation.selectedLocation?.address, groups.length, user?.id, JSON.stringify(checkout.calculatedShippingFees)]);
 
   const subtotalPesanan = groups.reduce((s, g) => s + g.subTotal, 0);
   const totalTonase = groups.reduce((s, g) => s + g.tonase, 0);
   // Pre-verification shipping estimate: per-group fee, only when "dikirim" and not COD.
   const showShipping = checkout.mode === "dikirim";
-  const subtotalShipping = showShipping ? Object.values(shippingFees).reduce((sum, fee) => sum + fee, 0) : 0;
+  const subtotalShipping = showShipping ? Object.values(checkout.calculatedShippingFees).reduce((sum, fee) => sum + fee, 0) : 0;
 
-  // Calculate total discount from calculated discounts
+  // Calculate total discount from calculated discounts only (not from voucher discount values)
   const totalCalculatedDiscount = Object.values(checkout.calculatedDiscounts).reduce(
     (sum, d) => sum + d.totalDiscount,
     0
   );
-  const discount = totalCalculatedDiscount || checkout.vouchers.reduce((sum, v) => sum + (v.discount ?? 0), 0);
+  const discount = totalCalculatedDiscount;
   const total = subtotalPesanan + subtotalShipping - discount;
 
   const submit = async () => {
@@ -302,7 +392,7 @@ function CheckoutPage() {
           : (items[0].branch_id || 0);
 
         // Get warehouse shipping cost
-        const warehouseShippingCost = shippingFees[warehouse] || 0;
+        const warehouseShippingCost = checkout.calculatedShippingFees[warehouse] || 0;
 
         // Check if this is the first division in this warehouse (gets shipping cost)
         const warehouseKeys = Array.from(warehouseDivisionGroups.keys()).filter(k => k.startsWith(`${warehouse}|`));
@@ -495,7 +585,7 @@ function CheckoutPage() {
       const response = await checkDelivery(request);
       const deliveryPrice = parseFloat(response.delivery_rule.delivery_price);
 
-      setShippingFees(prev => ({ ...prev, [group.warehouse]: deliveryPrice }));
+      checkout.setCalculatedShippingFee(group.warehouse, deliveryPrice);
       setShippingDistances(prev => ({ ...prev, [group.warehouse]: response.distance }));
       checkout.setDeliveryRuleId(group.warehouse, response.delivery_rule.id);
       setShippingStates(prev => ({ ...prev, [group.warehouse]: 'calculated' }));
@@ -508,8 +598,8 @@ function CheckoutPage() {
 
   const handleChangeShipping = (warehouse: string) => {
     setShippingStates(prev => ({ ...prev, [warehouse]: 'initial' }));
-    setShippingFees(prev => ({ ...prev, [warehouse]: 0 }));
     checkout.setDeliveryRuleId(warehouse, 0);
+    checkout.setCalculatedShippingFee(warehouse, 0);
   };
 
   const handleViewMap = (group: CartWarehouseGroup) => {
@@ -599,13 +689,31 @@ function CheckoutPage() {
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <ModeOption
                   active={checkout.mode === "dikirim"}
-                  onClick={() => { checkout.setMode("dikirim"); checkout.setCod(false); }}
+                  onClick={() => {
+                    checkout.setMode("dikirim");
+                    checkout.setCod(false);
+                    // Reset states to 'initial' to indicate recalculation is needed
+                    // Don't reset calculatedShippingFees to preserve calculated values if available
+                    setShippingStates({});
+                    Object.keys(checkout.deliveryRuleIds).forEach(warehouse => {
+                      checkout.setDeliveryRuleId(warehouse, 0);
+                    });
+                    // Don't clear calculated shipping fees - preserve them for when switching back
+                  }}
                   icon={<Truck className="h-5 w-5" />}
                   title="Dikirim"
                 />
                 <ModeOption
                   active={checkout.mode === "diambil"}
-                  onClick={() => checkout.setMode("diambil")}
+                  onClick={() => {
+                    checkout.setMode("diambil");
+                    // Reset states to 'initial' when switching to diambil mode
+                    // Don't reset calculatedShippingFees to preserve calculated values for when switching back
+                    setShippingStates({});
+                    Object.keys(checkout.deliveryRuleIds).forEach(warehouse => {
+                      checkout.setDeliveryRuleId(warehouse, 0);
+                    });
+                  }}
                   icon={<Store className="h-5 w-5" />}
                   title="Diambil"
                 />
@@ -630,7 +738,7 @@ function CheckoutPage() {
                 group={g}
                 note={checkout.notes[g.warehouse] ?? ""}
                 onNoteChange={(t) => checkout.setNote(g.warehouse, t)}
-                shippingFee={showShipping && shippingStates[g.warehouse] === 'calculated' ? shippingFees[g.warehouse] : undefined}
+                shippingFee={showShipping && shippingStates[g.warehouse] === 'calculated' ? checkout.calculatedShippingFees[g.warehouse] : undefined}
                 readOnly={true}
                 address={g.warehouse}
                 etaLabel={shippingStates[g.warehouse] === 'calculated' ? `${shippingDistances[g.warehouse]?.toFixed(1)} km` : ""}
@@ -656,13 +764,13 @@ function CheckoutPage() {
                 <div className="min-w-0">
                   <p className="text-base font-bold text-foreground">Gunakan Voucher</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {checkout.vouchers.filter((v) => v.backendType === "voucher").length > 0
-                      ? `${checkout.vouchers.filter((v) => v.backendType === "voucher").length} voucher dipilih`
+                    {totalCalculatedDiscount > 0 && checkout.vouchers.filter((v) => v.backendType === "voucher").length > 0
+                      ? `${checkout.vouchers.filter((v) => v.backendType === "voucher").length} voucher diterapkan`
                       : "Pilih voucher untuk mendapatkan potongan harga"}
                   </p>
                 </div>
               </div>
-              {checkout.vouchers.filter((v) => v.backendType === "voucher").length > 0 ? (
+              {totalCalculatedDiscount > 0 && checkout.vouchers.filter((v) => v.backendType === "voucher").length > 0 ? (
                 <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
                   <Check className="h-3.5 w-3.5" />
                 </span>
@@ -684,13 +792,13 @@ function CheckoutPage() {
                 <div className="min-w-0">
                   <p className="text-base font-bold text-foreground">Gunakan Promo</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {checkout.vouchers.filter((v) => v.backendType === "promo").length > 0
-                      ? `${checkout.vouchers.filter((v) => v.backendType === "promo").length} promo dipilih`
+                    {totalCalculatedDiscount > 0 && checkout.vouchers.filter((v) => v.backendType === "promo").length > 0
+                      ? `${checkout.vouchers.filter((v) => v.backendType === "promo").length} promo diterapkan`
                       : "Pilih promo untuk mendapatkan keuntungan lain"}
                   </p>
                 </div>
               </div>
-              {checkout.vouchers.filter((v) => v.backendType === "promo").length > 0 ? (
+              {totalCalculatedDiscount > 0 && checkout.vouchers.filter((v) => v.backendType === "promo").length > 0 ? (
                 <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent text-accent-foreground">
                   <Check className="h-3.5 w-3.5" />
                 </span>
@@ -710,15 +818,12 @@ function CheckoutPage() {
                 {showShipping ? (
                   <Row label="Subtotal Ongkir" value={formatRupiah(subtotalShipping)} />
                 ) : null}
-                {checkout.vouchers.length > 0 ? (
-                  checkout.vouchers.map((v) => (
-                    <Row
-                      key={v.id}
-                      label={v.type === "shipping" ? "Voucher Gratis Ongkir" : `Voucher ${v.title}`}
-                      value={`- ${formatRupiah(v.discount ?? 0)}`}
-                      accent="success"
-                    />
-                  ))
+                {totalCalculatedDiscount > 0 ? (
+                  <Row
+                    label="Diskon Voucher/Promo"
+                    value={`- ${formatRupiah(totalCalculatedDiscount)}`}
+                    accent="success"
+                  />
                 ) : null}
               </dl>
               <div className="mt-5 flex items-baseline justify-between gap-3 border-t border-border pt-5">
