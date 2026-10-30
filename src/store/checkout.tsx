@@ -59,6 +59,9 @@ interface CheckoutState {
   calculatedShippingFees: Record<string, number>;
   setCalculatedShippingFee: (warehouse: string, fee: number) => void;
   clearCalculatedShippingFees: () => void;
+  /** Previous address for detecting actual address changes */
+  previousAddress: string | null;
+  setPreviousAddress: (address: string | null) => void;
   /** Estimated total shipping fee shown on the checkout screen (pre-verification). */
   estimatedShippingFor: (warehouseCount: number) => number;
   /** Current stage in the request → verify → pay flow. */
@@ -117,6 +120,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [groupShippingFees, setGroupShippingFees] = useState<Record<string, number>>({});
   const [deliveryRuleIds, setDeliveryRuleIds] = useState<Record<string, number>>({});
   const [calculatedShippingFees, setCalculatedShippingFeesState] = useState<Record<string, number>>({});
+  const [previousAddress, setPreviousAddressState] = useState<string | null>(null);
   const [stage, setStage] = useState<CheckoutStage>("draft");
   const [orderId, setOrderId] = useState<string | null>(null);
   const [transactionCodes, setTransactionCodesState] = useState<string[]>([]);
@@ -165,6 +169,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   const clearCalculatedShippingFees = useCallback(() => {
     setCalculatedShippingFeesState({});
+  }, []);
+
+  const setPreviousAddress = useCallback((address: string | null) => {
+    setPreviousAddressState(address);
   }, []);
 
   const setTransactionCodes = useCallback((codes: string[]) => {
@@ -248,6 +256,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     groupShippingFees, setGroupShippingFee,
     deliveryRuleIds, setDeliveryRuleId,
     calculatedShippingFees, setCalculatedShippingFee, clearCalculatedShippingFees,
+    previousAddress, setPreviousAddress,
     estimatedShippingFor: (n) => (mode === "dikirim" ? n * ESTIMATED_GROUP_SHIPPING_FEE * 2 : 0),
     stage, setStage, orderId, setOrderId,
     transactionCodes, setTransactionCodes,
@@ -256,7 +265,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     buyNowItem, setBuyNowItem, clearBuyNowItem,
     selectedCartIds, setSelectedCartIds, clearSelectedCartIds,
     calculatedDiscounts, setCalculatedDiscount, clearCalculatedDiscounts,
-  }), [mode, address, warehouse, vouchers, setVouchers, addVoucher, removeVoucher, voucher, setVoucher, payment, notes, setNote, cod, groupShippingFees, setGroupShippingFee, deliveryRuleIds, setDeliveryRuleId, calculatedShippingFees, setCalculatedShippingFee, clearCalculatedShippingFees, stage, orderId, transactionCodes, setTransactionCodes, orderTotals, setOrderTotals, submitOrder, markVerified, buyNowItem, clearBuyNowItem, selectedCartIds, setSelectedCartIds, clearSelectedCartIds, calculatedDiscounts, setCalculatedDiscount, clearCalculatedDiscounts]);
+  }), [mode, address, warehouse, vouchers, setVouchers, addVoucher, removeVoucher, voucher, setVoucher, payment, notes, setNote, cod, groupShippingFees, setGroupShippingFee, deliveryRuleIds, setDeliveryRuleId, calculatedShippingFees, setCalculatedShippingFee, clearCalculatedShippingFees, previousAddress, setPreviousAddress, stage, orderId, transactionCodes, setTransactionCodes, orderTotals, setOrderTotals, submitOrder, markVerified, buyNowItem, clearBuyNowItem, selectedCartIds, setSelectedCartIds, clearSelectedCartIds, calculatedDiscounts, setCalculatedDiscount, clearCalculatedDiscounts]);
 
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>;
 }

@@ -64,6 +64,8 @@ function CheckoutPage() {
   const [shippingDistances, setShippingDistances] = useState<Record<string, number>>({});
   const [isCalculatingDiscount, setIsCalculatingDiscount] = useState(false);
   const isProcessingRef = useRef(false);
+  const checkoutRef = useRef(checkout);
+  checkoutRef.current = checkout;
 
   // Fetch fresh user data from server on mount
   useEffect(() => {
@@ -105,16 +107,21 @@ function CheckoutPage() {
 
   // Trigger shipping recalculation when address changes
   useEffect(() => {
-    if (customerLocation.selectedLocation) {
+    const currentAddress = customerLocation.selectedLocation?.address;
+
+    // Only reset if address actually changed (compared to stored previous address)
+    if (currentAddress && currentAddress !== checkoutRef.current.previousAddress) {
       console.log("[Checkout] Address changed, resetting shipping fees");
       // Reset states to 'initial' to indicate recalculation is needed
       setShippingStates({});
       // Clear calculated shipping fees when address changes
-      checkout.clearCalculatedShippingFees();
+      checkoutRef.current.clearCalculatedShippingFees();
       // Clear delivery rule IDs when address changes
-      Object.keys(checkout.deliveryRuleIds).forEach(warehouse => {
-        checkout.setDeliveryRuleId(warehouse, 0);
+      Object.keys(checkoutRef.current.deliveryRuleIds).forEach(warehouse => {
+        checkoutRef.current.setDeliveryRuleId(warehouse, 0);
       });
+      // Update previous address in store
+      checkoutRef.current.setPreviousAddress(currentAddress);
     }
   }, [customerLocation.selectedLocation?.address]);
 
@@ -739,7 +746,7 @@ function CheckoutPage() {
                 note={checkout.notes[g.warehouse] ?? ""}
                 onNoteChange={(t) => checkout.setNote(g.warehouse, t)}
                 shippingFee={showShipping && shippingStates[g.warehouse] === 'calculated' ? checkout.calculatedShippingFees[g.warehouse] : undefined}
-                readOnly={true}
+                readOnly={false}
                 address={g.warehouse}
                 etaLabel={shippingStates[g.warehouse] === 'calculated' ? `${shippingDistances[g.warehouse]?.toFixed(1)} km` : ""}
                 onViewMap={() => handleViewMap(g)}
