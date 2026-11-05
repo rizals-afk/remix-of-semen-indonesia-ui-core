@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { changePassword } from "@/lib/auth";
+import { changePassword, logout } from "@/lib/auth";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api";
 
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/akun/ubah-password")({
 });
 
 function ChangePasswordPage() {
+  const navigate = useNavigate();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -48,6 +49,10 @@ function ChangePasswordPage() {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      // Logout user after successful password change
+      await logout();
+      // Redirect to login page
+      navigate({ to: "/masuk" });
     } catch (err) {
       const message =
         err instanceof ApiError
@@ -89,7 +94,14 @@ function ChangePasswordPage() {
             onChange={setConfirmPassword}
           />
 
-          <div className="flex justify-end pt-2">
+          <div className="flex items-center justify-between pt-2">
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/lupa-password" })}
+              className="text-sm text-primary hover:underline"
+            >
+              Lupa Password?
+            </button>
             <button
               type="submit"
               disabled={isSubmitting}

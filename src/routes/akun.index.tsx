@@ -124,6 +124,11 @@ function ProfilePage() {
         toast.error("NIK wajib diisi");
         return;
       }
+      // Validate NIK must be exactly 16 digits
+      if (!/^\d{16}$/.test(nik.trim())) {
+        toast.error("NIK harus terdiri dari 16 digit angka");
+        return;
+      }
     } else if (identity === "NPWP") {
       if (!npwp1.trim()) {
         toast.error("NPWP 1 wajib diisi");
@@ -293,8 +298,14 @@ function ProfilePage() {
           {identity === "NIK" ? (
             <FormRow label="NIK">
               <Input
+                type="text"
+                inputMode="numeric"
                 value={nik}
-                onChange={(e) => setNik(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setNik(value);
+                }}
+                maxLength={16}
                 className="h-11"
                 placeholder="357830000000000"
               />
