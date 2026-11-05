@@ -102,12 +102,13 @@ export interface FetchBlogsParams {
   page?: number;
   per_page?: number;
   search?: string;
+  tag?: string;
   sort_by?: string;
   sort_order?: string;
 }
 
 export async function fetchBlogs(params: FetchBlogsParams = {}): Promise<BlogListResponse> {
-  const { page = 1, per_page = 10, search, sort_by = 'created_at', sort_order = 'desc' } = params;
+  const { page = 1, per_page = 10, search, tag, sort_by = 'created_at', sort_order = 'desc' } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
@@ -117,6 +118,10 @@ export async function fetchBlogs(params: FetchBlogsParams = {}): Promise<BlogLis
 
   if (search) {
     queryParams.append("search", search);
+  }
+
+  if (tag) {
+    queryParams.append("tag", tag);
   }
 
   return apiFetch<BlogListResponse>(`/blogs?${queryParams.toString()}`);

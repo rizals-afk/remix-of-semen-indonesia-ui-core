@@ -125,6 +125,7 @@ function BlogDetailPage() {
           to="/blog"
           search={{
             q: undefined,
+            tag: undefined,
             page: 1,
           }}
           className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80"
@@ -150,13 +151,15 @@ function BlogDetailPage() {
           {blog.tags && blog.tags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {blog.tags.map((tag) => (
-                <span
+                <Link
                   key={tag}
-                  className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary"
+                  to="/blog"
+                  search={{ q: undefined, tag, page: 1 }}
+                  className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
                 >
                   <Tag className="h-3 w-3" />
                   {tag}
-                </span>
+                </Link>
               ))}
             </div>
           )}

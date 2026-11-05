@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { BlogListCard } from "@/components/blog/BlogListCard";
 import { Pagination } from "@/components/common/Pagination";
@@ -10,6 +10,7 @@ import { getCurrentUserFromStorage } from "@/lib/auth";
 export const Route = createFileRoute("/blog/")({
   validateSearch: (search: Record<string, unknown>) => ({
     q: typeof search.q === "string" ? search.q : undefined,
+    tag: typeof search.tag === "string" ? search.tag : undefined,
     page: typeof search.page === "number" ? search.page : 1,
   }),
   head: () => ({ meta: [{ title: "Blog & Inspirasi — BahanMaterial.com" }] }),
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/blog/")({
 const PAGE_SIZE = 10;
 
 function BlogIndexPage() {
-  const { q = "", page = 1 } = Route.useSearch();
+  const { q = "", tag, page = 1 } = Route.useSearch();
   const navigate = useNavigate({ from: "/blog/" });
   const user = getCurrentUserFromStorage();
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -34,6 +35,7 @@ function BlogIndexPage() {
           page,
           per_page: PAGE_SIZE,
           search: q || undefined,
+          tag: tag || undefined,
         });
         setBlogs(response.data);
         setTotalPages(Math.max(1, Math.ceil(response.total / PAGE_SIZE)));
@@ -46,12 +48,12 @@ function BlogIndexPage() {
     };
 
     loadBlogs();
-  }, [page, q]);
+  }, [page, q, tag]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     navigate({
-      search: (prev: { q: string | undefined; page: number }) => ({
+      search: (prev: { q: string | undefined; tag: string | undefined; page: number }) => ({
         ...prev,
         q: q || undefined,
         page: 1,
@@ -61,9 +63,19 @@ function BlogIndexPage() {
 
   const handlePageChange = (newPage: number) => {
     navigate({
-      search: (prev: { q: string | undefined; page: number }) => ({
+      search: (prev: { q: string | undefined; tag: string | undefined; page: number }) => ({
         ...prev,
         page: newPage,
+      }),
+    });
+  };
+
+  const handleClearTag = () => {
+    navigate({
+      search: (prev: { q: string | undefined; tag: string | undefined; page: number }) => ({
+        ...prev,
+        tag: undefined,
+        page: 1,
       }),
     });
   };
@@ -87,7 +99,7 @@ function BlogIndexPage() {
               onChange={(e) => {
                 const value = e.target.value;
                 navigate({
-                  search: (prev: { q: string | undefined; page: number }) => ({
+                  search: (prev: { q: string | undefined; tag: string | undefined; page: number }) => ({
                     ...prev,
                     q: value || undefined,
                     page: 1,
@@ -105,6 +117,21 @@ function BlogIndexPage() {
               <Search className="h-4 w-4" />
             </button>
           </form>
+
+          {tag && (
+            <div className="mt-4 flex justify-center">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-4 py-2 text-sm font-semibold text-primary">
+                <span>Tag: {tag}</span>
+                <button
+                  onClick={handleClearTag}
+                  className="ml-1 rounded-full p-1 hover:bg-primary/20 transition-colors"
+                  aria-label="Clear tag filter"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          )}
         </header>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

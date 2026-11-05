@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
-  Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2, Store,
+  Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2, Store, ShoppingCart,
 } from "lucide-react";
 import { OrderStatusStepper } from "@/components/account/OrderStatusStepper";
 import { formatRupiah } from "@/lib/format";
@@ -14,6 +14,9 @@ import { CancelOrderDialog } from "@/components/account/CancelOrderDialog";
 import { ConfirmReceivedDialog } from "@/components/account/ConfirmReceivedDialog";
 import { ReviewDialog } from "@/components/account/ReviewDialog";
 import { ReturnRequestDialog } from "@/components/account/ReturnRequestDialog";
+import { useCart } from "@/store/cart";
+import { useCheckout } from "@/store/checkout";
+import { ADDRESSES, WAREHOUSES, type Address, type Warehouse } from "@/data/shopping";
 
 export const Route = createFileRoute("/akun/transaksi/$id")({
   head: () => ({ meta: [{ title: "Detail Pesanan — BahanMaterial.com" }] }),
@@ -443,6 +446,8 @@ function OrderDetailPage() {
 
 function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<void> }) {
   const navigate = useNavigate();
+  const { addItem } = useCart();
+  const { setAddress, setWarehouse, setMode, clearSelectedCartIds, setSelectedCartIds } = useCheckout();
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -451,6 +456,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   const [isReturnOpen, setIsReturnOpen] = useState(false);
   const [isConfirmDoneOpen, setIsConfirmDoneOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [isBuyingAgain, setIsBuyingAgain] = useState(false);
   const paymentCreatedRef = useRef(false);
 
   const handleCancel = async (reason: string) => {
@@ -484,6 +490,92 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       toast.error("Gagal menyelesaikan pesanan");
     } finally {
       setIsMarkingDone(false);
+    }
+  };
+
+  const handleBuyAgain = async () => {
+    setIsBuyingAgain(true);
+    try {
+      // Add all items from the previous order to the cart
+      for (const line of trx.lines) {
+        const qty = typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty;
+        const price = typeof line.price === 'string' ? parseFloat(line.price) : line.price;
+
+        const cartItem = {
+          id: `${line.product_id}-${line.product_variant_id}-${Date.now()}`,
+          name: line.product?.name || "Produk",
+          price: price,
+          qty: qty,
+          warehouse: trx.branch?.name || "Gudang Utama",
+          image: line.product_variant?.media?.[0]?.url || line.product?.photo || "",
+          weightKg: parseFloat(line.product_variant?.weight || "0") || 0,
+          division: line.product_variant?.division,
+          unit: "Sak",
+          variant: line.product_variant?.variant_name,
+          variant_id: line.product_variant_id,
+          branch_id: trx.branch_id,
+          product_id: line.product_id,
+          branch_latitude: trx.branch?.lat,
+          branch_longitude: trx.branch?.long,
+          stock: 0, // Will be fetched from API
+        };
+
+        await addItem(
+          cartItem,
+          line.product_id,
+          line.product_variant_id,
+          trx.branch_id
+        );
+      }
+
+      // Set checkout preferences based on previous order
+      if (trx.customer_location_name && trx.customer_location_address) {
+        const matchingAddress = ADDRESSES.find(
+          (addr) => addr.label === trx.customer_location_name && addr.address === trx.customer_location_address
+        );
+        if (matchingAddress) {
+          setAddress(matchingAddress);
+        } else {
+          // Create a custom address from the transaction
+          const customAddress: Address = {
+            id: trx.customer_location_id.toString(),
+            label: trx.customer_location_name || "",
+            recipient: trx.customer_location_name || "",
+            phone: trx.customer_location_phone || "",
+            address: trx.customer_location_address || "",
+            city: trx.customer_location_city || "",
+          };
+          setAddress(customAddress);
+        }
+      }
+
+      // Set warehouse based on branch
+      if (trx.branch) {
+        const matchingWarehouse = WAREHOUSES.find(
+          (wh) => wh.name === trx.branch?.name
+        );
+        if (matchingWarehouse) {
+          setWarehouse(matchingWarehouse);
+        }
+      }
+
+      // Set fulfillment mode based on shipping method
+      if (trx.shipping_method === "LOC") {
+        setMode("diambil");
+      } else {
+        setMode("dikirim");
+      }
+
+      // Clear previous selections
+      clearSelectedCartIds();
+
+      toast.success("Produk ditambahkan ke keranjang");
+      navigate({ to: "/checkout" });
+    } catch (error) {
+      console.error("Failed to buy again:", error);
+      toast.error("Gagal menambahkan produk ke keranjang");
+    } finally {
+      setIsBuyingAgain(false);
     }
   };
 
@@ -633,33 +725,35 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     }
   };
 
-  const outline = (label: string, href?: string, onClick?: () => void, isDestructive?: boolean) =>
+  const outline = (label: string, href?: string, onClick?: () => void, isDestructive?: boolean, disabled?: boolean) =>
     href ? (
       <a href={href} target="_blank" rel="noreferrer"
-        className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'}`}>
+        className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
         {label}
       </a>
     ) : onClick ? (
-      <button onClick={onClick} className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'}`}>
+      <button onClick={onClick} disabled={disabled} className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} flex items-center gap-2`}>
+        {disabled && <Loader2 className="h-4 w-4 animate-spin" />}
         {label}
       </button>
     ) : (
-      <button className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'}`}>
+      <button disabled={disabled} className={`rounded-md border-2 px-5 py-2.5 text-sm font-bold hover:bg-opacity-5 ${isDestructive ? 'border-destructive text-destructive hover:bg-destructive/5' : 'border-primary text-primary hover:bg-primary/5'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
         {label}
       </button>
     );
-  const primary = (label: string, to?: string, onClick?: () => void) =>
+  const primary = (label: string, to?: string, onClick?: () => void, disabled?: boolean) =>
     to ? (
       <Link to={to as "/checkout/pembayaran"}
-        className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+        className={`rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
         {label}
       </Link>
     ) : onClick ? (
-      <button onClick={onClick} className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+      <button onClick={onClick} disabled={disabled} className={`rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}>
+        {disabled && <Loader2 className="h-4 w-4 animate-spin" />}
         {label}
       </button>
     ) : (
-      <button className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">
+      <button disabled={disabled} className={`rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed`}>
         {label}
       </button>
     );
@@ -720,26 +814,11 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
         <>
           {cancelDialog}
           {outline("Hubungi Penjual", whatsapp)}
-          {(!trx.payments || trx.payments.length === 0) && (
-            <button
-              onClick={handlePayment}
-              disabled={isProcessingPayment || isSavingPayment}
-              className="rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isProcessingPayment ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Memproses Pembayaran...
-                </>
-              ) : isSavingPayment ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Menyimpan pembayaran...
-                </>
-              ) : (
-                "Bayar Sekarang"
-              )}
-            </button>
+          {(!trx.payments || trx.payments.length === 0) && primary(
+            isProcessingPayment ? "Memproses Pembayaran..." : isSavingPayment ? "Menyimpan pembayaran..." : "Bayar Sekarang",
+            undefined,
+            handlePayment,
+            isProcessingPayment || isSavingPayment
           )}
         </>
       );
@@ -756,7 +835,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       content = (
         <>
           {outline("Ajukan Pengembalian", undefined, () => setIsReturnOpen(true))}
-          {primary("Pesanan Selesai", undefined, () => setIsConfirmDoneOpen(true))}
+          {primary("Pesanan Selesai", undefined, () => setIsConfirmDoneOpen(true), isMarkingDone)}
           <ReturnRequestDialog
             open={isReturnOpen}
             onOpenChange={setIsReturnOpen}
@@ -801,6 +880,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     case "done":
       content = (
         <>
+          {outline("Beli Lagi", undefined, handleBuyAgain, false, isBuyingAgain)}
           {hasItemsToReview && primary("Nilai", undefined, () => setIsReviewOpen(true))}
           {dialogProduct && (
             <ReviewDialog
@@ -825,37 +905,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     case "cancel":
       content = (
         <>
-          {outline("Ajukan Pengembalian", undefined, () => setIsReturnOpen(true))}
           {outline("Rincian Pembatalan")}
-          <ReturnRequestDialog
-            open={isReturnOpen}
-            onOpenChange={setIsReturnOpen}
-            warehouseName={firstLine?.product_variant?.division}
-            branchName={trx.branch?.name || `Branch ${trx.branch_id}`}
-            products={trx.lines.map(line => ({
-              product_id: line.product_id,
-              product_variant_id: line.product_variant_id,
-              name: line.product?.name || "Produk",
-              variant: line.product_variant?.variant_name,
-              image: line.product_variant?.media?.[0]?.url || line.product?.photo,
-              qty: typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty,
-              maxQty: typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty,
-            }))}
-            address={{
-              id: trx.customer_location_id,
-              name: trx.customer_location?.name ?? trx.customer_location_name,
-              phone: trx.customer_location?.phone ?? trx.customer_location_phone,
-              address: trx.customer_location?.address ?? trx.customer_location_address,
-              city: trx.customer_location_city,
-              postalCode: trx.customer_location_postal_code,
-              lat: trx.customer_location_lat,
-              long: trx.customer_location_long,
-            }}
-            trxId={trx.id}
-            onSubmit={async () => {
-              await onRefresh();
-            }}
-          />
         </>
       );
       break;
