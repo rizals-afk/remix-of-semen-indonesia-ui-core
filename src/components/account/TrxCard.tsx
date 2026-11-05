@@ -66,6 +66,9 @@ export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) =
         <div className="flex-1">
           <p className="text-sm font-bold text-foreground">{trx.code}</p>
           <p className="mt-1 text-xs text-muted-foreground">{formatDate(trx.created_at)}</p>
+          {trx.branch?.name && (
+            <p className="mt-1 text-xs text-muted-foreground">Gudang: {trx.branch.name}</p>
+          )}
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLORS[trx.status]}`}>
           {STATUS_LABELS[trx.status]}

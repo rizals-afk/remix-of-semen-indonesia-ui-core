@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import {
-  Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2,
+  Hourglass, Wallet, Truck, CheckCircle2, XCircle, RotateCcw, Info, Loader2, Store,
 } from "lucide-react";
 import { OrderStatusStepper } from "@/components/account/OrderStatusStepper";
 import { formatRupiah } from "@/lib/format";
@@ -254,6 +254,33 @@ function OrderDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* Warehouse/Branch Info */}
+      {currentTrx.branch && (
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-start gap-4">
+            <span className="grid h-16 w-16 place-items-center rounded-md bg-primary-soft">
+              <Store className="h-10 w-10 text-primary" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground">Gudang / Cabang</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">{currentTrx.branch.name}</p>
+              <a
+                href={
+                  currentTrx.branch.lat && currentTrx.branch.long
+                    ? `https://www.google.com/maps/dir/?api=1&destination=${currentTrx.branch.lat},${currentTrx.branch.long}`
+                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentTrx.branch.name)}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1 text-sm text-primary hover:underline"
+              >
+                Lihat di Google Maps
+              </a>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Stepper */}
       <OrderStatusStepper
@@ -638,7 +665,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     );
 
   const whatsapp = "https://wa.me/6281133331800";
-  const canCancel = trx.status === "pending" || trx.status === "approve";
+  const canCancel = trx.status === "pending" || trx.status === "approve" || trx.status === "process";
 
   // Find lines that need review (trx_review is null)
   const linesNeedingReview = trx.lines?.filter(line => line.trx_review === null) || [];
@@ -718,7 +745,12 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
       );
       break;
     case "process":
-      content = outline("Hubungi Penjual", whatsapp);
+      content = (
+        <>
+          {cancelDialog}
+          {outline("Hubungi Penjual", whatsapp)}
+        </>
+      );
       break;
     case "delivery":
       content = (
