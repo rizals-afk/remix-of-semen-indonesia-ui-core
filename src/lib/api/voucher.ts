@@ -118,24 +118,32 @@ export interface FetchVouchersParams {
   sort_order?: string;
   applicable?: boolean;
   type?: "voucher" | "promo";
+  is_claim?: boolean;
 }
 
 export async function fetchVouchers(params: FetchVouchersParams = {}): Promise<VoucherListResponse> {
-  const { page = 1, per_page = 15, search, sort_by = "created_at", sort_order = "desc", applicable = true, type } = params;
+  const { page = 1, per_page = 15, search, sort_by = "created_at", sort_order = "desc", applicable, type, is_claim } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
     sort_by,
     sort_order,
-    applicable: applicable.toString(),
   });
 
   if (search) {
     queryParams.append("search", search);
   }
 
+  if (applicable !== undefined) {
+    queryParams.append("applicable", applicable.toString());
+  }
+
   if (type) {
     queryParams.append("type", type);
+  }
+
+  if (is_claim !== undefined) {
+    queryParams.append("is_claim", is_claim.toString());
   }
 
   return apiFetch<VoucherListResponse>(`/vouchers?${queryParams.toString()}`);

@@ -75,7 +75,8 @@ function AccountVoucherPage() {
         search: searchQuery || undefined,
         sort_by: "created_at",
         sort_order: "desc",
-        applicable: true,
+        type: "voucher",
+        is_claim: true,
       });
 
       // Filter out expired vouchers
