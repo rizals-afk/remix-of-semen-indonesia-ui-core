@@ -9,7 +9,9 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
 import { fetchCategories, buildCategoryTree } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
+import { fetchBrands } from "@/lib/api/brand";
 import type { CategoryNode } from "@/lib/api/product-category";
+import type { Brand } from "@/lib/api/brand";
 import { useWarehouse } from "@/store/warehouse";
 import { getCurrentUserFromStorage } from "@/lib/auth";
 
@@ -20,6 +22,7 @@ const searchSchema = z.object({
   category: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
   min_price: z.coerce.number().min(0).optional(),
   max_price: z.coerce.number().min(0).optional(),
+  brand_id: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
 });
 
 export const Route = createFileRoute("/produk/")({
@@ -52,12 +55,13 @@ function mapSortToBackend(sort?: string): { sort_by?: string; sort_order?: strin
 }
 
 function ProductListingPage() {
-  const { q = "", page = 1, sort = "terbaru", category, min_price, max_price } = Route.useSearch();
+  const { q = "", page = 1, sort = "terbaru", category, min_price, max_price, brand_id } = Route.useSearch();
   const navigate = useNavigate({ from: "/produk/" });
   const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();
   const user = getCurrentUserFromStorage();
 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -66,6 +70,7 @@ function ProductListingPage() {
   const [priceMin, setPriceMin] = useState(min_price || 0);
   const [priceMax, setPriceMax] = useState(max_price || 0);
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(category);
+  const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brand_id);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -80,6 +85,20 @@ function ProductListingPage() {
     };
 
     loadCategories();
+  }, []);
+
+  // Fetch brands on mount
+  useEffect(() => {
+    const loadBrands = async () => {
+      try {
+        const response = await fetchBrands({ per_page: 999, page: 1, is_active: true });
+        setBrands(response.data);
+      } catch (error) {
+        console.error("Failed to load brands:", error);
+      }
+    };
+
+    loadBrands();
   }, []);
 
   // Fetch products when filters change
@@ -99,6 +118,7 @@ function ProductListingPage() {
           sort_order: sort_order as any,
           min_price: min_price,
           max_price: max_price,
+          brand_id: brand_id,
         });
 
         console.log("Product List - API response:", response);
@@ -119,12 +139,17 @@ function ProductListingPage() {
     };
 
     loadProducts();
-  }, [page, category, selectedWarehouse, q, sort, min_price, max_price]);
+  }, [page, category, selectedWarehouse, q, sort, min_price, max_price, brand_id]);
 
   // Sync URL category to local state when URL changes
   useEffect(() => {
     setSelectedCategory(category);
   }, [category]);
+
+  // Sync URL brand to local state when URL changes
+  useEffect(() => {
+    setSelectedBrand(brand_id);
+  }, [brand_id]);
 
   // Expand parent category when category is selected
   useEffect(() => {
@@ -156,7 +181,14 @@ function ProductListingPage() {
     setSelectedCategory(newCategory);
   };
 
-  // Apply all filters (category and price) to URL
+  // Sync brand selection changes to local state only
+  const handleToggleBrand = (id: string) => {
+    const isCurrentlySelected = String(selectedBrand) === String(id);
+    const newBrand = isCurrentlySelected ? undefined : String(id);
+    setSelectedBrand(newBrand);
+  };
+
+  // Apply all filters (category, brand, and price) to URL
   const handleApplyFilters = () => {
     navigate({
       search: (prev: z.infer<typeof searchSchema>) => {
@@ -165,6 +197,11 @@ function ProductListingPage() {
           newSearch.category = selectedCategory;
         } else {
           delete newSearch.category;
+        }
+        if (selectedBrand) {
+          newSearch.brand_id = selectedBrand;
+        } else {
+          delete newSearch.brand_id;
         }
         if (priceMin > 0) {
           newSearch.min_price = priceMin;
@@ -185,12 +222,14 @@ function ProductListingPage() {
   // Reset all filters
   const handleResetFilters = () => {
     setSelectedCategory(undefined);
+    setSelectedBrand(undefined);
     setPriceMin(0);
     setPriceMax(0);
     navigate({
       search: (prev: z.infer<typeof searchSchema>) => {
         const newSearch = { ...prev };
         delete newSearch.category;
+        delete newSearch.brand_id;
         delete newSearch.min_price;
         delete newSearch.max_price;
         newSearch.page = 1;
@@ -230,6 +269,9 @@ function ProductListingPage() {
             onReset={handleResetFilters}
             expandedCategories={expandedCategories}
             onToggleExpand={handleToggleExpand}
+            brands={brands}
+            selectedBrands={selectedBrand ? [String(selectedBrand)] : []}
+            onToggleBrand={handleToggleBrand}
           />
 
           <section>

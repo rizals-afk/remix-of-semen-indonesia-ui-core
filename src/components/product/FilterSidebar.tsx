@@ -2,6 +2,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { formatRupiah } from "@/lib/format";
 import type { CategoryNode } from "@/lib/api/product-category";
+import type { Brand } from "@/lib/api/brand";
 
 export interface FilterCategory {
   id: string;
@@ -21,9 +22,12 @@ interface FilterSidebarProps {
   onReset: () => void;
   expandedCategories?: Set<string>;
   onToggleExpand?: (id: string) => void;
+  brands?: Brand[];
+  selectedBrands?: string[];
+  onToggleBrand?: (id: string) => void;
 }
 
-/** Listing sidebar with category accordion + price range, matching "Cari Produk" screen. */
+/** Listing sidebar with category accordion + brand filter + price range, matching "Cari Produk" screen. */
 export function FilterSidebar({
   categories,
   selected,
@@ -36,8 +40,12 @@ export function FilterSidebar({
   onReset,
   expandedCategories = new Set<string>(),
   onToggleExpand = () => {},
+  brands = [],
+  selectedBrands = [],
+  onToggleBrand = () => {},
 }: FilterSidebarProps) {
   const [open, setOpen] = useState(true);
+  const [brandsOpen, setBrandsOpen] = useState(true);
   return (
     <aside className="rounded-xl border border-border bg-card p-5">
       <h2 className="text-lg font-bold text-foreground">Filter</h2>
@@ -66,6 +74,35 @@ export function FilterSidebar({
           </ul>
         ) : null}
       </div>
+      {brands.length > 0 && (
+        <div className="mt-6 border-t border-border pt-4">
+          <button
+            type="button"
+            onClick={() => setBrandsOpen((v) => !v)}
+            className="flex w-full items-center justify-between text-base font-semibold text-foreground"
+          >
+            Brand
+            <ChevronDown className={`h-4 w-4 transition-transform ${brandsOpen ? "" : "-rotate-90"}`} />
+          </button>
+          {brandsOpen ? (
+            <ul className="mt-3 space-y-2">
+              {brands.map((brand) => (
+                <li key={brand.id}>
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedBrands.includes(String(brand.id))}
+                      onChange={() => onToggleBrand(String(brand.id))}
+                      className="h-4 w-4 accent-primary"
+                    />
+                    <span className="text-sm text-foreground/90">{brand.name}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      )}
       <div className="mt-6 border-t border-border pt-4">
         <h3 className="text-base font-semibold text-foreground">Rentang Harga</h3>
         <div className="mt-3 space-y-3">
