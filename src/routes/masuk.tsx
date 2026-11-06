@@ -23,8 +23,8 @@ function SignInPage() {
   const navigate = useNavigate();
   const { setUser } = useUser();
   const [show, setShow] = useState(false);
-  const [email, setEmail] = useState("testadmin@email.com");
-  const [password, setPassword] = useState("testadmin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   return (
@@ -68,6 +68,7 @@ function SignInPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoFocus
           />
           <NotchedInput
             label="Password"
