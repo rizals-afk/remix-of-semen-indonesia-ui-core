@@ -446,7 +446,7 @@ function OrderDetailPage() {
 
 function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<void> }) {
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, toggleSelect } = useCart();
   const { setAddress, setWarehouse, setMode, clearSelectedCartIds, setSelectedCartIds } = useCheckout();
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -497,12 +497,13 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     setIsBuyingAgain(true);
     try {
       // Add all items from the previous order to the cart
-      for (const line of trx.lines) {
+      const addedIds: string[] = [];
+      for (const [index, line] of trx.lines.entries()) {
         const qty = typeof line.qty === 'string' ? parseFloat(line.qty) : line.qty;
         const price = typeof line.price === 'string' ? parseFloat(line.price) : line.price;
 
         const cartItem = {
-          id: `${line.product_id}-${line.product_variant_id}-${Date.now()}`,
+          id: `${line.product_id}-${line.product_variant_id}-${Date.now()}-${index}`,
           name: line.product?.name || "Produk",
           price: price,
           qty: qty,
@@ -520,6 +521,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
           stock: 0, // Will be fetched from API
         };
 
+        addedIds.push(cartItem.id);
         await addItem(
           cartItem,
           line.product_id,
@@ -527,6 +529,9 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
           trx.branch_id
         );
       }
+
+      // Select the newly added items so checkout shows them
+      addedIds.forEach((id) => toggleSelect(id));
 
       // Set checkout preferences based on previous order
       if (trx.customer_location_name && trx.customer_location_address) {
