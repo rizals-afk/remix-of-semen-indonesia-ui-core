@@ -7,6 +7,14 @@ export interface Warehouse {
   lat?: number;
   long?: number;
   is_default?: boolean;
+  min_tonase?: string;
+  max_tonase?: string;
+  code?: string;
+  ratio_min?: string;
+  ratio_max?: string;
+  owner?: string;
+  global_percentage?: string;
+  is_active?: boolean;
 }
 
 export interface BranchListResponse {
@@ -54,4 +62,8 @@ export async function fetchWarehouses(params: FetchWarehousesParams = {}): Promi
   }
 
   return apiFetch<BranchListResponse>(`/branches?${queryParams.toString()}`);
+}
+
+export async function fetchBranchById(branchId: number): Promise<Warehouse> {
+  return apiFetch<Warehouse>(`/branches/${branchId}`);
 }

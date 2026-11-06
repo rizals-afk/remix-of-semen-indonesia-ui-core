@@ -14,6 +14,7 @@ import type { CartWarehouseGroup } from "@/store/cart";
 import { createBulkTrx, type BulkTrxRequest, calculateTrx, type CalculateRequest } from "@/lib/api/trx";
 import { checkDelivery, type CheckDeliveryRequest } from "@/lib/api/delivery";
 import { deleteCartItem } from "@/lib/api/cart";
+import { fetchBranchById } from "@/lib/api/warehouse";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { getCurrentUser } from "@/lib/auth";
@@ -593,6 +594,36 @@ function CheckoutPage() {
     setShippingStates(prev => ({ ...prev, [group.warehouse]: 'loading' }));
 
     try {
+      // Get branch_id from the group (either from buyNowItem or from cart items)
+      const branchId = checkout.buyNowItem
+        ? parseInt(checkout.buyNowItem.branchId)
+        : (group.selectedItems[0]?.branch_id || 0);
+
+      if (!branchId) {
+        toast.error("ID gudang tidak ditemukan.");
+        setShippingStates(prev => ({ ...prev, [group.warehouse]: 'initial' }));
+        return;
+      }
+
+      // Fetch branch data to get tonase limits
+      const branch = await fetchBranchById(branchId);
+
+      // Validate tonase against branch limits
+      const tonaseInTons = group.tonase / 1000;
+      const minTonase = branch.min_tonase ? parseFloat(branch.min_tonase) : 0;
+      const maxTonase = branch.max_tonase ? parseFloat(branch.max_tonase) : Infinity;
+
+      if (tonaseInTons < minTonase || tonaseInTons > maxTonase) {
+        const minDisplay = minTonase === 0 ? "0" : minTonase.toFixed(2);
+        const maxDisplay = maxTonase === Infinity ? "∞" : maxTonase.toFixed(2);
+        toast.error(
+          `Total tonase pesanan (${tonaseInTons.toFixed(2)} ton) di luar jangkauan pengiriman untuk gudang ini (${minDisplay}-${maxDisplay} ton). Silakan kurangi jumlah barang atau hubungi customer service.`
+        );
+        setShippingStates(prev => ({ ...prev, [group.warehouse]: 'initial' }));
+        return;
+      }
+
+      // Proceed with delivery check if tonase is valid
       const request: CheckDeliveryRequest = {
         customer_lat: customerLocation.selectedLocation.lat || 0,
         customer_long: customerLocation.selectedLocation.long || 0,
@@ -608,9 +639,10 @@ function CheckoutPage() {
       setShippingDistances(prev => ({ ...prev, [group.warehouse]: response.distance }));
       checkout.setDeliveryRuleId(group.warehouse, response.delivery_rule.id);
       setShippingStates(prev => ({ ...prev, [group.warehouse]: 'calculated' }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to calculate shipping:", error);
-      toast.error("Gagal menghitung ongkir. Silakan coba lagi.");
+      const errorMessage = error?.response?.data?.message || error?.message || "Gagal menghitung ongkir. Silakan coba lagi.";
+      toast.error(errorMessage);
       setShippingStates(prev => ({ ...prev, [group.warehouse]: 'initial' }));
     }
   };
