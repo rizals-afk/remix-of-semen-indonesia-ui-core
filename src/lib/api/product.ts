@@ -82,6 +82,38 @@ export interface Product {
   shippingDistanceKm?: number;
   shippingMethod?: string;
   shippingEta?: string;
+  // Flashsale/Promo fields
+  discount_amount?: string;
+  discount_percentage?: string;
+  voucher_apply_lines?: VoucherApplyLine[];
+}
+
+export interface VoucherApplyLine {
+  id: number;
+  voucher_id: number;
+  product_id: number;
+  product_variant_id?: number;
+  voucher: {
+    id: number;
+    name: string;
+    description?: string;
+    code?: string;
+    valid_start: string;
+    valid_end: string;
+    quota_promo: number;
+    type: "flashsale" | "voucher" | "promo";
+    max_discount: string;
+    discount_amount?: string;
+    discount_percentage?: string;
+    min_purchase: string;
+    apply_on: string;
+    apply_on_id?: string;
+    discount_type: "fixed" | "percentage";
+    branch_id: number;
+    is_claim: boolean;
+    flashsale_time_start?: string;
+    flashsale_time_end?: string;
+  };
 }
 
 export interface ProductListResponse {
@@ -103,10 +135,11 @@ export interface FetchProductsParams {
   min_price?: number;
   max_price?: number;
   brand_id?: number | string;
+  is_flashsale?: boolean;
 }
 
 export async function fetchProducts(params: FetchProductsParams = {}): Promise<ProductListResponse> {
-  const { page = 1, per_page = 9, product_category_id, branch_id, search, sort, sort_by, sort_order, min_price, max_price, brand_id } = params;
+  const { page = 1, per_page = 9, product_category_id, branch_id, search, sort, sort_by, sort_order, min_price, max_price, brand_id, is_flashsale } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
@@ -142,6 +175,10 @@ export async function fetchProducts(params: FetchProductsParams = {}): Promise<P
 
   if (brand_id) {
     queryParams.append("brand_id", String(brand_id));
+  }
+
+  if (is_flashsale !== undefined) {
+    queryParams.append("is_flashsale", is_flashsale.toString());
   }
 
   console.log("Query Params:", queryParams.toString());
@@ -364,10 +401,37 @@ export function transformProductToCard(
   const price = getProductPrice(product, variantId, branchId);
   const image = getProductImage(product);
 
+  // Calculate discount from voucher_apply_lines
+  let originalPrice = price;
+  let finalPrice = price;
+  let discountPercent: number | undefined;
+
+  if (product.voucher_apply_lines && product.voucher_apply_lines.length > 0 && price) {
+    const firstVoucher = product.voucher_apply_lines[0].voucher;
+    if (firstVoucher) {
+      originalPrice = price;
+
+      if (firstVoucher.discount_type === "percentage" && firstVoucher.discount_percentage) {
+        const percentage = parseFloat(firstVoucher.discount_percentage);
+        discountPercent = percentage;
+        // Calculate discounted price: newPrice = originalPrice * (1 - percentage/100)
+        finalPrice = originalPrice * (1 - percentage / 100);
+      } else if (firstVoucher.discount_type === "fixed" && firstVoucher.discount_amount) {
+        const amount = parseFloat(firstVoucher.discount_amount);
+        // Calculate discounted price: newPrice = originalPrice - amount
+        finalPrice = originalPrice - amount;
+        // Calculate percentage for display
+        discountPercent = Math.round((amount / originalPrice) * 100);
+      }
+    }
+  }
+
   return {
     id: product.id,
     name: product.name,
-    price: price || 0,
+    price: finalPrice || 0,
+    originalPrice: originalPrice && finalPrice && originalPrice > finalPrice ? originalPrice : undefined,
+    discountPercent,
     image,
     warehouse: warehouseName || "Gudang Utama",
     category: product.category_name || "Umum",

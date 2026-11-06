@@ -97,12 +97,13 @@ function HomePage() {
         // Baru Masuk
         sortParams = { sort_by: "created_at", sort_order: "desc" };
       }
-      // Promo Spesial (tabIndex === 1) uses default sorting
+      // Promo Spesial (tabIndex === 1) uses is_flashsale parameter
 
       const productsResponse = await fetchProducts({
         page: 1,
         per_page: 6,
         branch_id: selectedWarehouse?.id,
+        is_flashsale: tabIndex === 1 ? true : undefined,
         ...sortParams,
       });
 
@@ -388,7 +389,7 @@ function HomePage() {
       <section className="container mx-auto max-w-7xl px-4 py-12">
         <div className="flex items-center justify-between">
           <SectionTitle>Blog & Inspirasi</SectionTitle>
-          <Link to="/blog" search={{ q: undefined, page: 1 }} className="text-sm font-semibold text-primary hover:text-primary/80">
+          <Link to="/blog" search={{ q: undefined, tag: undefined, page: 1 }} className="text-sm font-semibold text-primary hover:text-primary/80">
             Selengkapnya →
           </Link>
         </div>

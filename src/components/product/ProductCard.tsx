@@ -27,6 +27,7 @@ interface ProductCardProps {
  */
 export function ProductCard({ product, compact = false }: ProductCardProps) {
   const { id, name, price, originalPrice, discountPercent, image, warehouse, rating } = product;
+
   return (
     <Link
       to="/produk/$slug"
