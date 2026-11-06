@@ -66,6 +66,8 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:title", content: "BahanMaterial.com" },
       { property: "og:description", content: "The Best Partner in Building Material" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: HomePage,
@@ -284,8 +286,8 @@ function HomePage() {
         <div className="flex items-center justify-between">
           <SectionTitle>Material Pilihan</SectionTitle>
           <Link
-            to="/produk"
-            search={{
+            to={activeTab === 1 ? "/flashsale" : "/produk"}
+            search={activeTab === 1 ? undefined : {
               branch_id: selectedWarehouse?.id,
               ...(activeTab === 0 ? { sort: "terlaris" } : {}),
               ...(activeTab === 2 ? { sort: "terbaru" } : {}),
