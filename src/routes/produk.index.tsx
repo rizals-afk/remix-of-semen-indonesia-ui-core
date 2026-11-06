@@ -23,6 +23,7 @@ const searchSchema = z.object({
   min_price: z.coerce.number().min(0).optional(),
   max_price: z.coerce.number().min(0).optional(),
   brand_id: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
+  branch_id: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
 });
 
 export const Route = createFileRoute("/produk/")({
@@ -55,7 +56,7 @@ function mapSortToBackend(sort?: string): { sort_by?: string; sort_order?: strin
 }
 
 function ProductListingPage() {
-  const { q = "", page = 1, sort = "terbaru", category, min_price, max_price, brand_id } = Route.useSearch();
+  const { q = "", page = 1, sort = "terbaru", category, min_price, max_price, brand_id, branch_id: urlBranchId } = Route.useSearch();
   const navigate = useNavigate({ from: "/produk/" });
   const { selectedWarehouse, setSelectedWarehouse } = useWarehouse();
   const user = getCurrentUserFromStorage();
@@ -101,6 +102,16 @@ function ProductListingPage() {
     loadBrands();
   }, []);
 
+  // Sync URL branch_id to selected warehouse
+  useEffect(() => {
+    if (urlBranchId && (!selectedWarehouse || selectedWarehouse.id !== String(urlBranchId))) {
+      // If URL has branch_id but selected warehouse doesn't match, try to find and set it
+      // For now, we'll just use the URL branch_id for the API call
+      // In a more advanced implementation, you might want to fetch the branch details and set it in the store
+      console.log("URL branch_id:", urlBranchId, "does not match selected warehouse:", selectedWarehouse?.id);
+    }
+  }, [urlBranchId, selectedWarehouse]);
+
   // Fetch products when filters change
   useEffect(() => {
     const loadProducts = async () => {
@@ -112,7 +123,7 @@ function ProductListingPage() {
           page,
           per_page: PAGE_SIZE,
           product_category_id: category,
-          branch_id: selectedWarehouse?.id,
+          branch_id: urlBranchId || selectedWarehouse?.id,
           search: q || undefined,
           sort_by: sort_by as any,
           sort_order: sort_order as any,
@@ -139,7 +150,7 @@ function ProductListingPage() {
     };
 
     loadProducts();
-  }, [page, category, selectedWarehouse, q, sort, min_price, max_price, brand_id]);
+  }, [page, category, selectedWarehouse, q, sort, min_price, max_price, brand_id, urlBranchId]);
 
   // Sync URL category to local state when URL changes
   useEffect(() => {

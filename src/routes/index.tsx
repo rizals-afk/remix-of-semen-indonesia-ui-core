@@ -284,7 +284,11 @@ function HomePage() {
           <SectionTitle>Material Pilihan</SectionTitle>
           <Link
             to="/produk"
-            search={{ sort: "terlaris" }}
+            search={{
+              branch_id: selectedWarehouse?.id,
+              ...(activeTab === 0 ? { sort: "terlaris" } : {}),
+              ...(activeTab === 2 ? { sort: "terbaru" } : {}),
+            }}
             className="text-sm font-semibold text-primary hover:text-primary/80"
           >
             Lihat Selengkapnya →
