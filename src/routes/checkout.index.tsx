@@ -15,7 +15,7 @@ import { createBulkTrx, type BulkTrxRequest, calculateTrx, type CalculateRequest
 import { checkDelivery, type CheckDeliveryRequest } from "@/lib/api/delivery";
 import { deleteCartItem } from "@/lib/api/cart";
 import { toast } from "sonner";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { getCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/checkout/")({
@@ -90,9 +90,12 @@ function CheckoutPage() {
   }, [user?.isAuthenticated]);
 
   // Use buyNowItem if set, otherwise use cart groups
-  const groups = checkout.buyNowItem
-    ? [createGroupFromBuyNowItem(checkout.buyNowItem)]
-    : cart.selectedGroups;
+  // Memoized so `groups` keeps a stable reference across renders —
+  // the effects below depend on it and would loop forever otherwise.
+  const groups = useMemo(
+    () => (checkout.buyNowItem ? [createGroupFromBuyNowItem(checkout.buyNowItem)] : cart.selectedGroups),
+    [checkout.buyNowItem, cart.selectedGroups],
+  );
 
   // Restore shipping states from delivery rule IDs on mount
   useEffect(() => {
@@ -102,7 +105,16 @@ function CheckoutPage() {
         restoredStates[group.warehouse] = 'calculated';
       }
     });
-    setShippingStates(restoredStates);
+    // Only update state when the result actually differs, otherwise this
+    // effect would re-render and re-run itself forever.
+    setShippingStates((prev) => {
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(restoredStates);
+      const unchanged =
+        prevKeys.length === nextKeys.length &&
+        nextKeys.every((key) => prev[key] === restoredStates[key]);
+      return unchanged ? prev : restoredStates;
+    });
   }, [groups, checkout.deliveryRuleIds, checkout.calculatedShippingFees]);
 
   // Trigger shipping recalculation when address changes
