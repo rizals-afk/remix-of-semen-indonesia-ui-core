@@ -50,12 +50,12 @@ export function VoucherCard({ voucher, selected, disabled, onSelect, isClaimed, 
             disabled={isClaiming}
             className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isClaiming ? "Memproses..." : "Pakai"}
+            {isClaiming ? "Memproses..." : "Claim"}
           </button>
         )}
         {isClaimed && (
           <span className="mt-2 inline-block rounded-md bg-success/15 px-3 py-1.5 text-xs font-semibold text-success">
-            Sudah Dipakai
+            Sudah Claim
           </span>
         )}
       </div>
