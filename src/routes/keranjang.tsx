@@ -197,6 +197,22 @@ function CartPage() {
                     toast.error("Silahkan Login Terlebih Dahulu");
                     return;
                   }
+
+                  // Validate stock for selected items
+                  const selectedItems = cart.items.filter(item => cart.selectedIds.has(item.id));
+                  const outOfStockItems = selectedItems.filter(item => {
+                    const availableStock = item.stock !== undefined ? Math.floor(item.stock) : 0;
+                    return item.qty > availableStock;
+                  });
+
+                  if (outOfStockItems.length > 0) {
+                    const itemNames = outOfStockItems.map(item => item.name).join(", ");
+                    toast.error(
+                      `Beberapa produk melebihi stok tersedia: ${itemNames}. Silakan kurangi jumlah barang.`
+                    );
+                    return;
+                  }
+
                   // Store selected cart IDs for cleanup after successful checkout
                   const selectedIds = Array.from(cart.selectedIds);
                   checkout.setSelectedCartIds(selectedIds);
