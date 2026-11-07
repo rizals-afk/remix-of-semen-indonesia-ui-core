@@ -2,6 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, MapPin, Percent, Zap } from "lucide-react";
 import flashSaleMaterials from "@/assets/flash-sale-materials.png";
+import cementBag from "@/assets/flash-semen.png";
+import toilet from "@/assets/flash-toilet.jpg";
+import mortar from "@/assets/flash-mortar.jpg";
+import roofing from "@/assets/flash-roofing.jpg";
+import channel from "@/assets/flash-kanal-c.jpg";
+import bricks from "@/assets/flash-bricks.jpg";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductCard, type Product } from "@/components/product/ProductCard";
 import { Pagination } from "@/components/common/Pagination";
@@ -30,18 +36,18 @@ export const Route = createFileRoute("/flashsale")({
 
 const PAGE_SIZE = 8;
 const SALE_PRODUCTS: Product[] = [
-  { ...FEATURED_PRODUCTS[0], id: "flash-semen-gresik", name: "Semen Gresik", price: 59800, originalPrice: 74800, discountPercent: 20, warehouse: "Gudang Gresik" },
-  { ...FEATURED_PRODUCTS[1], id: "flash-closet-minimalis", name: "Closet Duduk Minimalis", price: 72233, originalPrice: 84000, discountPercent: 14, warehouse: "Gudang Surabaya" },
-  { ...FEATURED_PRODUCTS[2], id: "flash-mortar-perekat", name: "Mortar Perekat", price: 63185, originalPrice: 76100, discountPercent: 17, warehouse: "Gudang Madiun" },
-  { ...FEATURED_PRODUCTS[3], id: "flash-atap-upvc", name: "Atap UPVC", price: 63185, originalPrice: 65800, discountPercent: 4, warehouse: "Gudang Madiun" },
-  { ...FEATURED_PRODUCTS[4], id: "flash-kanal-c", name: "Kanal C", price: 59800, originalPrice: 65700, discountPercent: 9, warehouse: "Gudang Gresik" },
-  { ...FEATURED_PRODUCTS[6], id: "flash-semen-merdeka", name: "Semen Merdeka", price: 72233, originalPrice: 77780, discountPercent: 7, warehouse: "Gudang Surabaya" },
-  { ...FEATURED_PRODUCTS[1], id: "flash-bata-merah", name: "Bata Merah", price: 63185, originalPrice: 64470, discountPercent: 2, warehouse: "Gudang Madiun" },
-  { ...FEATURED_PRODUCTS[5], id: "flash-besi-meteran", name: "Besi Meteran", price: 63185, originalPrice: 71000, discountPercent: 11, warehouse: "Gudang Madiun" },
-  { ...FEATURED_PRODUCTS[0], id: "flash-semen-pcc", name: "Semen Portland Komposit", price: 61500, originalPrice: 73800, discountPercent: 17, warehouse: "Gudang Sidoarjo" },
-  { ...FEATURED_PRODUCTS[3], id: "flash-lem-bata-ringan", name: "Perekat Bata Ringan", price: 68500, originalPrice: 76000, discountPercent: 10, warehouse: "Gudang Surabaya" },
-  { ...FEATURED_PRODUCTS[4], id: "flash-baja-ringan", name: "Baja Ringan Kanal C", price: 87500, originalPrice: 99500, discountPercent: 12, warehouse: "Gudang Gresik" },
-  { ...FEATURED_PRODUCTS[2], id: "flash-mortar-plester", name: "Mortar Plester", price: 59000, originalPrice: 69500, discountPercent: 15, warehouse: "Gudang Madiun" },
+  { ...FEATURED_PRODUCTS[0], id: "flash-semen-gresik", name: "Semen Gresik", price: 59800, originalPrice: 74800, discountPercent: 20, image: cementBag, warehouse: "Gudang Gresik" },
+  { ...FEATURED_PRODUCTS[1], id: "flash-closet-minimalis", name: "Closet Duduk Minimalis", price: 72233, originalPrice: 84000, discountPercent: 14, image: toilet, warehouse: "Gudang Surabaya" },
+  { ...FEATURED_PRODUCTS[2], id: "flash-mortar-perekat", name: "Mortar Perekat", price: 63185, originalPrice: 76100, discountPercent: 17, image: mortar, warehouse: "Gudang Madiun" },
+  { ...FEATURED_PRODUCTS[3], id: "flash-atap-upvc", name: "Atap UPVC", price: 63185, originalPrice: 65800, discountPercent: 4, image: roofing, warehouse: "Gudang Madiun" },
+  { ...FEATURED_PRODUCTS[4], id: "flash-kanal-c", name: "Kanal C", price: 59800, originalPrice: 65700, discountPercent: 9, image: channel, warehouse: "Gudang Gresik" },
+  { ...FEATURED_PRODUCTS[6], id: "flash-semen-merdeka", name: "Semen Merdeka", price: 72233, originalPrice: 77780, discountPercent: 7, image: cementBag, warehouse: "Gudang Surabaya" },
+  { ...FEATURED_PRODUCTS[1], id: "flash-bata-merah", name: "Bata Merah", price: 63185, originalPrice: 64470, discountPercent: 2, image: bricks, warehouse: "Gudang Madiun" },
+  { ...FEATURED_PRODUCTS[5], id: "flash-besi-meteran", name: "Besi Meteran", price: 63185, originalPrice: 71000, discountPercent: 11, image: channel, warehouse: "Gudang Madiun" },
+  { ...FEATURED_PRODUCTS[0], id: "flash-semen-pcc", name: "Semen Portland Komposit", price: 61500, originalPrice: 73800, discountPercent: 17, image: cementBag, warehouse: "Gudang Sidoarjo" },
+  { ...FEATURED_PRODUCTS[3], id: "flash-lem-bata-ringan", name: "Perekat Bata Ringan", price: 68500, originalPrice: 76000, discountPercent: 10, image: mortar, warehouse: "Gudang Surabaya" },
+  { ...FEATURED_PRODUCTS[4], id: "flash-baja-ringan", name: "Baja Ringan Kanal C", price: 87500, originalPrice: 99500, discountPercent: 12, image: channel, warehouse: "Gudang Gresik" },
+  { ...FEATURED_PRODUCTS[2], id: "flash-mortar-plester", name: "Mortar Plester", price: 59000, originalPrice: 69500, discountPercent: 15, image: mortar, warehouse: "Gudang Madiun" },
 ];
 
 const FLASH_SALES = [
