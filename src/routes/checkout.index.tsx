@@ -39,6 +39,7 @@ function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
     variant: item.variantName,
     variant_id: parseInt(item.variantId),
     branch_id: parseInt(item.branchId),
+    voucher_id: item.voucherId,
   };
 
   return {
@@ -444,6 +445,7 @@ function CheckoutPage() {
           subtotal: item.price * item.qty,
           tonase: (item.weightKg || 0) * item.qty,
           division: checkout.buyNowItem?.division || item.division,
+          voucher_id: checkout.buyNowItem?.voucherId || item.voucher_id,
         }));
 
         // Recalculate financial totals for this order

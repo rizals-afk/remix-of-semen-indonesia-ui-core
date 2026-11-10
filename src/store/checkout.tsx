@@ -24,6 +24,8 @@ export interface BuyNowItem {
   branch_latitude?: number;
   /** Branch longitude from selected product branch */
   branch_longitude?: number;
+  /** Voucher ID from flashsale or promo spesial */
+  voucherId?: number;
 }
 
 interface CheckoutState {

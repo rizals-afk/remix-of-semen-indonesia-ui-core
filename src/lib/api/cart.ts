@@ -28,6 +28,33 @@ export interface CartItem {
   branch_id: number;
   price: number;
   subtotal: number;
+  voucher_id?: number;
+  discount_amount?: string;
+  discount_percentage?: string;
+  is_flashsale_valid?: boolean;
+  voucher?: {
+    id: number;
+    name: string;
+    description: string | null;
+    code: string | null;
+    valid_start: string;
+    valid_end: string;
+    quota_promo: number;
+    type: string;
+    max_discount: string;
+    discount_amount: string | null;
+    discount_percentage: string | null;
+    min_purchase: string;
+    apply_on: string;
+    apply_on_id: string | null;
+    created_at: string;
+    updated_at: string;
+    discount_type: string;
+    branch_id: number;
+    is_claim: boolean;
+    flashsale_time_start?: string;
+    flashsale_time_end?: string;
+  };
   product: {
     id: number;
     name: string;
@@ -119,6 +146,7 @@ export interface AddToCartPayload {
   product_variant_id: number;
   branch_id?: number;
   qty: number;
+  voucher_id?: number;
 }
 
 export async function addToCart(payload: AddToCartPayload): Promise<CartResponse> {

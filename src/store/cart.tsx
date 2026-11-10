@@ -27,7 +27,7 @@ interface CartContextValue {
   subTotal: number;
   totalTonase: number;
   cartCount: number;
-  addItem: (item: CartProduct, productId?: number, variantId?: number, branchId?: number) => Promise<void>;
+  addItem: (item: CartProduct, productId?: number, variantId?: number, branchId?: number, voucherId?: number) => Promise<void>;
   removeItem: (id: string) => Promise<void>;
   updateQty: (id: string, qty: number) => Promise<void>;
   refreshCart: () => Promise<void>;
@@ -56,10 +56,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const transformApiItemToCartProduct = (item: CartItem): CartProduct => {
     // Find stock for this branch
     const stock = item.product_variant.stocks?.find(s => s.branch_id === item.branch_id);
+
+    // Calculate discount price if flashsale is valid and voucher exists
+    let finalPrice = item.price;
+    let originalPrice: number | undefined;
+    let discountPercent: number | undefined;
+
+    if (item.is_flashsale_valid && item.voucher) {
+      originalPrice = item.price;
+
+      if (item.voucher.discount_type === "percentage" && item.voucher.discount_percentage) {
+        const percentage = parseFloat(item.voucher.discount_percentage);
+        discountPercent = percentage;
+        finalPrice = originalPrice * (1 - percentage / 100);
+      } else if (item.voucher.discount_type === "fixed" && item.voucher.discount_amount) {
+        const amount = parseFloat(item.voucher.discount_amount);
+        finalPrice = originalPrice - amount;
+        discountPercent = Math.round((amount / originalPrice) * 100);
+      }
+    }
+
     return {
       id: String(item.id),
       name: item.product.name,
-      price: item.price,
+      price: finalPrice,
+      originalPrice: originalPrice && finalPrice && originalPrice > finalPrice ? originalPrice : undefined,
+      discountPercent,
       qty: item.qty,
       warehouse: item.branch.name,
       image: item.product_variant.media?.[0]?.url || item.product.photo || "",
@@ -73,6 +95,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       branch_latitude: parseFloat(item.branch.lat) || undefined,
       branch_longitude: parseFloat(item.branch.long) || undefined,
       stock: stock?.online_stock || 0,
+      voucher_id: item.voucher_id,
     };
   };
 
@@ -173,7 +196,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const addItem = useCallback(async (item: CartProduct, productId?: number, variantId?: number, branchId?: number) => {
+  const addItem = useCallback(async (item: CartProduct, productId?: number, variantId?: number, branchId?: number, voucherId?: number) => {
     // Update local state immediately for responsiveness
     setItems((prev) => {
       const existing = prev.find((p) => p.id === item.id);
@@ -192,6 +215,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           product_variant_id: variantId,
           branch_id: branchId,
           qty: item.qty,
+          voucher_id: voucherId,
         });
         // Refresh cart count after successful add
         await refreshCartCount();

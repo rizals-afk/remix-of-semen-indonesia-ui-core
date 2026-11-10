@@ -9,128 +9,63 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ActivateRouteImport } from './routes/activate'
-import { Route as AkunRouteImport } from './routes/akun'
-import { Route as FavoriteRouteImport } from './routes/favorite'
-import { Route as FlashsaleRouteImport } from './routes/flashsale'
-import { Route as GudangRouteImport } from './routes/gudang'
-import { Route as KeranjangRouteImport } from './routes/keranjang'
-import { Route as LupaPasswordRouteImport } from './routes/lupa-password'
-import { Route as MasukRouteImport } from './routes/masuk'
-import { Route as NotifikasiRouteImport } from './routes/notifikasi'
-import { Route as PesanRouteImport } from './routes/pesan'
-import { Route as PrivasiRouteImport } from './routes/privasi'
-import { Route as PromoRouteImport } from './routes/promo'
-import { Route as SyaratRouteImport } from './routes/syarat'
-import { Route as TentangRouteImport } from './routes/tentang'
 import { Route as WishlistRouteImport } from './routes/wishlist'
-import { Route as AkunIndexRouteImport } from './routes/akun.index'
-import { Route as AkunAktivasiGagalRouteImport } from './routes/akun.aktivasi-gagal'
-import { Route as AkunAktivasiSuksesRouteImport } from './routes/akun.aktivasi-sukses'
-import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
-import { Route as AkunCekEmailRouteImport } from './routes/akun.cek-email'
-import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
-import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
-import { Route as AkunVoucherRouteImport } from './routes/akun.voucher'
-import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google-callback'
-import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as BlogIdRouteImport } from './routes/blog.$id'
-import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
-import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
-import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
-import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
-import { Route as CheckoutPembayaranRouteImport } from './routes/checkout.pembayaran'
-import { Route as CheckoutVerifikasiRouteImport } from './routes/checkout.verifikasi'
-import { Route as CheckoutVoucherRouteImport } from './routes/checkout.voucher'
-import { Route as DaftarIndexRouteImport } from './routes/daftar.index'
-import { Route as DaftarAktivasiGagalRouteImport } from './routes/daftar.aktivasi-gagal'
-import { Route as DaftarAktivasiSuksesRouteImport } from './routes/daftar.aktivasi-sukses'
-import { Route as DaftarCekEmailRouteImport } from './routes/daftar.cek-email'
-import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
-import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
-import { Route as PanduanBelanjaRouteImport } from './routes/panduan.belanja'
-import { Route as PanduanPembayaranRouteImport } from './routes/panduan.pembayaran'
-import { Route as PanduanPengembalianRouteImport } from './routes/panduan.pengembalian'
-import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
-import { Route as PembayaranSuksesRouteImport } from './routes/pembayaran.sukses'
-import { Route as ProdukIndexRouteImport } from './routes/produk.index'
-import { Route as ProdukSlugRouteImport } from './routes/produk.$slug'
+import { Route as TentangRouteImport } from './routes/tentang'
+import { Route as SyaratRouteImport } from './routes/syarat'
+import { Route as PromoRouteImport } from './routes/promo'
+import { Route as PrivasiRouteImport } from './routes/privasi'
+import { Route as PesanRouteImport } from './routes/pesan'
+import { Route as NotifikasiRouteImport } from './routes/notifikasi'
+import { Route as MasukRouteImport } from './routes/masuk'
+import { Route as LupaPasswordRouteImport } from './routes/lupa-password'
+import { Route as KeranjangRouteImport } from './routes/keranjang'
+import { Route as GudangRouteImport } from './routes/gudang'
+import { Route as FlashsaleRouteImport } from './routes/flashsale'
+import { Route as FavoriteRouteImport } from './routes/favorite'
+import { Route as AkunRouteImport } from './routes/akun'
+import { Route as ActivateRouteImport } from './routes/activate'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as ResetPasswordIndexRouteImport } from './routes/reset-password.index'
-import { Route as ResetPasswordCekEmailRouteImport } from './routes/reset-password.cek-email'
+import { Route as ProdukIndexRouteImport } from './routes/produk.index'
+import { Route as KategoriIndexRouteImport } from './routes/kategori.index'
+import { Route as DaftarIndexRouteImport } from './routes/daftar.index'
+import { Route as CheckoutIndexRouteImport } from './routes/checkout.index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as AkunIndexRouteImport } from './routes/akun.index'
 import { Route as ResetPasswordSuksesRouteImport } from './routes/reset-password.sukses'
+import { Route as ResetPasswordCekEmailRouteImport } from './routes/reset-password.cek-email'
+import { Route as ProdukSlugRouteImport } from './routes/produk.$slug'
+import { Route as PembayaranSuksesRouteImport } from './routes/pembayaran.sukses'
+import { Route as PanduanPengirimanRouteImport } from './routes/panduan.pengiriman'
+import { Route as PanduanPengembalianRouteImport } from './routes/panduan.pengembalian'
+import { Route as PanduanPembayaranRouteImport } from './routes/panduan.pembayaran'
+import { Route as PanduanBelanjaRouteImport } from './routes/panduan.belanja'
+import { Route as KategoriSlugRouteImport } from './routes/kategori.$slug'
+import { Route as DaftarCekEmailRouteImport } from './routes/daftar.cek-email'
+import { Route as DaftarAktivasiSuksesRouteImport } from './routes/daftar.aktivasi-sukses'
+import { Route as DaftarAktivasiGagalRouteImport } from './routes/daftar.aktivasi-gagal'
+import { Route as CheckoutVoucherRouteImport } from './routes/checkout.voucher'
+import { Route as CheckoutVerifikasiRouteImport } from './routes/checkout.verifikasi'
+import { Route as CheckoutPembayaranRouteImport } from './routes/checkout.pembayaran'
+import { Route as CheckoutGudangRouteImport } from './routes/checkout.gudang'
+import { Route as CheckoutAlamatRouteImport } from './routes/checkout.alamat'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as BlogIdRouteImport } from './routes/blog.$id'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth.google-callback'
+import { Route as AkunVoucherRouteImport } from './routes/akun.voucher'
+import { Route as AkunUbahPasswordRouteImport } from './routes/akun.ubah-password'
+import { Route as AkunNotifikasiRouteImport } from './routes/akun.notifikasi'
+import { Route as AkunCekEmailRouteImport } from './routes/akun.cek-email'
+import { Route as AkunAlamatRouteImport } from './routes/akun.alamat'
+import { Route as AkunAktivasiSuksesRouteImport } from './routes/akun.aktivasi-sukses'
+import { Route as AkunAktivasiGagalRouteImport } from './routes/akun.aktivasi-gagal'
 import { Route as AkunTransaksiIndexRouteImport } from './routes/akun.transaksi.index'
-import { Route as AkunTransaksiIdRouteImport } from './routes/akun.transaksi.$id'
 import { Route as BlogTagTagRouteImport } from './routes/blog.tag.$tag'
+import { Route as AkunTransaksiIdRouteImport } from './routes/akun.transaksi.$id'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ActivateRoute = ActivateRouteImport.update({
-  id: '/activate',
-  path: '/activate',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AkunRoute = AkunRouteImport.update({
-  id: '/akun',
-  path: '/akun',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FavoriteRoute = FavoriteRouteImport.update({
-  id: '/favorite',
-  path: '/favorite',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FlashsaleRoute = FlashsaleRouteImport.update({
-  id: '/flashsale',
-  path: '/flashsale',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GudangRoute = GudangRouteImport.update({
-  id: '/gudang',
-  path: '/gudang',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KeranjangRoute = KeranjangRouteImport.update({
-  id: '/keranjang',
-  path: '/keranjang',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LupaPasswordRoute = LupaPasswordRouteImport.update({
-  id: '/lupa-password',
-  path: '/lupa-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MasukRoute = MasukRouteImport.update({
-  id: '/masuk',
-  path: '/masuk',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotifikasiRoute = NotifikasiRouteImport.update({
-  id: '/notifikasi',
-  path: '/notifikasi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PesanRoute = PesanRouteImport.update({
-  id: '/pesan',
-  path: '/pesan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivasiRoute = PrivasiRouteImport.update({
-  id: '/privasi',
-  path: '/privasi',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PromoRoute = PromoRouteImport.update({
-  id: '/promo',
-  path: '/promo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SyaratRoute = SyaratRouteImport.update({
-  id: '/syarat',
-  path: '/syarat',
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TentangRoute = TentangRouteImport.update({
@@ -138,164 +73,74 @@ const TentangRoute = TentangRouteImport.update({
   path: '/tentang',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WishlistRoute = WishlistRouteImport.update({
-  id: '/wishlist',
-  path: '/wishlist',
+const SyaratRoute = SyaratRouteImport.update({
+  id: '/syarat',
+  path: '/syarat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AkunIndexRoute = AkunIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AkunRoute,
+const PromoRoute = PromoRouteImport.update({
+  id: '/promo',
+  path: '/promo',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AkunAktivasiGagalRoute = AkunAktivasiGagalRouteImport.update({
-  id: '/aktivasi-gagal',
-  path: '/aktivasi-gagal',
-  getParentRoute: () => AkunRoute,
+const PrivasiRoute = PrivasiRouteImport.update({
+  id: '/privasi',
+  path: '/privasi',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AkunAktivasiSuksesRoute = AkunAktivasiSuksesRouteImport.update({
-  id: '/aktivasi-sukses',
-  path: '/aktivasi-sukses',
-  getParentRoute: () => AkunRoute,
+const PesanRoute = PesanRouteImport.update({
+  id: '/pesan',
+  path: '/pesan',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AkunAlamatRoute = AkunAlamatRouteImport.update({
-  id: '/alamat',
-  path: '/alamat',
-  getParentRoute: () => AkunRoute,
-} as any)
-const AkunCekEmailRoute = AkunCekEmailRouteImport.update({
-  id: '/cek-email',
-  path: '/cek-email',
-  getParentRoute: () => AkunRoute,
-} as any)
-const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
+const NotifikasiRoute = NotifikasiRouteImport.update({
   id: '/notifikasi',
   path: '/notifikasi',
-  getParentRoute: () => AkunRoute,
-} as any)
-const AkunUbahPasswordRoute = AkunUbahPasswordRouteImport.update({
-  id: '/ubah-password',
-  path: '/ubah-password',
-  getParentRoute: () => AkunRoute,
-} as any)
-const AkunVoucherRoute = AkunVoucherRouteImport.update({
-  id: '/voucher',
-  path: '/voucher',
-  getParentRoute: () => AkunRoute,
-} as any)
-const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
-  id: '/auth/google-callback',
-  path: '/auth/google-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
+const MasukRoute = MasukRouteImport.update({
+  id: '/masuk',
+  path: '/masuk',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogIdRoute = BlogIdRouteImport.update({
-  id: '/blog/$id',
-  path: '/blog/$id',
+const LupaPasswordRoute = LupaPasswordRouteImport.update({
+  id: '/lupa-password',
+  path: '/lupa-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
+const KeranjangRoute = KeranjangRouteImport.update({
+  id: '/keranjang',
+  path: '/keranjang',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
-  id: '/checkout/',
-  path: '/checkout/',
+const GudangRoute = GudangRouteImport.update({
+  id: '/gudang',
+  path: '/gudang',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckoutAlamatRoute = CheckoutAlamatRouteImport.update({
-  id: '/checkout/alamat',
-  path: '/checkout/alamat',
+const FlashsaleRoute = FlashsaleRouteImport.update({
+  id: '/flashsale',
+  path: '/flashsale',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckoutGudangRoute = CheckoutGudangRouteImport.update({
-  id: '/checkout/gudang',
-  path: '/checkout/gudang',
+const FavoriteRoute = FavoriteRouteImport.update({
+  id: '/favorite',
+  path: '/favorite',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckoutPembayaranRoute = CheckoutPembayaranRouteImport.update({
-  id: '/checkout/pembayaran',
-  path: '/checkout/pembayaran',
+const AkunRoute = AkunRouteImport.update({
+  id: '/akun',
+  path: '/akun',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckoutVerifikasiRoute = CheckoutVerifikasiRouteImport.update({
-  id: '/checkout/verifikasi',
-  path: '/checkout/verifikasi',
+const ActivateRoute = ActivateRouteImport.update({
+  id: '/activate',
+  path: '/activate',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckoutVoucherRoute = CheckoutVoucherRouteImport.update({
-  id: '/checkout/voucher',
-  path: '/checkout/voucher',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DaftarIndexRoute = DaftarIndexRouteImport.update({
-  id: '/daftar/',
-  path: '/daftar/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DaftarAktivasiGagalRoute = DaftarAktivasiGagalRouteImport.update({
-  id: '/daftar/aktivasi-gagal',
-  path: '/daftar/aktivasi-gagal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DaftarAktivasiSuksesRoute = DaftarAktivasiSuksesRouteImport.update({
-  id: '/daftar/aktivasi-sukses',
-  path: '/daftar/aktivasi-sukses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DaftarCekEmailRoute = DaftarCekEmailRouteImport.update({
-  id: '/daftar/cek-email',
-  path: '/daftar/cek-email',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KategoriIndexRoute = KategoriIndexRouteImport.update({
-  id: '/kategori/',
-  path: '/kategori/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KategoriSlugRoute = KategoriSlugRouteImport.update({
-  id: '/kategori/$slug',
-  path: '/kategori/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PanduanBelanjaRoute = PanduanBelanjaRouteImport.update({
-  id: '/panduan/belanja',
-  path: '/panduan/belanja',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PanduanPembayaranRoute = PanduanPembayaranRouteImport.update({
-  id: '/panduan/pembayaran',
-  path: '/panduan/pembayaran',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PanduanPengembalianRoute = PanduanPengembalianRouteImport.update({
-  id: '/panduan/pengembalian',
-  path: '/panduan/pengembalian',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PanduanPengirimanRoute = PanduanPengirimanRouteImport.update({
-  id: '/panduan/pengiriman',
-  path: '/panduan/pengiriman',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PembayaranSuksesRoute = PembayaranSuksesRouteImport.update({
-  id: '/pembayaran/sukses',
-  path: '/pembayaran/sukses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProdukIndexRoute = ProdukIndexRouteImport.update({
-  id: '/produk/',
-  path: '/produk/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProdukSlugRoute = ProdukSlugRouteImport.update({
-  id: '/produk/$slug',
-  path: '/produk/$slug',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordIndexRoute = ResetPasswordIndexRouteImport.update({
@@ -303,30 +148,185 @@ const ResetPasswordIndexRoute = ResetPasswordIndexRouteImport.update({
   path: '/reset-password/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordCekEmailRoute = ResetPasswordCekEmailRouteImport.update({
-  id: '/reset-password/cek-email',
-  path: '/reset-password/cek-email',
+const ProdukIndexRoute = ProdukIndexRouteImport.update({
+  id: '/produk/',
+  path: '/produk/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const KategoriIndexRoute = KategoriIndexRouteImport.update({
+  id: '/kategori/',
+  path: '/kategori/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DaftarIndexRoute = DaftarIndexRouteImport.update({
+  id: '/daftar/',
+  path: '/daftar/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutIndexRoute = CheckoutIndexRouteImport.update({
+  id: '/checkout/',
+  path: '/checkout/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AkunIndexRoute = AkunIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AkunRoute,
 } as any)
 const ResetPasswordSuksesRoute = ResetPasswordSuksesRouteImport.update({
   id: '/reset-password/sukses',
   path: '/reset-password/sukses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordCekEmailRoute = ResetPasswordCekEmailRouteImport.update({
+  id: '/reset-password/cek-email',
+  path: '/reset-password/cek-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdukSlugRoute = ProdukSlugRouteImport.update({
+  id: '/produk/$slug',
+  path: '/produk/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PembayaranSuksesRoute = PembayaranSuksesRouteImport.update({
+  id: '/pembayaran/sukses',
+  path: '/pembayaran/sukses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanPengirimanRoute = PanduanPengirimanRouteImport.update({
+  id: '/panduan/pengiriman',
+  path: '/panduan/pengiriman',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanPengembalianRoute = PanduanPengembalianRouteImport.update({
+  id: '/panduan/pengembalian',
+  path: '/panduan/pengembalian',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanPembayaranRoute = PanduanPembayaranRouteImport.update({
+  id: '/panduan/pembayaran',
+  path: '/panduan/pembayaran',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanduanBelanjaRoute = PanduanBelanjaRouteImport.update({
+  id: '/panduan/belanja',
+  path: '/panduan/belanja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KategoriSlugRoute = KategoriSlugRouteImport.update({
+  id: '/kategori/$slug',
+  path: '/kategori/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DaftarCekEmailRoute = DaftarCekEmailRouteImport.update({
+  id: '/daftar/cek-email',
+  path: '/daftar/cek-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DaftarAktivasiSuksesRoute = DaftarAktivasiSuksesRouteImport.update({
+  id: '/daftar/aktivasi-sukses',
+  path: '/daftar/aktivasi-sukses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DaftarAktivasiGagalRoute = DaftarAktivasiGagalRouteImport.update({
+  id: '/daftar/aktivasi-gagal',
+  path: '/daftar/aktivasi-gagal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutVoucherRoute = CheckoutVoucherRouteImport.update({
+  id: '/checkout/voucher',
+  path: '/checkout/voucher',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutVerifikasiRoute = CheckoutVerifikasiRouteImport.update({
+  id: '/checkout/verifikasi',
+  path: '/checkout/verifikasi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutPembayaranRoute = CheckoutPembayaranRouteImport.update({
+  id: '/checkout/pembayaran',
+  path: '/checkout/pembayaran',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutGudangRoute = CheckoutGudangRouteImport.update({
+  id: '/checkout/gudang',
+  path: '/checkout/gudang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutAlamatRoute = CheckoutAlamatRouteImport.update({
+  id: '/checkout/alamat',
+  path: '/checkout/alamat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIdRoute = BlogIdRouteImport.update({
+  id: '/blog/$id',
+  path: '/blog/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google-callback',
+  path: '/auth/google-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AkunVoucherRoute = AkunVoucherRouteImport.update({
+  id: '/voucher',
+  path: '/voucher',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunUbahPasswordRoute = AkunUbahPasswordRouteImport.update({
+  id: '/ubah-password',
+  path: '/ubah-password',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunNotifikasiRoute = AkunNotifikasiRouteImport.update({
+  id: '/notifikasi',
+  path: '/notifikasi',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunCekEmailRoute = AkunCekEmailRouteImport.update({
+  id: '/cek-email',
+  path: '/cek-email',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunAlamatRoute = AkunAlamatRouteImport.update({
+  id: '/alamat',
+  path: '/alamat',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunAktivasiSuksesRoute = AkunAktivasiSuksesRouteImport.update({
+  id: '/aktivasi-sukses',
+  path: '/aktivasi-sukses',
+  getParentRoute: () => AkunRoute,
+} as any)
+const AkunAktivasiGagalRoute = AkunAktivasiGagalRouteImport.update({
+  id: '/aktivasi-gagal',
+  path: '/aktivasi-gagal',
+  getParentRoute: () => AkunRoute,
+} as any)
 const AkunTransaksiIndexRoute = AkunTransaksiIndexRouteImport.update({
   id: '/transaksi/',
   path: '/transaksi/',
-  getParentRoute: () => AkunRoute,
-} as any)
-const AkunTransaksiIdRoute = AkunTransaksiIdRouteImport.update({
-  id: '/transaksi/$id',
-  path: '/transaksi/$id',
   getParentRoute: () => AkunRoute,
 } as any)
 const BlogTagTagRoute = BlogTagTagRouteImport.update({
   id: '/blog/tag/$tag',
   path: '/blog/tag/$tag',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AkunTransaksiIdRoute = AkunTransaksiIdRouteImport.update({
+  id: '/transaksi/$id',
+  path: '/transaksi/$id',
+  getParentRoute: () => AkunRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -709,102 +709,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/activate': {
-      id: '/activate'
-      path: '/activate'
-      fullPath: '/activate'
-      preLoaderRoute: typeof ActivateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/akun': {
-      id: '/akun'
-      path: '/akun'
-      fullPath: '/akun'
-      preLoaderRoute: typeof AkunRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/favorite': {
-      id: '/favorite'
-      path: '/favorite'
-      fullPath: '/favorite'
-      preLoaderRoute: typeof FavoriteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/flashsale': {
-      id: '/flashsale'
-      path: '/flashsale'
-      fullPath: '/flashsale'
-      preLoaderRoute: typeof FlashsaleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gudang': {
-      id: '/gudang'
-      path: '/gudang'
-      fullPath: '/gudang'
-      preLoaderRoute: typeof GudangRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/keranjang': {
-      id: '/keranjang'
-      path: '/keranjang'
-      fullPath: '/keranjang'
-      preLoaderRoute: typeof KeranjangRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lupa-password': {
-      id: '/lupa-password'
-      path: '/lupa-password'
-      fullPath: '/lupa-password'
-      preLoaderRoute: typeof LupaPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/masuk': {
-      id: '/masuk'
-      path: '/masuk'
-      fullPath: '/masuk'
-      preLoaderRoute: typeof MasukRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notifikasi': {
-      id: '/notifikasi'
-      path: '/notifikasi'
-      fullPath: '/notifikasi'
-      preLoaderRoute: typeof NotifikasiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pesan': {
-      id: '/pesan'
-      path: '/pesan'
-      fullPath: '/pesan'
-      preLoaderRoute: typeof PesanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privasi': {
-      id: '/privasi'
-      path: '/privasi'
-      fullPath: '/privasi'
-      preLoaderRoute: typeof PrivasiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/promo': {
-      id: '/promo'
-      path: '/promo'
-      fullPath: '/promo'
-      preLoaderRoute: typeof PromoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/syarat': {
-      id: '/syarat'
-      path: '/syarat'
-      fullPath: '/syarat'
-      preLoaderRoute: typeof SyaratRouteImport
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tentang': {
@@ -814,228 +723,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TentangRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/wishlist': {
-      id: '/wishlist'
-      path: '/wishlist'
-      fullPath: '/wishlist'
-      preLoaderRoute: typeof WishlistRouteImport
+    '/syarat': {
+      id: '/syarat'
+      path: '/syarat'
+      fullPath: '/syarat'
+      preLoaderRoute: typeof SyaratRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/akun/': {
-      id: '/akun/'
-      path: '/'
-      fullPath: '/akun/'
-      preLoaderRoute: typeof AkunIndexRouteImport
-      parentRoute: typeof AkunRoute
+    '/promo': {
+      id: '/promo'
+      path: '/promo'
+      fullPath: '/promo'
+      preLoaderRoute: typeof PromoRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/akun/aktivasi-gagal': {
-      id: '/akun/aktivasi-gagal'
-      path: '/aktivasi-gagal'
-      fullPath: '/akun/aktivasi-gagal'
-      preLoaderRoute: typeof AkunAktivasiGagalRouteImport
-      parentRoute: typeof AkunRoute
+    '/privasi': {
+      id: '/privasi'
+      path: '/privasi'
+      fullPath: '/privasi'
+      preLoaderRoute: typeof PrivasiRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/akun/aktivasi-sukses': {
-      id: '/akun/aktivasi-sukses'
-      path: '/aktivasi-sukses'
-      fullPath: '/akun/aktivasi-sukses'
-      preLoaderRoute: typeof AkunAktivasiSuksesRouteImport
-      parentRoute: typeof AkunRoute
+    '/pesan': {
+      id: '/pesan'
+      path: '/pesan'
+      fullPath: '/pesan'
+      preLoaderRoute: typeof PesanRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/akun/alamat': {
-      id: '/akun/alamat'
-      path: '/alamat'
-      fullPath: '/akun/alamat'
-      preLoaderRoute: typeof AkunAlamatRouteImport
-      parentRoute: typeof AkunRoute
-    }
-    '/akun/cek-email': {
-      id: '/akun/cek-email'
-      path: '/cek-email'
-      fullPath: '/akun/cek-email'
-      preLoaderRoute: typeof AkunCekEmailRouteImport
-      parentRoute: typeof AkunRoute
-    }
-    '/akun/notifikasi': {
-      id: '/akun/notifikasi'
+    '/notifikasi': {
+      id: '/notifikasi'
       path: '/notifikasi'
-      fullPath: '/akun/notifikasi'
-      preLoaderRoute: typeof AkunNotifikasiRouteImport
-      parentRoute: typeof AkunRoute
-    }
-    '/akun/ubah-password': {
-      id: '/akun/ubah-password'
-      path: '/ubah-password'
-      fullPath: '/akun/ubah-password'
-      preLoaderRoute: typeof AkunUbahPasswordRouteImport
-      parentRoute: typeof AkunRoute
-    }
-    '/akun/voucher': {
-      id: '/akun/voucher'
-      path: '/voucher'
-      fullPath: '/akun/voucher'
-      preLoaderRoute: typeof AkunVoucherRouteImport
-      parentRoute: typeof AkunRoute
-    }
-    '/auth/google-callback': {
-      id: '/auth/google-callback'
-      path: '/auth/google-callback'
-      fullPath: '/auth/google-callback'
-      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+      fullPath: '/notifikasi'
+      preLoaderRoute: typeof NotifikasiRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
+    '/masuk': {
+      id: '/masuk'
+      path: '/masuk'
+      fullPath: '/masuk'
+      preLoaderRoute: typeof MasukRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/$id': {
-      id: '/blog/$id'
-      path: '/blog/$id'
-      fullPath: '/blog/$id'
-      preLoaderRoute: typeof BlogIdRouteImport
+    '/lupa-password': {
+      id: '/lupa-password'
+      path: '/lupa-password'
+      fullPath: '/lupa-password'
+      preLoaderRoute: typeof LupaPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
+    '/keranjang': {
+      id: '/keranjang'
+      path: '/keranjang'
+      fullPath: '/keranjang'
+      preLoaderRoute: typeof KeranjangRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/checkout/': {
-      id: '/checkout/'
-      path: '/checkout'
-      fullPath: '/checkout/'
-      preLoaderRoute: typeof CheckoutIndexRouteImport
+    '/gudang': {
+      id: '/gudang'
+      path: '/gudang'
+      fullPath: '/gudang'
+      preLoaderRoute: typeof GudangRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/checkout/alamat': {
-      id: '/checkout/alamat'
-      path: '/checkout/alamat'
-      fullPath: '/checkout/alamat'
-      preLoaderRoute: typeof CheckoutAlamatRouteImport
+    '/flashsale': {
+      id: '/flashsale'
+      path: '/flashsale'
+      fullPath: '/flashsale'
+      preLoaderRoute: typeof FlashsaleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/checkout/gudang': {
-      id: '/checkout/gudang'
-      path: '/checkout/gudang'
-      fullPath: '/checkout/gudang'
-      preLoaderRoute: typeof CheckoutGudangRouteImport
+    '/favorite': {
+      id: '/favorite'
+      path: '/favorite'
+      fullPath: '/favorite'
+      preLoaderRoute: typeof FavoriteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/checkout/pembayaran': {
-      id: '/checkout/pembayaran'
-      path: '/checkout/pembayaran'
-      fullPath: '/checkout/pembayaran'
-      preLoaderRoute: typeof CheckoutPembayaranRouteImport
+    '/akun': {
+      id: '/akun'
+      path: '/akun'
+      fullPath: '/akun'
+      preLoaderRoute: typeof AkunRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/checkout/verifikasi': {
-      id: '/checkout/verifikasi'
-      path: '/checkout/verifikasi'
-      fullPath: '/checkout/verifikasi'
-      preLoaderRoute: typeof CheckoutVerifikasiRouteImport
+    '/activate': {
+      id: '/activate'
+      path: '/activate'
+      fullPath: '/activate'
+      preLoaderRoute: typeof ActivateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/checkout/voucher': {
-      id: '/checkout/voucher'
-      path: '/checkout/voucher'
-      fullPath: '/checkout/voucher'
-      preLoaderRoute: typeof CheckoutVoucherRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/daftar/': {
-      id: '/daftar/'
-      path: '/daftar'
-      fullPath: '/daftar/'
-      preLoaderRoute: typeof DaftarIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/daftar/aktivasi-gagal': {
-      id: '/daftar/aktivasi-gagal'
-      path: '/daftar/aktivasi-gagal'
-      fullPath: '/daftar/aktivasi-gagal'
-      preLoaderRoute: typeof DaftarAktivasiGagalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/daftar/aktivasi-sukses': {
-      id: '/daftar/aktivasi-sukses'
-      path: '/daftar/aktivasi-sukses'
-      fullPath: '/daftar/aktivasi-sukses'
-      preLoaderRoute: typeof DaftarAktivasiSuksesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/daftar/cek-email': {
-      id: '/daftar/cek-email'
-      path: '/daftar/cek-email'
-      fullPath: '/daftar/cek-email'
-      preLoaderRoute: typeof DaftarCekEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kategori/': {
-      id: '/kategori/'
-      path: '/kategori'
-      fullPath: '/kategori/'
-      preLoaderRoute: typeof KategoriIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kategori/$slug': {
-      id: '/kategori/$slug'
-      path: '/kategori/$slug'
-      fullPath: '/kategori/$slug'
-      preLoaderRoute: typeof KategoriSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/panduan/belanja': {
-      id: '/panduan/belanja'
-      path: '/panduan/belanja'
-      fullPath: '/panduan/belanja'
-      preLoaderRoute: typeof PanduanBelanjaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/panduan/pembayaran': {
-      id: '/panduan/pembayaran'
-      path: '/panduan/pembayaran'
-      fullPath: '/panduan/pembayaran'
-      preLoaderRoute: typeof PanduanPembayaranRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/panduan/pengembalian': {
-      id: '/panduan/pengembalian'
-      path: '/panduan/pengembalian'
-      fullPath: '/panduan/pengembalian'
-      preLoaderRoute: typeof PanduanPengembalianRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/panduan/pengiriman': {
-      id: '/panduan/pengiriman'
-      path: '/panduan/pengiriman'
-      fullPath: '/panduan/pengiriman'
-      preLoaderRoute: typeof PanduanPengirimanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pembayaran/sukses': {
-      id: '/pembayaran/sukses'
-      path: '/pembayaran/sukses'
-      fullPath: '/pembayaran/sukses'
-      preLoaderRoute: typeof PembayaranSuksesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/produk/': {
-      id: '/produk/'
-      path: '/produk'
-      fullPath: '/produk/'
-      preLoaderRoute: typeof ProdukIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/produk/$slug': {
-      id: '/produk/$slug'
-      path: '/produk/$slug'
-      fullPath: '/produk/$slug'
-      preLoaderRoute: typeof ProdukSlugRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password/': {
@@ -1045,12 +828,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reset-password/cek-email': {
-      id: '/reset-password/cek-email'
-      path: '/reset-password/cek-email'
-      fullPath: '/reset-password/cek-email'
-      preLoaderRoute: typeof ResetPasswordCekEmailRouteImport
+    '/produk/': {
+      id: '/produk/'
+      path: '/produk'
+      fullPath: '/produk/'
+      preLoaderRoute: typeof ProdukIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/kategori/': {
+      id: '/kategori/'
+      path: '/kategori'
+      fullPath: '/kategori/'
+      preLoaderRoute: typeof KategoriIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daftar/': {
+      id: '/daftar/'
+      path: '/daftar'
+      fullPath: '/daftar/'
+      preLoaderRoute: typeof DaftarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/': {
+      id: '/checkout/'
+      path: '/checkout'
+      fullPath: '/checkout/'
+      preLoaderRoute: typeof CheckoutIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/akun/': {
+      id: '/akun/'
+      path: '/'
+      fullPath: '/akun/'
+      preLoaderRoute: typeof AkunIndexRouteImport
+      parentRoute: typeof AkunRoute
     }
     '/reset-password/sukses': {
       id: '/reset-password/sukses'
@@ -1059,18 +877,193 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordSuksesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password/cek-email': {
+      id: '/reset-password/cek-email'
+      path: '/reset-password/cek-email'
+      fullPath: '/reset-password/cek-email'
+      preLoaderRoute: typeof ResetPasswordCekEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produk/$slug': {
+      id: '/produk/$slug'
+      path: '/produk/$slug'
+      fullPath: '/produk/$slug'
+      preLoaderRoute: typeof ProdukSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pembayaran/sukses': {
+      id: '/pembayaran/sukses'
+      path: '/pembayaran/sukses'
+      fullPath: '/pembayaran/sukses'
+      preLoaderRoute: typeof PembayaranSuksesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/pengiriman': {
+      id: '/panduan/pengiriman'
+      path: '/panduan/pengiriman'
+      fullPath: '/panduan/pengiriman'
+      preLoaderRoute: typeof PanduanPengirimanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/pengembalian': {
+      id: '/panduan/pengembalian'
+      path: '/panduan/pengembalian'
+      fullPath: '/panduan/pengembalian'
+      preLoaderRoute: typeof PanduanPengembalianRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/pembayaran': {
+      id: '/panduan/pembayaran'
+      path: '/panduan/pembayaran'
+      fullPath: '/panduan/pembayaran'
+      preLoaderRoute: typeof PanduanPembayaranRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panduan/belanja': {
+      id: '/panduan/belanja'
+      path: '/panduan/belanja'
+      fullPath: '/panduan/belanja'
+      preLoaderRoute: typeof PanduanBelanjaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kategori/$slug': {
+      id: '/kategori/$slug'
+      path: '/kategori/$slug'
+      fullPath: '/kategori/$slug'
+      preLoaderRoute: typeof KategoriSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daftar/cek-email': {
+      id: '/daftar/cek-email'
+      path: '/daftar/cek-email'
+      fullPath: '/daftar/cek-email'
+      preLoaderRoute: typeof DaftarCekEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daftar/aktivasi-sukses': {
+      id: '/daftar/aktivasi-sukses'
+      path: '/daftar/aktivasi-sukses'
+      fullPath: '/daftar/aktivasi-sukses'
+      preLoaderRoute: typeof DaftarAktivasiSuksesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daftar/aktivasi-gagal': {
+      id: '/daftar/aktivasi-gagal'
+      path: '/daftar/aktivasi-gagal'
+      fullPath: '/daftar/aktivasi-gagal'
+      preLoaderRoute: typeof DaftarAktivasiGagalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/voucher': {
+      id: '/checkout/voucher'
+      path: '/checkout/voucher'
+      fullPath: '/checkout/voucher'
+      preLoaderRoute: typeof CheckoutVoucherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/verifikasi': {
+      id: '/checkout/verifikasi'
+      path: '/checkout/verifikasi'
+      fullPath: '/checkout/verifikasi'
+      preLoaderRoute: typeof CheckoutVerifikasiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/pembayaran': {
+      id: '/checkout/pembayaran'
+      path: '/checkout/pembayaran'
+      fullPath: '/checkout/pembayaran'
+      preLoaderRoute: typeof CheckoutPembayaranRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/gudang': {
+      id: '/checkout/gudang'
+      path: '/checkout/gudang'
+      fullPath: '/checkout/gudang'
+      preLoaderRoute: typeof CheckoutGudangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/alamat': {
+      id: '/checkout/alamat'
+      path: '/checkout/alamat'
+      fullPath: '/checkout/alamat'
+      preLoaderRoute: typeof CheckoutAlamatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$id': {
+      id: '/blog/$id'
+      path: '/blog/$id'
+      fullPath: '/blog/$id'
+      preLoaderRoute: typeof BlogIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/google-callback': {
+      id: '/auth/google-callback'
+      path: '/auth/google-callback'
+      fullPath: '/auth/google-callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/akun/voucher': {
+      id: '/akun/voucher'
+      path: '/voucher'
+      fullPath: '/akun/voucher'
+      preLoaderRoute: typeof AkunVoucherRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/ubah-password': {
+      id: '/akun/ubah-password'
+      path: '/ubah-password'
+      fullPath: '/akun/ubah-password'
+      preLoaderRoute: typeof AkunUbahPasswordRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/notifikasi': {
+      id: '/akun/notifikasi'
+      path: '/notifikasi'
+      fullPath: '/akun/notifikasi'
+      preLoaderRoute: typeof AkunNotifikasiRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/cek-email': {
+      id: '/akun/cek-email'
+      path: '/cek-email'
+      fullPath: '/akun/cek-email'
+      preLoaderRoute: typeof AkunCekEmailRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/alamat': {
+      id: '/akun/alamat'
+      path: '/alamat'
+      fullPath: '/akun/alamat'
+      preLoaderRoute: typeof AkunAlamatRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/aktivasi-sukses': {
+      id: '/akun/aktivasi-sukses'
+      path: '/aktivasi-sukses'
+      fullPath: '/akun/aktivasi-sukses'
+      preLoaderRoute: typeof AkunAktivasiSuksesRouteImport
+      parentRoute: typeof AkunRoute
+    }
+    '/akun/aktivasi-gagal': {
+      id: '/akun/aktivasi-gagal'
+      path: '/aktivasi-gagal'
+      fullPath: '/akun/aktivasi-gagal'
+      preLoaderRoute: typeof AkunAktivasiGagalRouteImport
+      parentRoute: typeof AkunRoute
+    }
     '/akun/transaksi/': {
       id: '/akun/transaksi/'
       path: '/transaksi'
       fullPath: '/akun/transaksi/'
       preLoaderRoute: typeof AkunTransaksiIndexRouteImport
-      parentRoute: typeof AkunRoute
-    }
-    '/akun/transaksi/$id': {
-      id: '/akun/transaksi/$id'
-      path: '/transaksi/$id'
-      fullPath: '/akun/transaksi/$id'
-      preLoaderRoute: typeof AkunTransaksiIdRouteImport
       parentRoute: typeof AkunRoute
     }
     '/blog/tag/$tag': {
@@ -1079,6 +1072,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/tag/$tag'
       preLoaderRoute: typeof BlogTagTagRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/akun/transaksi/$id': {
+      id: '/akun/transaksi/$id'
+      path: '/transaksi/$id'
+      fullPath: '/akun/transaksi/$id'
+      preLoaderRoute: typeof AkunTransaksiIdRouteImport
+      parentRoute: typeof AkunRoute
     }
   }
 }

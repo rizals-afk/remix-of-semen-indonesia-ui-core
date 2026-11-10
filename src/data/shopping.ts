@@ -166,6 +166,8 @@ export interface CartProduct extends Product {
   branch_longitude?: number;
   /** Available stock for this branch */
   stock?: number;
+  /** Voucher ID from flashsale or promo spesial */
+  voucher_id?: number;
 }
 
 export const DEMO_CART: CartProduct[] = [

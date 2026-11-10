@@ -1,18 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ChevronRight, MapPin, Percent, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronRight, MapPin, Percent, Zap, Loader2 } from "lucide-react";
 import flashSaleMaterials from "@/assets/flash-sale-materials.png";
-import cementBag from "@/assets/flash-semen.png";
-import toilet from "@/assets/flash-toilet.jpg";
-import mortar from "@/assets/flash-mortar.jpg";
-import roofing from "@/assets/flash-roofing.jpg";
-import channel from "@/assets/flash-kanal-c.jpg";
-import bricks from "@/assets/flash-bricks.jpg";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductCard, type Product } from "@/components/product/ProductCard";
 import { Pagination } from "@/components/common/Pagination";
-import { FEATURED_PRODUCTS } from "@/data/catalog";
+import { useWarehouse } from "@/store/warehouse";
+import { fetchVouchers, type Voucher } from "@/lib/api/voucher";
+import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import { getCurrentUserFromStorage } from "@/lib/auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/flashsale")({
   head: () => ({
@@ -35,28 +32,41 @@ export const Route = createFileRoute("/flashsale")({
 });
 
 const PAGE_SIZE = 8;
-const SALE_PRODUCTS: Product[] = [
-  { ...FEATURED_PRODUCTS[0], id: "flash-semen-gresik", name: "Semen Gresik", price: 59800, originalPrice: 74800, discountPercent: 20, image: cementBag, warehouse: "Gudang Gresik" },
-  { ...FEATURED_PRODUCTS[1], id: "flash-closet-minimalis", name: "Closet Duduk Minimalis", price: 72233, originalPrice: 84000, discountPercent: 14, image: toilet, warehouse: "Gudang Surabaya" },
-  { ...FEATURED_PRODUCTS[2], id: "flash-mortar-perekat", name: "Mortar Perekat", price: 63185, originalPrice: 76100, discountPercent: 17, image: mortar, warehouse: "Gudang Madiun" },
-  { ...FEATURED_PRODUCTS[3], id: "flash-atap-upvc", name: "Atap UPVC", price: 63185, originalPrice: 65800, discountPercent: 4, image: roofing, warehouse: "Gudang Madiun" },
-  { ...FEATURED_PRODUCTS[4], id: "flash-kanal-c", name: "Kanal C", price: 59800, originalPrice: 65700, discountPercent: 9, image: channel, warehouse: "Gudang Gresik" },
-  { ...FEATURED_PRODUCTS[6], id: "flash-semen-merdeka", name: "Semen Merdeka", price: 72233, originalPrice: 77780, discountPercent: 7, image: cementBag, warehouse: "Gudang Surabaya" },
-  { ...FEATURED_PRODUCTS[1], id: "flash-bata-merah", name: "Bata Merah", price: 63185, originalPrice: 64470, discountPercent: 2, image: bricks, warehouse: "Gudang Madiun" },
-  { ...FEATURED_PRODUCTS[5], id: "flash-besi-meteran", name: "Besi Meteran", price: 63185, originalPrice: 71000, discountPercent: 11, image: channel, warehouse: "Gudang Madiun" },
-  { ...FEATURED_PRODUCTS[0], id: "flash-semen-pcc", name: "Semen Portland Komposit", price: 61500, originalPrice: 73800, discountPercent: 17, image: cementBag, warehouse: "Gudang Sidoarjo" },
-  { ...FEATURED_PRODUCTS[3], id: "flash-lem-bata-ringan", name: "Perekat Bata Ringan", price: 68500, originalPrice: 76000, discountPercent: 10, image: mortar, warehouse: "Gudang Surabaya" },
-  { ...FEATURED_PRODUCTS[4], id: "flash-baja-ringan", name: "Baja Ringan Kanal C", price: 87500, originalPrice: 99500, discountPercent: 12, image: channel, warehouse: "Gudang Gresik" },
-  { ...FEATURED_PRODUCTS[2], id: "flash-mortar-plester", name: "Mortar Plester", price: 59000, originalPrice: 69500, discountPercent: 15, image: mortar, warehouse: "Gudang Madiun" },
-];
-
-const FLASH_SALES = [
-  { id: "material-pilihan", title: "Material Pilihan", endsIn: 22 * 60 * 60 + 44 * 60 + 8, discount: "Hemat hingga 20%" },
-  { id: "kebutuhan-proyek", title: "Kebutuhan Proyek", endsIn: 9 * 60 * 60 + 12 * 60 + 38, discount: "Harga spesial terbatas" },
-];
 
 function FlashSalePage() {
   const user = getCurrentUserFromStorage();
+  const { selectedWarehouse } = useWarehouse();
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFlashsaleVouchers = async () => {
+      try {
+        const response = await fetchVouchers({
+          per_page: 100,
+          page: 1,
+          type: "flashsale",
+        });
+
+        // Filter active vouchers (valid_end > today)
+        const now = new Date();
+        const activeVouchers = response.data.filter((voucher) => {
+          if (!voucher.valid_end) return false;
+          const validEnd = new Date(voucher.valid_end);
+          return validEnd >= now;
+        });
+
+        setVouchers(activeVouchers);
+      } catch (error) {
+        console.error("Failed to load flashsale vouchers:", error);
+        toast.error("Gagal memuat data flash sale");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFlashsaleVouchers();
+  }, []);
 
   return (
     <MainLayout user={user}>
@@ -93,9 +103,19 @@ function FlashSalePage() {
         </nav>
 
         <div className="container mx-auto max-w-7xl space-y-12 px-4 py-7 md:py-10">
-          {FLASH_SALES.map((sale, index) => (
-            <FlashSaleSection key={sale.id} sale={sale} productOffset={index * 2} />
-          ))}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : vouchers.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              Tidak ada flash sale aktif saat ini.
+            </div>
+          ) : (
+            vouchers.map((voucher) => (
+              <FlashSaleSection key={voucher.id} voucher={voucher} warehouseName={selectedWarehouse?.name} branchId={selectedWarehouse?.id} />
+            ))
+          )}
         </div>
       </div>
     </MainLayout>
@@ -103,66 +123,165 @@ function FlashSalePage() {
 }
 
 function FlashSaleSection({
-  sale,
-  productOffset,
+  voucher,
+  warehouseName,
+  branchId,
 }: {
-  sale: (typeof FLASH_SALES)[number];
-  productOffset: number;
+  voucher: Voucher;
+  warehouseName?: string;
+  branchId?: string;
 }) {
   const [page, setPage] = useState(1);
-  const [secondsLeft, setSecondsLeft] = useState(sale.endsIn);
-  const saleProducts = useMemo(
-    () => [...SALE_PRODUCTS.slice(productOffset), ...SALE_PRODUCTS.slice(0, productOffset)],
-    [productOffset],
-  );
-  const pageCount = Math.ceil(saleProducts.length / PAGE_SIZE);
-  const visibleProducts = saleProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Countdown logic
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setSecondsLeft((current) => Math.max(current - 1, 0));
+      setCurrentTime(new Date());
     }, 1000);
     return () => window.clearInterval(timer);
   }, []);
 
-  const hours = Math.floor(secondsLeft / 3600);
-  const minutes = Math.floor((secondsLeft % 3600) / 60);
-  const seconds = secondsLeft % 60;
+  // Parse flashsale time
+  const parseTime = (timeStr: string | null | undefined): Date | null => {
+    if (!timeStr) return null;
+    const [hours, minutes, seconds] = timeStr.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, seconds || 0, 0);
+    return date;
+  };
+
+  const startTime = parseTime(voucher.flashsale_time_start);
+  const endTime = parseTime(voucher.flashsale_time_end);
+
+  // Calculate time status
+  let timeStatus: 'not_started' | 'active' | 'ended' = 'active';
+  let timeDisplay: string = '';
+  let countdownSeconds = 0;
+
+  if (startTime && endTime) {
+    if (currentTime < startTime) {
+      timeStatus = 'not_started';
+      const diff = startTime.getTime() - currentTime.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      timeDisplay = `Mulai dalam ${hours}j ${minutes}m`;
+    } else if (currentTime >= endTime) {
+      timeStatus = 'ended';
+      timeDisplay = 'Berakhir';
+    } else {
+      timeStatus = 'active';
+      const diff = endTime.getTime() - currentTime.getTime();
+      countdownSeconds = Math.floor(diff / 1000);
+    }
+  }
+
+  // Fetch products for this voucher
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchProducts({
+          page,
+          per_page: PAGE_SIZE,
+          branch_id: branchId,
+          is_flashsale: true,
+          voucher_id: voucher.id,
+        });
+
+        const transformedProducts = response.data.map((product) =>
+          transformProductToCard(product, warehouseName, undefined, branchId)
+        );
+
+        setProducts(transformedProducts);
+        setTotalPages(Math.max(1, Math.ceil(response.total / PAGE_SIZE)));
+      } catch (error) {
+        console.error("Failed to load products:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [page, voucher.id, branchId, warehouseName]);
+
+  const hours = Math.floor(countdownSeconds / 3600);
+  const minutes = Math.floor((countdownSeconds % 3600) / 60);
+  const seconds = countdownSeconds % 60;
 
   return (
-    <section aria-labelledby={`${sale.id}-title`}>
+    <section aria-labelledby={`voucher-${voucher.id}-title`}>
       <div className="mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-primary md:justify-start">
         <Zap className="h-8 w-8 fill-warning text-warning md:h-10 md:w-10" />
-        <h2 id={`${sale.id}-title`} className="text-2xl font-bold md:text-3xl">Flash Sale</h2>
-        <span className="text-sm font-medium md:text-base">Berakhir dalam</span>
-        <div className="flex items-center gap-1.5" aria-label={`${hours} jam ${minutes} menit ${seconds} detik`}>
-          <TimeUnit value={hours} />
-          <span className="text-xl font-bold">:</span>
-          <TimeUnit value={minutes} />
-          <span className="text-xl font-bold">:</span>
-          <TimeUnit value={seconds} />
-        </div>
+        <h2 id={`voucher-${voucher.id}-title`} className="text-2xl font-bold md:text-3xl">Flash Sale</h2>
+        {timeStatus === 'not_started' && (
+          <span className="text-sm font-medium md:text-base">{timeDisplay}</span>
+        )}
+        {timeStatus === 'active' && (
+          <>
+            <span className="text-sm font-medium md:text-base">Berakhir dalam</span>
+            <div className="flex items-center gap-1.5" aria-label={`${hours} jam ${minutes} menit ${seconds} detik`}>
+              <TimeUnit value={hours} />
+              <span className="text-xl font-bold">:</span>
+              <TimeUnit value={minutes} />
+              <span className="text-xl font-bold">:</span>
+              <TimeUnit value={seconds} />
+            </div>
+          </>
+        )}
+        {timeStatus === 'ended' && (
+          <span className="text-sm font-medium text-muted-foreground md:text-base">{timeDisplay}</span>
+        )}
       </div>
 
       <div className="mb-5 flex items-center justify-between gap-3 border-b border-border pb-3">
         <div>
-          <h3 className="text-lg font-bold text-foreground">{sale.title}</h3>
-          <p className="mt-0.5 text-sm text-muted-foreground">{sale.discount}</p>
+          <h3 className="text-lg font-bold text-foreground">{voucher.name}</h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">{voucher.description || 'Harga spesial terbatas'}</p>
         </div>
         <span className="hidden items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent sm:inline-flex">
           <MapPin className="h-3.5 w-3.5" /> Berlaku di beberapa gudang
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {visibleProducts.map((product) => <ProductCard key={product.id} product={product} compact />)}
-      </div>
-
-      {pageCount > 1 ? (
-        <div className="mt-7">
-          <Pagination page={page} totalPages={pageCount} onChange={setPage} />
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : null}
+      ) : products.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          Tidak ada produk tersedia untuk flash sale ini.
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            {products.map((product) => {
+              console.log("Flashsale - Product card product:", product);
+              console.log("Flashsale - Voucher ID:", voucher.id);
+              console.log("Flashsale - Passing voucher_id to ProductCard:", voucher.id);
+              return (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  compact
+                  search={{ voucher_id: voucher.id }}
+                />
+              );
+            })}
+          </div>
+
+          {totalPages > 1 ? (
+            <div className="mt-7">
+              <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+            </div>
+          ) : null}
+        </>
+      )}
     </section>
   );
 }

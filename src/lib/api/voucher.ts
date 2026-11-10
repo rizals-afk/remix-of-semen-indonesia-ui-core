@@ -23,6 +23,8 @@ export interface Voucher {
   claimed: boolean;
   voucher_apply_lines: VoucherApplyLine[];
   branch: Branch | null;
+  flashsale_time_start?: string | null;
+  flashsale_time_end?: string | null;
 }
 
 export interface VoucherApplyLine {
@@ -117,7 +119,7 @@ export interface FetchVouchersParams {
   sort_by?: string;
   sort_order?: string;
   applicable?: boolean;
-  type?: "voucher" | "promo";
+  type?: "voucher" | "promo" | "flashsale";
   is_claim?: boolean;
 }
 

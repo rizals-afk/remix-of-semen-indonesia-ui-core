@@ -26,8 +26,15 @@ import { toggleFavourite } from "@/lib/api/favourite";
 import { getToken } from "@/lib/auth";
 import { getUserLocation, type UserLocation } from "@/lib/location";
 import { fetchTrxReviews } from "@/lib/api/review";
+import { fetchVouchers, type Voucher } from "@/lib/api/voucher";
+import { z } from "zod";
+
+const searchSchema = z.object({
+  voucher_id: z.union([z.string(), z.number()]).optional().transform(val => val ? String(val) : undefined),
+});
 
 export const Route = createFileRoute("/produk/$slug")({
+  validateSearch: searchSchema,
   component: ProductDetailPage,
 });
 
@@ -36,6 +43,7 @@ type Tab = (typeof TABS)[number];
 
 function ProductDetailPage() {
   const { slug } = Route.useParams();
+  const { voucher_id: urlVoucherId } = Route.useSearch();
   const { selectedWarehouse: headerWarehouse } = useWarehouse();
   const checkout = useCheckout();
   const [tab, setTab] = useState<Tab>("Deskripsi");
@@ -46,6 +54,7 @@ function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [voucherData, setVoucherData] = useState<Voucher | null>(null);
   const [totalReviewPages, setTotalReviewPages] = useState(1);
   const [totalReviewCount, setTotalReviewCount] = useState(0);
   const [satisfactionPercent, setSatisfactionPercent] = useState(0);
@@ -89,6 +98,8 @@ function ProductDetailPage() {
         console.log("Product Detail - API response:", data);
         console.log("Product Detail - product.media:", data.media);
         console.log("Product Detail - product.variants:", data.variants);
+        console.log("Product Detail - voucher_apply_lines:", data.voucher_apply_lines);
+        console.log("Product Detail - urlVoucherId:", urlVoucherId);
         setProduct(data);
         setIsFavourited(data.is_favourite || false);
         // Set first variant as default
@@ -107,7 +118,7 @@ function ProductDetailPage() {
     };
 
     loadProduct();
-  }, [slug, headerWarehouse]);
+  }, [slug, headerWarehouse, urlVoucherId]);
 
   // Get user location on mount
   useEffect(() => {
@@ -177,14 +188,74 @@ function ProductDetailPage() {
     loadReviews();
   }, [product?.id, reviewPage]);
 
+  // Fetch voucher data if voucher_id is in URL
+  useEffect(() => {
+    const loadVoucher = async () => {
+      if (!urlVoucherId) {
+        setVoucherData(null);
+        return;
+      }
+
+      try {
+        console.log("Fetching voucher with ID:", urlVoucherId);
+        // Since we don't have a single voucher fetch function, we'll fetch all flashsale vouchers and filter
+        const response = await fetchVouchers({
+          per_page: 100,
+          page: 1,
+          type: "flashsale",
+        });
+
+        const voucher = response.data.find(v => String(v.id) === String(urlVoucherId));
+        console.log("Found voucher:", voucher);
+        setVoucherData(voucher || null);
+      } catch (error) {
+        console.error("Failed to load voucher:", error);
+        setVoucherData(null);
+      }
+    };
+
+    loadVoucher();
+  }, [urlVoucherId]);
+
   const selectedVariant = product?.variants.find((v) => v.id === selectedVariantId) || product?.variants[0];
   const price = product ? getProductPrice(product, selectedVariantId, selectedBranchId) : null;
   const images = product ? getProductImages(product, selectedVariantId) : [];
   const stock = product ? getProductStock(product, selectedVariantId, selectedBranchId) : 0;
+
+  // Calculate discount price if voucher_id is provided
+  let originalPrice = price;
+  let finalPrice = price;
+  let discountPercent: number | undefined;
+
+  if (product && price && voucherData) {
+    originalPrice = price;
+    console.log("Product Detail - Applying voucher discount:", {
+      originalPrice,
+      discount_type: voucherData.discount_type,
+      discount_percentage: voucherData.discount_percentage,
+      discount_amount: voucherData.discount_amount,
+    });
+
+    if (voucherData.discount_type === "percentage" && voucherData.discount_percentage) {
+      const percentage = parseFloat(voucherData.discount_percentage);
+      discountPercent = percentage;
+      finalPrice = originalPrice * (1 - percentage / 100);
+    } else if (voucherData.discount_type === "fixed" && voucherData.discount_amount) {
+      const amount = parseFloat(voucherData.discount_amount);
+      finalPrice = originalPrice - amount;
+      discountPercent = Math.round((amount / originalPrice) * 100);
+    }
+
+    console.log("Product Detail - Final calculated price:", {
+      originalPrice,
+      finalPrice,
+      discountPercent,
+    });
+  }
   
   // Check if selected variant has a pricelist for the selected branch
   const hasPrice = selectedVariant?.pricelists?.some(p => p.branch_id === selectedBranchId) ?? false;
-  const subTotal = (hasPrice && price) ? qty * price : 0;
+  const subTotal = (hasPrice && finalPrice) ? qty * finalPrice : 0;
 
   // Build specs from API data
   const specs = product ? [
@@ -200,7 +271,7 @@ function ProductDetailPage() {
       return;
     }
 
-    if (!product || !price) {
+    if (!product || !finalPrice) {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;
     }
@@ -208,23 +279,26 @@ function ProductDetailPage() {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;
     }
-    
+
     setIsAddingToCart(true);
     setIsAnimating(true);
-    
+
     // Reset animation after it completes
     setTimeout(() => setIsAnimating(false), 500);
-    
+
     try {
+      // Use voucher_id from URL if available (from flashsale or promo spesial)
+      const finalVoucherId = urlVoucherId ? parseInt(urlVoucherId) : undefined;
+
       await cart.addItem({
         id: product.id,
         name: product.name + (selectedVariant?.name ? ` ${selectedVariant.name}` : ""),
-        price,
+        price: finalPrice,
         image: images[0] || "",
         warehouse: selectedWarehouse?.name || "Gudang Utama",
         qty,
         unit: "Sak",
-      }, parseInt(product.id), selectedVariantId ? parseInt(selectedVariantId) : undefined, selectedBranchId ? parseInt(selectedBranchId) : undefined);
+      }, parseInt(product.id), selectedVariantId ? parseInt(selectedVariantId) : undefined, selectedBranchId ? parseInt(selectedBranchId) : undefined, finalVoucherId);
       toast.success("Produk berhasil ditambahkan ke keranjang.");
     } catch (error) {
       toast.error("Gagal menambahkan produk ke keranjang. Silakan coba lagi.");
@@ -240,7 +314,7 @@ function ProductDetailPage() {
       return;
     }
 
-    if (!product || !price) {
+    if (!product || !finalPrice) {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;
     }
@@ -252,7 +326,7 @@ function ProductDetailPage() {
       toast.error("Silakan pilih varian dan gudang terlebih dahulu.");
       return;
     }
-    if (price <= 0) {
+    if (finalPrice <= 0) {
       toast.error("Harga tidak valid untuk produk ini.");
       return;
     }
@@ -262,13 +336,16 @@ function ProductDetailPage() {
     }
 
     // Set buyNowItem in checkout store
+    // Use voucher_id from URL if available (from flashsale or promo spesial)
+    const finalVoucherId = urlVoucherId ? parseInt(urlVoucherId) : undefined;
+
     checkout.setBuyNowItem({
       productId: product.id,
       variantId: selectedVariantId,
       branchId: selectedBranchId,
       name: product.name,
       variantName: selectedVariant?.variant_name || selectedVariant?.name || "",
-      price,
+      price: finalPrice,
       qty,
       image: images[0] || "",
       warehouse: selectedWarehouse?.name || "Gudang Utama",
@@ -276,6 +353,7 @@ function ProductDetailPage() {
       division: selectedVariant?.division,
       branch_latitude: selectedWarehouse?.lat,
       branch_longitude: selectedWarehouse?.long,
+      voucherId: finalVoucherId,
     });
 
     // Navigate directly to checkout
@@ -415,8 +493,20 @@ function ProductDetailPage() {
                 </div>
 
                 <div className="space-y-2">
-                  {hasPrice && price ? (
-                    <p className="text-3xl font-bold text-accent">{formatRupiah(price)}</p>
+                  {hasPrice && finalPrice ? (
+                    <>
+                      <p className="text-3xl font-bold text-accent">{formatRupiah(finalPrice)}</p>
+                      {originalPrice && originalPrice > finalPrice && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground line-through">{formatRupiah(originalPrice)}</span>
+                          {discountPercent && (
+                            <span className="inline-flex items-center gap-1 rounded bg-accent-soft px-1.5 py-0.5 text-[11px] font-semibold text-accent">
+                              -{discountPercent}%
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p className="text-3xl font-bold text-muted-foreground">Harga tidak tersedia untuk gudang ini</p>
                   )}

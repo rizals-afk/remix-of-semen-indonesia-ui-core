@@ -323,9 +323,24 @@ function HomePage() {
               <div key={i} className="aspect-[4/3] rounded-xl border border-border bg-muted animate-pulse" />
             ))
           ) : featuredProducts.length > 0 ? (
-            featuredProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))
+            featuredProducts.map((p) => {
+              // Check for voucher directly in product (from flashsale API) or in voucher_apply_lines
+              const flashsaleVoucher = (p as any).voucher?.type === 'flashsale' ? (p as any).voucher :
+                (p as any).voucher_apply_lines?.find((v: any) => v.voucher.type === 'flashsale')?.voucher;
+              console.log("Home - Product:", p.id, "flashsaleVoucher:", flashsaleVoucher);
+              console.log("Home - product.voucher:", (p as any).voucher);
+              console.log("Home - voucher_apply_lines:", (p as any).voucher_apply_lines);
+              const voucherId = activeTab === 1 && flashsaleVoucher ? flashsaleVoucher.id : undefined;
+              console.log("Home - Passing voucher_id to ProductCard:", voucherId);
+              const searchParams = voucherId ? { voucher_id: voucherId } : undefined;
+              return (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  search={searchParams}
+                />
+              );
+            })
           ) : (
             <div className="col-span-full text-center text-sm text-muted-foreground">
               Tidak ada produk tersedia.

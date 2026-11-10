@@ -41,6 +41,7 @@ export interface TrxLine {
   division?: string;
   delivery_date?: string;
   trx_review?: unknown | null;
+  voucher_id?: number;
   product?: {
     id: number;
     name: string;

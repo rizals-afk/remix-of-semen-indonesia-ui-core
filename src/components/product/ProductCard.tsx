@@ -12,12 +12,16 @@ export interface Product {
   warehouse: string;
   rating?: number;
   categorySlug?: string;
+  voucher_apply_lines?: any[];
+  voucher?: any;
 }
 
 interface ProductCardProps {
   product: Product;
   /** Compact variant used in carousels/related products (smaller padding, rating chip). */
   compact?: boolean;
+  /** Optional search params to pass to the link */
+  search?: Record<string, any>;
 }
 
 /**
@@ -25,13 +29,16 @@ interface ProductCardProps {
  * - Default variant matches "Material Pilihan" cards on the home page.
  * - Compact variant matches "Produk Terkait" and listing-grid cards.
  */
-export function ProductCard({ product, compact = false }: ProductCardProps) {
+export function ProductCard({ product, compact = false, search }: ProductCardProps) {
   const { id, name, price, originalPrice, discountPercent, image, warehouse, rating } = product;
+
+  console.log("ProductCard - Product ID:", id, "Search params:", search);
 
   return (
     <Link
       to="/produk/$slug"
       params={{ slug: id }}
+      search={search}
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md"
     >
       <div className="aspect-square overflow-hidden bg-muted">

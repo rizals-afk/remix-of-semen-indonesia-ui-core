@@ -4,6 +4,7 @@ import { QuantityStepper } from "@/components/common/QuantityStepper";
 import { formatRupiah } from "@/lib/format";
 import type { CartProduct } from "@/data/shopping";
 import type { CartWarehouseGroup } from "@/store/cart";
+import { Percent } from "lucide-react";
 
 interface CartWarehouseGroupCardProps {
   group: CartWarehouseGroup;
@@ -75,9 +76,20 @@ function CartTableRow({ item, selected, isUpdating, isDeleting, onToggle, onQtyC
               </span>
             </div>
           ) : null}
+          {item.discountPercent ? (
+            <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-accent-soft px-1.5 py-0.5 text-[11px] font-semibold text-accent">
+              <Percent className="h-3 w-3" />
+              -{item.discountPercent}%
+            </div>
+          ) : null}
         </div>
       </div>
-      <div className="text-sm text-foreground">{formatRupiah(item.price)}</div>
+      <div className="flex flex-col">
+        <span className="text-sm font-semibold text-foreground">{formatRupiah(item.price)}</span>
+        {item.originalPrice ? (
+          <span className="text-xs text-muted-foreground line-through">{formatRupiah(item.originalPrice)}</span>
+        ) : null}
+      </div>
       <div className="flex items-center gap-2">
         <QuantityStepper value={item.qty} onChange={onQtyChange} min={1} disabled={isUpdating || isDeleting} />
         {isUpdating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}

@@ -136,10 +136,11 @@ export interface FetchProductsParams {
   max_price?: number;
   brand_id?: number | string;
   is_flashsale?: boolean;
+  voucher_id?: number;
 }
 
 export async function fetchProducts(params: FetchProductsParams = {}): Promise<ProductListResponse> {
-  const { page = 1, per_page = 9, product_category_id, branch_id, search, sort, sort_by, sort_order, min_price, max_price, brand_id, is_flashsale } = params;
+  const { page = 1, per_page = 9, product_category_id, branch_id, search, sort, sort_by, sort_order, min_price, max_price, brand_id, is_flashsale, voucher_id } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
@@ -179,6 +180,10 @@ export async function fetchProducts(params: FetchProductsParams = {}): Promise<P
 
   if (is_flashsale !== undefined) {
     queryParams.append("is_flashsale", is_flashsale.toString());
+  }
+
+  if (voucher_id !== undefined) {
+    queryParams.append("voucher_id", voucher_id.toString());
   }
 
   console.log("Query Params:", queryParams.toString());
@@ -390,6 +395,8 @@ export interface ProductCardData {
   category: string;
   brand?: string;
   sku?: string;
+  voucher_apply_lines?: VoucherApplyLine[];
+  voucher?: any;
 }
 
 export function transformProductToCard(
@@ -401,12 +408,31 @@ export function transformProductToCard(
   const price = getProductPrice(product, variantId, branchId);
   const image = getProductImage(product);
 
-  // Calculate discount from voucher_apply_lines
+  // Calculate discount from voucher (prioritize direct voucher from flashsale API)
   let originalPrice = price;
   let finalPrice = price;
   let discountPercent: number | undefined;
 
-  if (product.voucher_apply_lines && product.voucher_apply_lines.length > 0 && price) {
+  // First check for direct voucher (from flashsale API)
+  const voucher = (product as any).voucher;
+
+  if (voucher && price) {
+    originalPrice = price;
+
+    if (voucher.discount_type === "percentage" && voucher.discount_percentage) {
+      const percentage = parseFloat(voucher.discount_percentage);
+      discountPercent = percentage;
+      // Calculate discounted price: newPrice = originalPrice * (1 - percentage/100)
+      finalPrice = originalPrice * (1 - percentage / 100);
+    } else if (voucher.discount_type === "fixed" && voucher.discount_amount) {
+      const amount = parseFloat(voucher.discount_amount);
+      // Calculate discounted price: newPrice = originalPrice - amount
+      finalPrice = originalPrice - amount;
+      // Calculate percentage for display
+      discountPercent = Math.round((amount / originalPrice) * 100);
+    }
+  } else if (product.voucher_apply_lines && product.voucher_apply_lines.length > 0 && price) {
+    // Fallback to voucher_apply_lines
     const firstVoucher = product.voucher_apply_lines[0].voucher;
     if (firstVoucher) {
       originalPrice = price;
@@ -438,5 +464,7 @@ export function transformProductToCard(
     brand: product.brand_name,
     sku: product.sku,
     categorySlug: product.category_id,
+    voucher_apply_lines: product.voucher_apply_lines,
+    voucher: (product as any).voucher,
   };
 }
