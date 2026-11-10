@@ -35,9 +35,12 @@ export function ProductCard({ product, compact = false, search }: ProductCardPro
 
   console.log("ProductCard - Product ID:", id, "Search params:", search);
 
-  // Use discountedPrice if available, otherwise use price
-  const displayPrice = discountedPrice ?? price;
-  const displayOriginalPrice = discountedPrice ? price : originalPrice;
+  // Check if a voucher is actually applied
+  const hasVoucher = search?.voucher_id || discountPercent;
+
+  // Use discountedPrice if voucher is applied, otherwise use price
+  const displayPrice = hasVoucher && discountedPrice ? discountedPrice : price;
+  const displayOriginalPrice = hasVoucher && discountedPrice ? price : originalPrice;
 
   return (
     <Link
@@ -59,7 +62,7 @@ export function ProductCard({ product, compact = false, search }: ProductCardPro
 
         <div className="flex items-baseline gap-2">
           <span className="text-base font-bold text-accent">{formatRupiah(displayPrice)}</span>
-          {discountPercent ? (
+          {hasVoucher && discountPercent ? (
             <span className="inline-flex items-center gap-1 rounded bg-accent-soft px-1.5 py-0.5 text-[11px] font-semibold text-accent">
               -{discountPercent}%
             </span>
