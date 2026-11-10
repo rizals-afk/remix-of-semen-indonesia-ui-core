@@ -59,6 +59,9 @@ interface CartTableRowProps {
 }
 
 function CartTableRow({ item, selected, isUpdating, isDeleting, onToggle, onQtyChange, onRemove }: CartTableRowProps) {
+  const unitPrice = item.price; // Original price for display
+  const totalPrice = item.price * item.qty; // Total based on original price
+
   return (
     <div className={`grid grid-cols-[auto_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 transition-opacity ${isDeleting ? "opacity-50" : ""}`}>
       <Checkbox checked={selected} onCheckedChange={onToggle} aria-label="Pilih item" disabled={isDeleting} />
@@ -84,18 +87,13 @@ function CartTableRow({ item, selected, isUpdating, isDeleting, onToggle, onQtyC
           ) : null}
         </div>
       </div>
-      <div className="flex flex-col">
-        <span className="text-sm font-semibold text-foreground">{formatRupiah(item.price)}</span>
-        {item.originalPrice ? (
-          <span className="text-xs text-muted-foreground line-through">{formatRupiah(item.originalPrice)}</span>
-        ) : null}
-      </div>
+      <div className="text-sm text-foreground">{formatRupiah(unitPrice)}</div>
       <div className="flex items-center gap-2">
         <QuantityStepper value={item.qty} onChange={onQtyChange} min={1} disabled={isUpdating || isDeleting} />
         {isUpdating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
       </div>
       <div className="text-sm text-muted-foreground">{item.stock !== undefined ? Math.floor(item.stock) : "-"}</div>
-      <div className="text-sm font-bold text-accent">{formatRupiah(item.price * item.qty)}</div>
+      <div className="text-sm font-bold text-accent">{formatRupiah(totalPrice)}</div>
       <button
         onClick={onRemove}
         disabled={isDeleting}

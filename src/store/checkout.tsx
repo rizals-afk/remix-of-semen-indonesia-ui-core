@@ -26,6 +26,8 @@ export interface BuyNowItem {
   branch_longitude?: number;
   /** Voucher ID from flashsale or promo spesial */
   voucherId?: number;
+  /** Discounted price from flashsale (original price is in 'price' field) */
+  discountedPrice?: number;
 }
 
 interface CheckoutState {

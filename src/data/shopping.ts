@@ -168,6 +168,8 @@ export interface CartProduct extends Product {
   stock?: number;
   /** Voucher ID from flashsale or promo spesial */
   voucher_id?: number;
+  /** Discounted price for calculations (from flashsale) */
+  discountedPrice?: number;
 }
 
 export const DEMO_CART: CartProduct[] = [

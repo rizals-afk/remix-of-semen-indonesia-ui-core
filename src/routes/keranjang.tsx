@@ -186,9 +186,18 @@ function CartPage() {
 
                 <p className="text-xs text-muted-foreground">Total ({cart.totalSelected} Produk):</p>
 
+                {cart.totalDiscount > 0 && (
+                  <p className="text-xs text-accent">Diskon: -{formatRupiah(cart.totalDiscount)}</p>
+                )}
+
               </div>
 
-              <p className="text-lg font-bold text-accent">{formatRupiah(cart.subTotal)}</p>
+              <div className="text-right">
+                <p className="text-lg font-bold text-accent">{formatRupiah(cart.subTotal - cart.totalDiscount)}</p>
+                {cart.totalDiscount > 0 && (
+                  <p className="text-xs text-muted-foreground line-through">{formatRupiah(cart.subTotal)}</p>
+                )}
+              </div>
 
               <button
 

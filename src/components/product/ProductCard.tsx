@@ -8,6 +8,7 @@ export interface Product {
   price: number;
   originalPrice?: number;
   discountPercent?: number;
+  discountedPrice?: number;
   image: string;
   warehouse: string;
   rating?: number;
@@ -30,9 +31,13 @@ interface ProductCardProps {
  * - Compact variant matches "Produk Terkait" and listing-grid cards.
  */
 export function ProductCard({ product, compact = false, search }: ProductCardProps) {
-  const { id, name, price, originalPrice, discountPercent, image, warehouse, rating } = product;
+  const { id, name, price, originalPrice, discountPercent, discountedPrice, image, warehouse, rating } = product;
 
   console.log("ProductCard - Product ID:", id, "Search params:", search);
+
+  // Use discountedPrice if available, otherwise use price
+  const displayPrice = discountedPrice ?? price;
+  const displayOriginalPrice = discountedPrice ? price : originalPrice;
 
   return (
     <Link
@@ -53,7 +58,7 @@ export function ProductCard({ product, compact = false, search }: ProductCardPro
         <h3 className="line-clamp-2 text-sm font-semibold text-foreground">{name}</h3>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-base font-bold text-accent">{formatRupiah(price)}</span>
+          <span className="text-base font-bold text-accent">{formatRupiah(displayPrice)}</span>
           {discountPercent ? (
             <span className="inline-flex items-center gap-1 rounded bg-accent-soft px-1.5 py-0.5 text-[11px] font-semibold text-accent">
               -{discountPercent}%
@@ -61,9 +66,9 @@ export function ProductCard({ product, compact = false, search }: ProductCardPro
           ) : null}
         </div>
 
-        {originalPrice ? (
+        {displayOriginalPrice ? (
           <span className="text-xs text-muted-foreground line-through">
-            {formatRupiah(originalPrice)}
+            {formatRupiah(displayOriginalPrice)}
           </span>
         ) : null}
 

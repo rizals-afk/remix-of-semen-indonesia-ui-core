@@ -30,7 +30,8 @@ function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
     id: item.productId,
     product_id: parseInt(item.productId),  // Add product_id for discount matching
     name: item.name,
-    price: item.price,
+    price: item.price, // Original price
+    discountedPrice: item.discountedPrice ?? item.price, // Use discounted price if available
     qty: item.qty,
     warehouse: item.warehouse,
     image: item.image,
@@ -67,6 +68,7 @@ function CheckoutPage() {
   const [isCalculatingDiscount, setIsCalculatingDiscount] = useState(false);
   const isProcessingRef = useRef(false);
   const checkoutRef = useRef(checkout);
+  const hasAutoAppliedVouchersRef = useRef(false);
   checkoutRef.current = checkout;
 
   // Fetch fresh user data from server on mount
@@ -98,6 +100,77 @@ function CheckoutPage() {
     () => (checkout.buyNowItem ? [createGroupFromBuyNowItem(checkout.buyNowItem)] : cart.selectedGroups),
     [checkout.buyNowItem, cart.selectedGroups],
   );
+
+  // Auto-apply vouchers from cart items or buyNowItem (run once when groups are available)
+  useEffect(() => {
+    // Only auto-apply if not already done and groups are available
+    if (hasAutoAppliedVouchersRef.current || groups.length === 0) {
+      return;
+    }
+
+    const autoApplyVouchers = async () => {
+      // Collect all unique voucher_ids from cart items or buyNowItem
+      const voucherIds = new Set<number>();
+
+      if (checkout.buyNowItem?.voucherId) {
+        voucherIds.add(checkout.buyNowItem.voucherId);
+      } else {
+        // Collect from cart items
+        groups.forEach((group) => {
+          group.selectedItems.forEach((item) => {
+            if (item.voucher_id) {
+              voucherIds.add(item.voucher_id);
+            }
+          });
+        });
+      }
+
+      // If there are voucher_ids, fetch voucher details and auto-apply
+      if (voucherIds.size > 0) {
+        try {
+          const { fetchVouchers } = await import("@/lib/api/voucher");
+          const response = await fetchVouchers({
+            per_page: 100,
+            page: 1,
+            type: "flashsale",
+          });
+
+          // Find vouchers that match the IDs
+          const matchedVouchers = response.data.filter((v) => voucherIds.has(v.id));
+
+          if (matchedVouchers.length > 0) {
+            // Convert to Voucher format expected by checkout store
+            const checkoutVouchers = matchedVouchers.map((v) => ({
+              id: String(v.id),
+              code: v.code || "",
+              title: v.name,
+              description: v.description || "",
+              discount: parseFloat(v.discount_percentage || "0"),
+              minSpend: parseFloat(v.min_purchase || "0"),
+              expiresAt: v.valid_end || "",
+              type: "discount" as const,
+              backendType: v.type as "voucher" | "promo",
+              isClaimed: v.is_claim,
+              isClaimable: !v.is_claim,
+              validEnd: v.valid_end,
+              apiVoucher: v,
+            }));
+
+            // Set vouchers in checkout store
+            checkout.setVouchers(checkoutVouchers);
+            hasAutoAppliedVouchersRef.current = true;
+            console.log("[Checkout] Auto-applied vouchers:", checkoutVouchers);
+          }
+        } catch (error) {
+          console.error("[Checkout] Failed to auto-apply vouchers:", error);
+        }
+      }
+    };
+
+    autoApplyVouchers();
+    // Run only when groups become available
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groups.length]);
 
   // Restore shipping states from delivery rule IDs on mount
   useEffect(() => {
@@ -189,9 +262,9 @@ function CheckoutPage() {
               customer_location_long: selectedLocation.long || 0,
               doc_type: "ZEO1",
               trx_type: "order",
-              subtotal: group.subTotal,
+              subtotal: group.selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0),
               shipping_cost: checkout.calculatedShippingFees[group.warehouse] || 0,
-              total: group.subTotal + (checkout.calculatedShippingFees[group.warehouse] || 0),
+              total: group.selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0) + (checkout.calculatedShippingFees[group.warehouse] || 0),
               branch_id: branchId,
               shipping_address: selectedLocation.address,
               shipping_phone: selectedLocation.phone,
@@ -327,6 +400,7 @@ function CheckoutPage() {
   }, [checkout.vouchers.map((v) => v.id).join(","), checkout.mode, customerLocation.selectedLocation?.address, groups.length, user?.id, JSON.stringify(checkout.calculatedShippingFees)]);
 
   const subtotalPesanan = groups.reduce((s, g) => s + g.subTotal, 0);
+  const originalSubtotal = groups.reduce((sum, group) => sum + group.selectedItems.reduce((s, item) => s + (item.price * item.qty), 0), 0);
   const totalTonase = groups.reduce((s, g) => s + g.tonase, 0);
   // Pre-verification shipping estimate: per-group fee, only when "dikirim" and not COD.
   const showShipping = checkout.mode === "dikirim";
@@ -338,7 +412,7 @@ function CheckoutPage() {
     0
   );
   const discount = totalCalculatedDiscount;
-  const total = subtotalPesanan + subtotalShipping - discount;
+  const total = originalSubtotal + subtotalShipping - discount;
 
   const submit = async () => {
     const selectedLocation = customerLocation.selectedLocation;
@@ -399,9 +473,9 @@ function CheckoutPage() {
       });
 
       // Calculate original totals for validation (pre-discount for comparison with backend request)
-      const originalSubtotal = subtotalPesanan;
+      const originalSubtotal = groups.reduce((sum, group) => sum + group.selectedItems.reduce((s, item) => s + (item.price * item.qty), 0), 0);
       const originalShipping = subtotalShipping;
-      const originalTotal = subtotalPesanan + subtotalShipping; // Compare pre-discount totals
+      const originalTotal = originalSubtotal + originalShipping; // Compare pre-discount totals
 
       // Build bulk transaction items
       const bulkItems = Array.from(warehouseDivisionGroups.entries()).map(([key, items]) => {
@@ -517,7 +591,7 @@ function CheckoutPage() {
         subtotal: originalSubtotal,
         shipping: originalShipping,
         discount: discount,
-        total: subtotalPesanan + subtotalShipping - discount, // Final total with discount
+        total: originalSubtotal + originalShipping - discount, // Final total with discount
       });
 
       console.log("[Checkout] Order created successfully");

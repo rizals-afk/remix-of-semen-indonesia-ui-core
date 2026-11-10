@@ -223,12 +223,11 @@ function ProductDetailPage() {
   const stock = product ? getProductStock(product, selectedVariantId, selectedBranchId) : 0;
 
   // Calculate discount price if voucher_id is provided
-  let originalPrice = price;
-  let finalPrice = price;
+  const originalPrice = price;
+  let discountedPrice = price;
   let discountPercent: number | undefined;
 
   if (product && price && voucherData) {
-    originalPrice = price;
     console.log("Product Detail - Applying voucher discount:", {
       originalPrice,
       discount_type: voucherData.discount_type,
@@ -239,23 +238,26 @@ function ProductDetailPage() {
     if (voucherData.discount_type === "percentage" && voucherData.discount_percentage) {
       const percentage = parseFloat(voucherData.discount_percentage);
       discountPercent = percentage;
-      finalPrice = originalPrice * (1 - percentage / 100);
+      discountedPrice = price * (1 - percentage / 100);
     } else if (voucherData.discount_type === "fixed" && voucherData.discount_amount) {
       const amount = parseFloat(voucherData.discount_amount);
-      finalPrice = originalPrice - amount;
-      discountPercent = Math.round((amount / originalPrice) * 100);
+      discountedPrice = price - amount;
+      discountPercent = Math.round((amount / price) * 100);
     }
 
     console.log("Product Detail - Final calculated price:", {
       originalPrice,
-      finalPrice,
+      discountedPrice,
       discountPercent,
     });
   }
-  
+
+  // Use discounted price for cart and checkout operations
+  const finalPrice = discountedPrice;
+
   // Check if selected variant has a pricelist for the selected branch
   const hasPrice = selectedVariant?.pricelists?.some(p => p.branch_id === selectedBranchId) ?? false;
-  const subTotal = (hasPrice && finalPrice) ? qty * finalPrice : 0;
+  const subTotal = (hasPrice && discountedPrice) ? qty * discountedPrice : 0;
 
   // Build specs from API data
   const specs = product ? [
@@ -271,7 +273,7 @@ function ProductDetailPage() {
       return;
     }
 
-    if (!product || !finalPrice) {
+    if (!product || !discountedPrice) {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;
     }
@@ -293,7 +295,7 @@ function ProductDetailPage() {
       await cart.addItem({
         id: product.id,
         name: product.name + (selectedVariant?.name ? ` ${selectedVariant.name}` : ""),
-        price: finalPrice,
+        price: discountedPrice,
         image: images[0] || "",
         warehouse: selectedWarehouse?.name || "Gudang Utama",
         qty,
@@ -314,7 +316,7 @@ function ProductDetailPage() {
       return;
     }
 
-    if (!product || !finalPrice) {
+    if (!product || !discountedPrice) {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;
     }
@@ -326,7 +328,7 @@ function ProductDetailPage() {
       toast.error("Silakan pilih varian dan gudang terlebih dahulu.");
       return;
     }
-    if (finalPrice <= 0) {
+    if (discountedPrice <= 0) {
       toast.error("Harga tidak valid untuk produk ini.");
       return;
     }
@@ -345,7 +347,8 @@ function ProductDetailPage() {
       branchId: selectedBranchId,
       name: product.name,
       variantName: selectedVariant?.variant_name || selectedVariant?.name || "",
-      price: finalPrice,
+      price: originalPrice || 0, // Keep original price for display
+      discountedPrice: discountedPrice, // Add discounted price for calculations
       qty,
       image: images[0] || "",
       warehouse: selectedWarehouse?.name || "Gudang Utama",
@@ -493,10 +496,10 @@ function ProductDetailPage() {
                 </div>
 
                 <div className="space-y-2">
-                  {hasPrice && finalPrice ? (
+                  {hasPrice && discountedPrice ? (
                     <>
-                      <p className="text-3xl font-bold text-accent">{formatRupiah(finalPrice)}</p>
-                      {originalPrice && originalPrice > finalPrice && (
+                      <p className="text-3xl font-bold text-accent">{formatRupiah(discountedPrice)}</p>
+                      {originalPrice && originalPrice > discountedPrice && (
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground line-through">{formatRupiah(originalPrice)}</span>
                           {discountPercent && (

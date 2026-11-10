@@ -25,6 +25,7 @@ interface CartContextValue {
   totalQty: number;
   totalSelected: number;
   subTotal: number;
+  totalDiscount: number;
   totalTonase: number;
   cartCount: number;
   addItem: (item: CartProduct, productId?: number, variantId?: number, branchId?: number, voucherId?: number) => Promise<void>;
@@ -58,20 +59,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const stock = item.product_variant.stocks?.find(s => s.branch_id === item.branch_id);
 
     // Calculate discount price if flashsale is valid and voucher exists
-    let finalPrice = item.price;
-    let originalPrice: number | undefined;
+    const originalPrice = item.price;
+    let discountedPrice = item.price;
     let discountPercent: number | undefined;
 
     if (item.is_flashsale_valid && item.voucher) {
-      originalPrice = item.price;
-
       if (item.voucher.discount_type === "percentage" && item.voucher.discount_percentage) {
         const percentage = parseFloat(item.voucher.discount_percentage);
         discountPercent = percentage;
-        finalPrice = originalPrice * (1 - percentage / 100);
+        discountedPrice = originalPrice * (1 - percentage / 100);
       } else if (item.voucher.discount_type === "fixed" && item.voucher.discount_amount) {
         const amount = parseFloat(item.voucher.discount_amount);
-        finalPrice = originalPrice - amount;
+        discountedPrice = originalPrice - amount;
         discountPercent = Math.round((amount / originalPrice) * 100);
       }
     }
@@ -79,9 +78,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return {
       id: String(item.id),
       name: item.product.name,
-      price: finalPrice,
-      originalPrice: originalPrice && finalPrice && originalPrice > finalPrice ? originalPrice : undefined,
+      price: originalPrice, // Keep original price for display
+      originalPrice: discountPercent ? originalPrice : undefined,
       discountPercent,
+      discountedPrice: discountedPrice, // New field for actual price to use in calculations
       qty: item.qty,
       warehouse: item.branch.name,
       image: item.product_variant.media?.[0]?.url || item.product.photo || "",
@@ -370,7 +370,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         warehouse,
         items: list,
         selectedItems: selected,
-        subTotal: selected.reduce((s, i) => s + i.qty * i.price, 0),
+        subTotal: selected.reduce((s, i) => s + i.qty * i.price, 0), // Use original price
         tonase: selected.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0),
         allSelected: list.length > 0 && selected.length === list.length,
         anySelected: selected.length > 0,
@@ -380,6 +380,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
     const selectedGroups = groups.filter((g) => g.anySelected);
     const selectedItems = items.filter((i) => selectedIds.has(i.id));
+
+    // Calculate subtotal (original prices) and total discount
+    const subtotalOriginal = selectedItems.reduce((s, i) => s + i.qty * i.price, 0);
+    const subtotalDiscounted = selectedItems.reduce((s, i) => s + i.qty * (i.discountedPrice ?? i.price), 0);
+    const totalDiscount = subtotalOriginal - subtotalDiscounted;
+
     return {
       items,
       selectedIds,
@@ -387,7 +393,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       selectedGroups,
       totalQty: items.reduce((s, i) => s + i.qty, 0),
       totalSelected: selectedItems.length,
-      subTotal: selectedItems.reduce((s, i) => s + i.qty * i.price, 0),
+      subTotal: subtotalOriginal, // Show original price subtotal
+      totalDiscount, // Add total discount field
       totalTonase: selectedItems.reduce((s, i) => s + (i.weightKg ?? 0) * i.qty, 0),
       cartCount,
       addItem, removeItem, updateQty, refreshCart, toggleSelect, toggleSelectAll, toggleSelectGroup, clearSelected, clearSelections,

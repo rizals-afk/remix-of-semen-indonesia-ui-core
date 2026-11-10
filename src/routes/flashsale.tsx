@@ -214,6 +214,11 @@ function FlashSaleSection({
   const minutes = Math.floor((countdownSeconds % 3600) / 60);
   const seconds = countdownSeconds % 60;
 
+  // Hide section if loading is complete and there are no products
+  if (!loading && products.length === 0) {
+    return null;
+  }
+
   return (
     <section aria-labelledby={`voucher-${voucher.id}-title`}>
       <div className="mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-primary md:justify-start">
@@ -252,10 +257,6 @@ function FlashSaleSection({
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : products.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          Tidak ada produk tersedia untuk flash sale ini.
         </div>
       ) : (
         <>

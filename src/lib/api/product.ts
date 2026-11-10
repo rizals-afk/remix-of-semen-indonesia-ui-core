@@ -388,6 +388,7 @@ export interface ProductCardData {
   price: number;
   originalPrice?: number;
   discountPercent?: number;
+  discountedPrice?: number;
   image: string;
   warehouse: string;
   rating?: number;
@@ -409,45 +410,41 @@ export function transformProductToCard(
   const image = getProductImage(product);
 
   // Calculate discount from voucher (prioritize direct voucher from flashsale API)
-  let originalPrice = price;
-  let finalPrice = price;
+  const originalPrice = price;
+  let discountedPrice = price;
   let discountPercent: number | undefined;
 
   // First check for direct voucher (from flashsale API)
   const voucher = (product as any).voucher;
 
   if (voucher && price) {
-    originalPrice = price;
-
     if (voucher.discount_type === "percentage" && voucher.discount_percentage) {
       const percentage = parseFloat(voucher.discount_percentage);
       discountPercent = percentage;
       // Calculate discounted price: newPrice = originalPrice * (1 - percentage/100)
-      finalPrice = originalPrice * (1 - percentage / 100);
+      discountedPrice = price * (1 - percentage / 100);
     } else if (voucher.discount_type === "fixed" && voucher.discount_amount) {
       const amount = parseFloat(voucher.discount_amount);
       // Calculate discounted price: newPrice = originalPrice - amount
-      finalPrice = originalPrice - amount;
+      discountedPrice = price - amount;
       // Calculate percentage for display
-      discountPercent = Math.round((amount / originalPrice) * 100);
+      discountPercent = Math.round((amount / price) * 100);
     }
   } else if (product.voucher_apply_lines && product.voucher_apply_lines.length > 0 && price) {
     // Fallback to voucher_apply_lines
     const firstVoucher = product.voucher_apply_lines[0].voucher;
     if (firstVoucher) {
-      originalPrice = price;
-
       if (firstVoucher.discount_type === "percentage" && firstVoucher.discount_percentage) {
         const percentage = parseFloat(firstVoucher.discount_percentage);
         discountPercent = percentage;
         // Calculate discounted price: newPrice = originalPrice * (1 - percentage/100)
-        finalPrice = originalPrice * (1 - percentage / 100);
+        discountedPrice = price * (1 - percentage / 100);
       } else if (firstVoucher.discount_type === "fixed" && firstVoucher.discount_amount) {
         const amount = parseFloat(firstVoucher.discount_amount);
         // Calculate discounted price: newPrice = originalPrice - amount
-        finalPrice = originalPrice - amount;
+        discountedPrice = price - amount;
         // Calculate percentage for display
-        discountPercent = Math.round((amount / originalPrice) * 100);
+        discountPercent = Math.round((amount / price) * 100);
       }
     }
   }
@@ -455,9 +452,10 @@ export function transformProductToCard(
   return {
     id: product.id,
     name: product.name,
-    price: finalPrice || 0,
-    originalPrice: originalPrice && finalPrice && originalPrice > finalPrice ? originalPrice : undefined,
+    price: originalPrice || 0, // Keep original price
+    originalPrice: discountPercent ? (originalPrice ?? undefined) : undefined,
     discountPercent,
+    discountedPrice: discountedPrice, // Add discounted price field
     image,
     warehouse: warehouseName || "Gudang Utama",
     category: product.category_name || "Umum",
