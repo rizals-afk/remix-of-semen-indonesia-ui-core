@@ -34,7 +34,7 @@ export function SiteFooter() {
               <span>
                 Jl. Dr. Wahidin Sudirohusodo No.728A,
                 <br />
-                Dahanrejo, Gresik, Jawa Timur 61122
+                Dahanrejo, Kec. Kebomas, Kabupaten Gresik, Jawa Timur 61122
               </span>
             </li>
             <li className="flex items-center gap-2">
@@ -58,16 +58,19 @@ export function SiteFooter() {
         <div className="space-y-4 text-sm">
           <h3 className="text-base font-semibold text-primary">Temukan Kami</h3>
           <div className="flex items-center gap-3">
-            <SocialIcon href="#" label="Instagram">
+            <SocialIcon href="https://www.instagram.com/bahanmaterial.official" label="Instagram">
               <Instagram className="h-4 w-4" />
             </SocialIcon>
-            <SocialIcon href="#" label="Facebook">
+            <SocialIcon href="https://www.facebook.com/profile.php?id=61572641804024" label="Facebook">
               <Facebook className="h-4 w-4" />
             </SocialIcon>
-            <SocialIcon href="#" label="X" className="bg-foreground text-background">
-              <span className="text-xs font-bold">X</span>
+            {/* lucide-react has no TikTok icon, so use inline SVG */}
+            <SocialIcon href="https://www.tiktok.com/@bahanmaterialofficial" label="TikTok">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+              </svg>
             </SocialIcon>
-            <SocialIcon href="#" label="YouTube" className="bg-destructive text-white">
+            <SocialIcon href="https://www.youtube.com/@bahanmaterialofficial" label="YouTube" className="bg-destructive text-white">
               <Youtube className="h-4 w-4" />
             </SocialIcon>
           </div>
