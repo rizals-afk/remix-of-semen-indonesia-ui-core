@@ -57,7 +57,7 @@ function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
 }
 
 function CheckoutPage() {
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const cart = useCart();
   const checkout = useCheckout();
   const customerLocation = useCustomerLocation();
@@ -76,11 +76,8 @@ function CheckoutPage() {
     const fetchUserData = async () => {
       try {
         const freshUserData = await getCurrentUser();
-        if (freshUserData && user) {
-          const typedUser = user as { setUser: (data: any) => void };
-          if ('setUser' in typedUser) {
-            typedUser.setUser(freshUserData);
-          }
+        if (freshUserData) {
+          setUser(freshUserData as Parameters<typeof setUser>[0]);
         }
       } catch (error) {
         console.error("Failed to fetch fresh user data:", error);
@@ -91,7 +88,7 @@ function CheckoutPage() {
     if (user?.isAuthenticated) {
       fetchUserData();
     }
-  }, [user?.isAuthenticated]);
+  }, [user?.isAuthenticated, setUser]);
 
   // Use buyNowItem if set, otherwise use cart groups
   // Memoized so `groups` keeps a stable reference across renders —

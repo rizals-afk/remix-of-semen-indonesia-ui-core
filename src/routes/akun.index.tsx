@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { User, Camera, Loader2 } from "lucide-react";
 import { getCurrentUser, uploadFile, updateProfile } from "@/lib/auth";
+import { useUser } from "@/store/user";
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ function ProfilePage() {
   const [npwp1, setNpwp1] = useState("");
   const [npwp2, setNpwp2] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
-  const [user, setUser] = useState<{
+  type UserProfile = {
     id: number;
     name: string;
     email: string;
@@ -47,53 +48,35 @@ function ProfilePage() {
     is_nik: boolean;
     npwp_1: string | null;
     npwp_2: string | null;
-  } | null>(null);
+  };
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const { setUser: setStoreUser } = useUser();
+
+  const loadUser = async () => {
+    try {
+      console.log("Calling getCurrentUser...");
+      const userData = await getCurrentUser<UserProfile>();
+      console.log("User data received:", userData);
+      setUser(userData);
+      setStoreUser(userData);
+      setName(userData.name || "");
+      setCompany(userData.company || "");
+      setBirthDate(userData.birth_date || "");
+      setBirthPlace(userData.birth_place || "");
+      setNik(userData.nik_ktp || "");
+      setNpwp1(userData.npwp_1 || "");
+      setNpwp2(userData.npwp_2 || "");
+      setPhoto(userData.photo || null);
+      setIdentity(userData.is_nik ? "NIK" : "NPWP");
+    } catch (err) {
+      console.error("Failed to fetch user:", err);
+    }
+  };
 
   useEffect(() => {
     console.log("ProfilePage mounted, fetching user...");
-    const fetchUser = async () => {
-      try {
-        console.log("Calling getCurrentUser...");
-        const userData = await getCurrentUser<{
-          id: number;
-          name: string;
-          email: string;
-          email_verified_at: string | null;
-          created_at: string;
-          updated_at: string;
-          role: string;
-          is_active: boolean;
-          branch_id: number | null;
-          nik_ktp: string | null;
-          birth_date: string | null;
-          birth_place: string | null;
-          phone: string | null;
-          nip: string | null;
-          photo: string | null;
-          department: string | null;
-          unit: string | null;
-          last_login: string;
-          company: string | null;
-          is_nik: boolean;
-          npwp_1: string | null;
-          npwp_2: string | null;
-        }>();
-        console.log("User data received:", userData);
-        setUser(userData);
-        setName(userData.name || "");
-        setCompany(userData.company || "");
-        setBirthDate(userData.birth_date || "");
-        setBirthPlace(userData.birth_place || "");
-        setNik(userData.nik_ktp || "");
-        setNpwp1(userData.npwp_1 || "");
-        setNpwp2(userData.npwp_2 || "");
-        setPhoto(userData.photo || null);
-        setIdentity(userData.is_nik ? "NIK" : "NPWP");
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    };
-    fetchUser();
+    loadUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const userData = user || { name: "", email: "", phone: null, company: null, birth_date: null, birth_place: null, is_nik: true };
@@ -155,6 +138,7 @@ function ProfilePage() {
         is_nik: identity === "NIK",
       });
       toast.success("Profil berhasil diperbarui");
+      await loadUser();
     } catch (err) {
       toast.error("Gagal memperbarui profil");
       console.error("Update failed:", err);
