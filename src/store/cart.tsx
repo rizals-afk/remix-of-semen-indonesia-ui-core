@@ -203,6 +203,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existing) return prev.map((p) => (p.id === item.id ? { ...p, qty: p.qty + item.qty } : p));
       return [...prev, item];
     });
+    // Optimistically update cart count so the header badge updates instantly
+    setCartCount((prev) => prev + item.qty);
     // Don't auto-select items when adding to cart
     // setSelectedIds((s) => new Set(s).add(item.id));
 
@@ -232,7 +234,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Optimistically update UI
     setDeletingIds((prev) => new Set(prev).add(id));
     const previousItems = items;
+    const previousCartCount = cartCount;
+    const removedQty = items.find((p) => p.id === id)?.qty ?? 0;
     setItems((prev) => prev.filter((p) => p.id !== id));
+    setCartCount((prev) => Math.max(0, prev - removedQty));
     setSelectedIds((s) => { const n = new Set(s); n.delete(id); return n; });
 
     // Call API if authenticated
@@ -245,6 +250,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         console.error("Failed to delete cart item:", error);
         // Rollback on error
         setItems(previousItems);
+        setCartCount(previousCartCount);
         setSelectedIds((s) => new Set(s).add(id));
         toast.error("Failed to remove item from cart. Please try again.");
       } finally {
@@ -253,7 +259,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } else {
       setDeletingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
     }
-  }, [items, refreshCartCount]);
+  }, [items, cartCount, refreshCartCount]);
 
   const updateQty = useCallback(async (id: string, qty: number) => {
     // Prevent duplicate requests
@@ -266,7 +272,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Optimistically update UI
     setUpdatingIds((prev) => new Set(prev).add(id));
     const previousItems = items;
+    const previousCartCount = cartCount;
+    const qtyDiff = newQty - (items.find((p) => p.id === id)?.qty ?? newQty);
     setItems((prev) => prev.map((p) => (p.id === id ? { ...p, qty: newQty } : p)));
+    setCartCount((prev) => Math.max(0, prev + qtyDiff));
 
     // Call API if authenticated
     if (token && !isNaN(cartId)) {
@@ -278,6 +287,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         console.error("Failed to update cart quantity:", error);
         // Rollback on error
         setItems(previousItems);
+        setCartCount(previousCartCount);
         toast.error("Failed to update cart quantity. Please try again.");
       } finally {
         setUpdatingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
@@ -285,7 +295,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } else {
       setUpdatingIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
     }
-  }, [items, updatingIds, refreshCartCount]);
+  }, [items, updatingIds, cartCount, refreshCartCount]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -309,6 +319,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearSelected = useCallback(async () => {
     const token = getToken();
     const selectedItems = items.filter((p) => selectedIds.has(p.id));
+    const previousCartCount = cartCount;
+    const removedQty = selectedItems.reduce((s, p) => s + p.qty, 0);
+
+    // Optimistically update cart count
+    setCartCount((prev) => Math.max(0, prev - removedQty));
 
     // Delete selected items via API if authenticated
     if (token && selectedItems.length > 0) {
@@ -324,6 +339,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         await refreshCartCount();
       } catch (error) {
         console.error("Failed to delete selected items:", error);
+        setCartCount(previousCartCount);
         toast.error("Gagal menghapus item. Silakan coba lagi.");
         return;
       }
@@ -332,7 +348,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Update local state
     setItems((prev) => prev.filter((p) => !selectedIds.has(p.id)));
     setSelectedIds(new Set());
-  }, [selectedIds, items, refreshCartCount]);
+  }, [selectedIds, items, cartCount, refreshCartCount]);
 
   const clearSelections = useCallback(() => {
     setSelectedIds(new Set());
