@@ -298,7 +298,7 @@ function OrderDetailPage() {
           dibuat: formatTimestamp(currentTrx.created_at),
           verifikasi: currentTrx.verification_date ? formatTimestamp(currentTrx.verification_date) : undefined,
           pembayaran: ["process", "delivery", "done"].includes(currentTrx.status) ? formatTimestamp(currentTrx.created_at) : undefined,
-          dikirim: currentTrx.lines?.[0]?.delivery_date ? formatTimestamp(currentTrx.lines[0].delivery_date) : undefined,
+          dikirim: currentTrx.est_date_delivery ? formatTimestamp(currentTrx.est_date_delivery) : undefined,
           selesai: currentTrx.date_done ? formatTimestamp(currentTrx.date_done) : undefined,
         }}
       />
@@ -322,7 +322,6 @@ function OrderDetailPage() {
       <section className="rounded-2xl border border-border bg-card">
         <div className="flex items-center justify-between gap-3 px-5 pt-5">
           <p className="text-sm font-bold text-foreground">Produk Dipesan</p>
-          <span className="text-sm font-semibold text-primary">Selesai</span>
         </div>
         <ul className="px-5 py-4">
           {currentTrx.lines.map((line, idx) => {
