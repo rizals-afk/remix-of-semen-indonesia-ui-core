@@ -174,13 +174,13 @@ function HomePage() {
       ) : banners.length > 0 ? (
         <section className="relative isolate">
           {banners.length === 1 ? (
-            <div className="relative w-full overflow-hidden">
+            <div className="relative h-[360px] w-full overflow-hidden md:h-[520px] lg:h-[600px]">
               <img
                 src={banners[0].photo}
                 alt={banners[0].title}
                 width={1920}
                 height={768}
-                className="h-[360px] w-full object-cover md:h-[520px] lg:h-[600px]"
+                className="absolute left-1/2 top-1/2 h-full w-auto max-w-none -translate-x-1/2 -translate-y-1/2"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
               <div className="absolute inset-0 flex items-center">
@@ -210,13 +210,13 @@ function HomePage() {
               <CarouselContent>
                 {banners.map((banner) => (
                   <CarouselItem key={banner.id}>
-                    <div className="relative w-full overflow-hidden">
+                    <div className="relative h-[360px] w-full overflow-hidden md:h-[520px] lg:h-[600px]">
                       <img
                         src={banner.photo}
                         alt={banner.title}
                         width={1920}
                         height={768}
-                        className="h-[360px] w-full object-cover md:h-[520px] lg:h-[600px]"
+                        className="absolute left-1/2 top-1/2 h-full w-auto max-w-none -translate-x-1/2 -translate-y-1/2"
                       />
                       <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
                       <div className="absolute inset-0 flex items-center">
