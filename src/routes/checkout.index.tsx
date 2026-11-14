@@ -24,6 +24,8 @@ export const Route = createFileRoute("/checkout/")({
   component: CheckoutPage,
 });
 
+const MAX_VOUCHERS = 3;
+
 // Helper to convert BuyNowItem to CartWarehouseGroup format
 function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
   const cartItem = {
@@ -132,8 +134,14 @@ function CheckoutPage() {
             type: "flashsale",
           });
 
-          // Find vouchers that match the IDs
-          const matchedVouchers = response.data.filter((v) => voucherIds.has(v.id));
+          // Find vouchers that match the IDs (max 3 combined with voucher/promo)
+          const matchedVouchers = response.data
+            .filter((v) => voucherIds.has(v.id))
+            .slice(0, MAX_VOUCHERS);
+
+          if (voucherIds.size > MAX_VOUCHERS) {
+            toast.info(`Maksimal kombinasi ${MAX_VOUCHERS} voucher, promo, atau flash sale per transaksi. Beberapa flash sale tidak diterapkan.`);
+          }
 
           if (matchedVouchers.length > 0) {
             // Convert to Voucher format expected by checkout store

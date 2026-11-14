@@ -15,6 +15,8 @@ export const Route = createFileRoute("/checkout/voucher")({
   component: VoucherPickerPage,
 });
 
+const MAX_VOUCHERS = 3;
+
 function VoucherPickerPage() {
   const cart = useCart();
   const checkout = useCheckout();
@@ -223,7 +225,11 @@ function VoucherPickerPage() {
       // Deselect
       setSelectedIds((prev) => prev.filter((id) => id !== v.id));
     } else {
-      // Select
+      // Select — cap at MAX_VOUCHERS combined (includes auto-applied flashsale vouchers)
+      if (selectedIds.length >= MAX_VOUCHERS) {
+        toast.error(`Maksimal ${MAX_VOUCHERS} voucher/promo/flashsale yang dapat digabungkan per transaksi.`);
+        return;
+      }
       setSelectedIds((prev) => [...prev, v.id]);
     }
   };
@@ -242,9 +248,16 @@ function VoucherPickerPage() {
       }
     });
 
+    // Enforce the combined voucher/promo/flashsale limit
+    let finalVouchers = allVouchers;
+    if (allVouchers.length > MAX_VOUCHERS) {
+      finalVouchers = allVouchers.slice(0, MAX_VOUCHERS);
+      toast.error(`Maksimal ${MAX_VOUCHERS} voucher/promo/flashsale per transaksi. Beberapa pilihan tidak diterapkan.`);
+    }
+
     // Clear calculated discounts before setting new vouchers so they get recalculated
     checkout.clearCalculatedDiscounts();
-    checkout.setVouchers(allVouchers);
+    checkout.setVouchers(finalVouchers);
 
     // Set flag to indicate this is a user-initiated voucher change
     if (typeof window !== 'undefined') {
@@ -267,6 +280,9 @@ function VoucherPickerPage() {
         <h1 className="mt-6 text-2xl font-bold text-foreground">
           Voucher & Promo
         </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Maksimal {MAX_VOUCHERS} voucher, promo, atau flashsale yang dapat digabungkan per transaksi.
+        </p>
 
         {/* Show selected items summary */}
         {selectedIds.length > 0 && (
@@ -336,7 +352,7 @@ function VoucherPickerPage() {
                         key={v.id}
                         voucher={v}
                         selected={selectedIds.includes(v.id)}
-                        disabled={!eligible(v)}
+                        disabled={!eligible(v) || (!selectedIds.includes(v.id) && selectedIds.length >= MAX_VOUCHERS)}
                         onSelect={() => handleSelectVoucher(v)}
                         isClaimed={v.isClaimed}
                       />
@@ -417,7 +433,7 @@ function VoucherPickerPage() {
                         key={v.id}
                         voucher={v}
                         selected={selectedIds.includes(v.id)}
-                        disabled={!eligible(v)}
+                        disabled={!eligible(v) || (!selectedIds.includes(v.id) && selectedIds.length >= MAX_VOUCHERS)}
                         onSelect={() => handleSelectVoucher(v)}
                         isClaimed={v.isClaimed}
                       />
