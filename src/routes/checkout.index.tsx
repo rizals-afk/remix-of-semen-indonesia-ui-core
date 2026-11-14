@@ -11,7 +11,7 @@ import { useUser } from "@/store/user";
 import { formatRupiah } from "@/lib/format";
 import { ESTIMATED_GROUP_SHIPPING_FEE } from "@/data/shopping";
 import type { CartWarehouseGroup } from "@/store/cart";
-import { createBulkTrx, type BulkTrxRequest, calculateTrx, type CalculateRequest } from "@/lib/api/trx";
+import { createBulkTrx, type BulkTrxRequest, calculateTrx, type CalculateRequest, validateVouchers } from "@/lib/api/trx";
 import { checkDelivery, type CheckDeliveryRequest } from "@/lib/api/delivery";
 import { deleteCartItem } from "@/lib/api/cart";
 import { fetchBranchById } from "@/lib/api/warehouse";
@@ -454,6 +454,54 @@ function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
+      // Pre-flight voucher validation: drop vouchers the backend considers
+      // invalid (expired, no quota, unclaimed, wrong branch, not applicable)
+      // before creating transactions, since the backend rejects them.
+      const voucherIds = checkout.vouchers.map((v) => parseInt(v.id));
+      if (voucherIds.length > 0) {
+        const validationLines = groups.flatMap((group) =>
+          group.selectedItems.map((item) => ({
+            product_id: checkout.buyNowItem
+              ? parseInt(checkout.buyNowItem.productId)
+              : (item.product_id || 0),
+            product_variant_id: checkout.buyNowItem
+              ? parseInt(checkout.buyNowItem.variantId)
+              : (item.variant_id || 0),
+            price: item.price,
+            qty: item.qty,
+            branch_id: checkout.buyNowItem
+              ? parseInt(checkout.buyNowItem.branchId)
+              : (item.branch_id || undefined),
+          }))
+        );
+
+        try {
+          const validation = await validateVouchers({
+            voucher_ids: voucherIds,
+            customer_id: user?.id as number | undefined,
+            lines: validationLines,
+          });
+
+          if (!validation.can_checkout && validation.invalid_vouchers.length > 0) {
+            const validIds = new Set(validation.valid_voucher_ids);
+            const stillValid = checkout.vouchers.filter((v) => validIds.has(parseInt(v.id)));
+
+            checkout.setVouchers(stillValid);
+            checkout.clearCalculatedDiscounts();
+
+            validation.invalid_vouchers.forEach((iv) => {
+              toast.error(iv.voucher_code ? `${iv.voucher_code}: ${iv.reason}` : iv.reason);
+            });
+            toast.info("Beberapa voucher tidak valid dan telah dihapus. Silakan periksa kembali pesanan Anda.");
+            return;
+          }
+        } catch (validationError) {
+          // If validation itself fails, continue with the original flow —
+          // the transaction endpoint will still enforce voucher rules.
+          console.error("[Checkout] Voucher validation failed:", validationError);
+        }
+      }
+
       // Group items by warehouse + division
       const warehouseDivisionGroups = new Map<string, typeof groups[0]['selectedItems']>();
       

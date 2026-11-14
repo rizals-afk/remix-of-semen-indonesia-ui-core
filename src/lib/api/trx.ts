@@ -409,3 +409,39 @@ export async function calculateTrx(data: CalculateRequest): Promise<CalculateRes
     body: JSON.stringify(data),
   });
 }
+
+export interface ValidateVouchersRequest {
+  voucher_ids: number[];
+  branch_id?: number;
+  customer_id?: number;
+  lines?: Array<{
+    product_id: number;
+    product_variant_id: number;
+    price: number;
+    qty: number;
+    branch_id?: number;
+  }>;
+}
+
+export interface InvalidVoucher {
+  voucher_id: number;
+  voucher_code?: string;
+  reason: string;
+}
+
+export interface ValidateVouchersResponse {
+  can_checkout: boolean;
+  valid_voucher_ids: number[];
+  invalid_voucher_ids: number[];
+  invalid_vouchers: InvalidVoucher[];
+  message: string;
+  total_discount?: number;
+  voucher_details?: CalculateVoucherDetail[];
+}
+
+export async function validateVouchers(data: ValidateVouchersRequest): Promise<ValidateVouchersResponse> {
+  return apiFetch<ValidateVouchersResponse>("/trx/validate-vouchers", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
