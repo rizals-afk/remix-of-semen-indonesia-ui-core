@@ -94,7 +94,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       product_id: item.product_id,
       branch_latitude: parseFloat(item.branch.lat) || undefined,
       branch_longitude: parseFloat(item.branch.long) || undefined,
-      stock: stock?.online_stock || 0,
+      stock: stock?.available_stock ?? stock?.online_stock ?? 0,
       voucher_id: item.voucher_id,
     };
   };

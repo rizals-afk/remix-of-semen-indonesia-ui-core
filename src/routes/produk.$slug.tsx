@@ -222,6 +222,12 @@ function ProductDetailPage() {
   const images = product ? getProductImages(product, selectedVariantId) : [];
   const stock = product ? getProductStock(product, selectedVariantId, selectedBranchId) : 0;
 
+  // Clamp quantity when available stock or selection changes
+  useEffect(() => {
+    const maxQty = Math.max(1, Math.floor(stock));
+    setQty((prev) => Math.min(prev, maxQty));
+  }, [stock]);
+
   // Calculate discount price if voucher_id is provided
   const originalPrice = price;
   let discountedPrice = price;
@@ -281,6 +287,10 @@ function ProductDetailPage() {
       toast.error("Produk ini tidak tersedia untuk gudang yang dipilih. Silakan pilih gudang lain.");
       return;
     }
+    if (qty > stock) {
+      toast.error(`Stok tersedia hanya ${Math.floor(stock)}. Silakan kurangi jumlah.`);
+      return;
+    }
 
     setIsAddingToCart(true);
     setIsAnimating(true);
@@ -336,6 +346,10 @@ function ProductDetailPage() {
       toast.error("Stok tidak tersedia untuk produk ini.");
       return;
     }
+    if (qty > stock) {
+      toast.error(`Stok tersedia hanya ${Math.floor(stock)}. Silakan kurangi jumlah.`);
+      return;
+    }
 
     // Set buyNowItem in checkout store
     // Use voucher_id from URL if available (from flashsale or promo spesial)
@@ -357,6 +371,7 @@ function ProductDetailPage() {
       branch_latitude: selectedWarehouse?.lat,
       branch_longitude: selectedWarehouse?.long,
       voucherId: finalVoucherId,
+      stock,
     });
 
     // Navigate directly to checkout
@@ -581,10 +596,10 @@ function ProductDetailPage() {
           <aside className="h-fit rounded-2xl border border-border bg-card p-5">
             <h2 className="text-base font-bold text-foreground">Jumlah Pembelian</h2>
             <div className="mt-3">
-              <QuantityStepper value={qty} onChange={setQty} min={1} />
+              <QuantityStepper value={qty} onChange={setQty} min={1} max={Math.max(1, Math.floor(stock))} />
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              Stok Online: <span className="font-semibold text-foreground">{Math.floor(stock)}</span>
+              Stok Tersedia: <span className="font-semibold text-foreground">{Math.floor(stock)}</span>
             </p>
             <div className="mt-5">
               <p className="text-sm font-semibold text-foreground">Sub Total</p>

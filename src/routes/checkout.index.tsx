@@ -43,6 +43,7 @@ function createGroupFromBuyNowItem(item: BuyNowItem): CartWarehouseGroup {
     variant_id: parseInt(item.variantId),
     branch_id: parseInt(item.branchId),
     voucher_id: item.voucherId,
+    stock: item.stock,
   };
 
   return {
@@ -440,6 +441,17 @@ function CheckoutPage() {
         toast.error(`Silakan pilih metode pengiriman untuk gudang: ${warehouseNames}`);
         return;
       }
+    }
+
+    // Block checkout when requested quantity exceeds available stock
+    const outOfStockNames = groups.flatMap((group) =>
+      group.selectedItems
+        .filter((item) => item.stock !== undefined && item.qty > item.stock)
+        .map((item) => item.name)
+    );
+    if (outOfStockNames.length > 0) {
+      toast.error(`Stok tidak mencukupi untuk: ${[...new Set(outOfStockNames)].join(", ")}. Silakan kurangi jumlah atau kembali ke keranjang.`);
+      return;
     }
 
     // Validate user identity documents

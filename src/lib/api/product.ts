@@ -18,6 +18,7 @@ export interface ProductVariant {
   media: ProductMedia[];
   pricelists?: ProductPricelist[];
   online_stock?: number;
+  available_stock?: number;
   stocks?: ProductVariantStock[];
   average_rating?: number;
   total_sales?: number;
@@ -26,6 +27,7 @@ export interface ProductVariant {
 export interface ProductVariantStock {
   branch_id: string;
   online_stock: number;
+  available_stock?: number;
   stock_physical?: number;
   stock_reserved?: number;
 }
@@ -249,11 +251,11 @@ export function getProductPrice(
 }
 
 /**
- * Get online stock for a variant in a specific branch
+ * Get available stock for a variant in a specific branch
  *
  * Priority:
- * 1. variant.stocks array → find by branch_id → online_stock
- * 2. variant.online_stock (direct field)
+ * 1. variant.stocks array → find by branch_id → available_stock (fallback online_stock)
+ * 2. variant.available_stock / variant.online_stock (direct fields)
  * 3. product.stock (fallback)
  */
 export function getProductStock(
@@ -276,11 +278,14 @@ export function getProductStock(
   if (variant.stocks && variant.stocks.length > 0 && branchId) {
     const branchStock = variant.stocks.find((s) => String(s.branch_id) === String(branchId));
     if (branchStock) {
-      return branchStock.online_stock;
+      return branchStock.available_stock ?? branchStock.online_stock;
     }
   }
 
-  // 2. Check direct online_stock field
+  // 2. Check direct stock fields
+  if (variant.available_stock !== undefined) {
+    return variant.available_stock;
+  }
   if (variant.online_stock !== undefined) {
     return variant.online_stock;
   }

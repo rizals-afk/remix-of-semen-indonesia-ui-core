@@ -39,14 +39,14 @@ export function QuantityStepper({
   const handleInputBlur = () => {
     const num = Number(inputValue);
 
-    // Validate: only allow positive integers within min/max range
-    if (isNaN(num) || num < min || num > max || !Number.isInteger(num)) {
-      // Restore previous value if invalid
+    // Values below min or non-integers restore the previous value
+    if (isNaN(num) || num < min || !Number.isInteger(num)) {
       setInputValue(String(value));
       return;
     }
 
-    set(num);
+    // Values above max clamp to the maximum
+    set(Math.min(num, max));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

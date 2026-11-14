@@ -12,6 +12,7 @@ export interface Stock {
   product_variant_id: number;
   branch_id: number;
   online_stock: number;
+  available_stock?: number;
   offline_stock: number;
   created_at: string;
   updated_at: string;

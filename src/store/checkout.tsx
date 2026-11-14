@@ -28,6 +28,8 @@ export interface BuyNowItem {
   voucherId?: number;
   /** Discounted price from flashsale (original price is in 'price' field) */
   discountedPrice?: number;
+  /** Available stock for the selected variant/branch */
+  stock?: number;
 }
 
 interface CheckoutState {
