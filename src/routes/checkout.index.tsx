@@ -268,8 +268,8 @@ function CheckoutPage() {
               doc_type: "ZEO1",
               trx_type: "order",
               subtotal: group.selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0),
-              shipping_cost: checkout.calculatedShippingFees[group.warehouse] || 0,
-              total: group.selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0) + (checkout.calculatedShippingFees[group.warehouse] || 0),
+              shipping_cost: checkout.mode === "dikirim" ? (checkout.calculatedShippingFees[group.warehouse] || 0) : 0,
+              total: group.selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0) + (checkout.mode === "dikirim" ? (checkout.calculatedShippingFees[group.warehouse] || 0) : 0),
               branch_id: branchId,
               shipping_address: selectedLocation.address,
               shipping_phone: selectedLocation.phone,
@@ -539,8 +539,10 @@ function CheckoutPage() {
           ? parseInt(checkout.buyNowItem.branchId)
           : (items[0].branch_id || 0);
 
-        // Get warehouse shipping cost
-        const warehouseShippingCost = checkout.calculatedShippingFees[warehouse] || 0;
+        // Shipping only applies to "dikirim"; ignore stale calculated fees
+        // left over from a previous "dikirim" calculation when mode is "diambil".
+        const isShipping = checkout.mode === "dikirim";
+        const warehouseShippingCost = isShipping ? (checkout.calculatedShippingFees[warehouse] || 0) : 0;
 
         // Check if this is the first division in this warehouse (gets shipping cost)
         const warehouseKeys = Array.from(warehouseDivisionGroups.keys()).filter(k => k.startsWith(`${warehouse}|`));
@@ -557,7 +559,7 @@ function CheckoutPage() {
 
         // Get warehouse note and delivery rule ID
         const warehouseNote = checkout.notes[warehouse] || "";
-        const deliveryRuleId = checkout.deliveryRuleIds[warehouse] || undefined;
+        const deliveryRuleId = isShipping ? (checkout.deliveryRuleIds[warehouse] || undefined) : undefined;
 
         // Build lines for this group
         const lines = items.map((item) => ({
