@@ -235,14 +235,29 @@ function VoucherPickerPage() {
   };
 
   const confirm = () => {
-    // Get all selected vouchers and promos from the current checkout state plus newly selected ones
-    const existingVouchers = checkout.vouchers;
     const allItems = [...vouchers, ...promos];
-    const newSelectedItems = allItems.filter((v) => selectedIds.includes(v.id));
+    const pickerIds = new Set(allItems.map((v) => v.id));
 
-    // Combine existing vouchers with new selections, avoiding duplicates
-    const allVouchers = [...existingVouchers];
-    newSelectedItems.forEach((newV) => {
+    // Vouchers not manageable on this screen (e.g. auto-applied flashsale)
+    // are carried over; voucher/promo selections are rebuilt from selectedIds
+    // so deselecting a card actually removes it.
+    const isPickerManaged = (v: any) =>
+      v.backendType === "voucher" ||
+      v.backendType === "promo" ||
+      (!v.backendType && pickerIds.has(v.id));
+
+    const carriedOver = checkout.vouchers.filter((v) => !isPickerManaged(v));
+
+    // Resolve each selected id to the freshest object available — prefer the
+    // loaded picker item, fall back to the already-applied voucher (covers
+    // selections that aren't on the currently loaded page).
+    const selectedItems = selectedIds
+      .map((id) => allItems.find((v) => v.id === id) ?? checkout.vouchers.find((v) => v.id === id))
+      .filter((v): v is NonNullable<typeof v> => Boolean(v));
+
+    // Combine carried-over vouchers with current selections, avoiding duplicates
+    const allVouchers = [...carriedOver];
+    selectedItems.forEach((newV) => {
       if (!allVouchers.some((v) => v.id === newV.id)) {
         allVouchers.push(newV);
       }
