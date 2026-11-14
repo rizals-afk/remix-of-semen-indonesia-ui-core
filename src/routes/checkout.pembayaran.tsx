@@ -98,6 +98,7 @@ function PaymentMethodPage() {
                 note={checkout.notes[g.warehouse] ?? ""}
                 onNoteChange={() => {}}
                 shippingFee={checkout.groupShippingFees[g.warehouse]}
+                shippingState="calculated"
                 readOnly
               />
             ))}

@@ -67,6 +67,7 @@ function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shippingStates, setShippingStates] = useState<Record<string, 'initial' | 'loading' | 'calculated'>>({});
   const [shippingDistances, setShippingDistances] = useState<Record<string, number>>({});
+  const [shippingErrors, setShippingErrors] = useState<Record<string, string>>({});
   const [isCalculatingDiscount, setIsCalculatingDiscount] = useState(false);
   const isProcessingRef = useRef(false);
   const checkoutRef = useRef(checkout);
@@ -712,13 +713,27 @@ function CheckoutPage() {
   };
 
   const handleCalculateShipping = async (group: CartWarehouseGroup) => {
+    const setShippingError = (message?: string) => {
+      setShippingErrors((prev) => {
+        if (!message) {
+          if (!(group.warehouse in prev)) return prev;
+          const next = { ...prev };
+          delete next[group.warehouse];
+          return next;
+        }
+        return prev[group.warehouse] === message ? prev : { ...prev, [group.warehouse]: message };
+      });
+    };
+
+    setShippingError(undefined);
+
     if (!customerLocation.selectedLocation) {
-      toast.error("Silakan pilih alamat pengiriman terlebih dahulu.");
+      setShippingError("Silakan pilih alamat pengiriman terlebih dahulu.");
       return;
     }
 
     if (!group.lat || !group.long) {
-      toast.error("Koordinat gudang tidak tersedia.");
+      setShippingError("Koordinat gudang tidak tersedia.");
       return;
     }
 
@@ -731,7 +746,7 @@ function CheckoutPage() {
         : (group.selectedItems[0]?.branch_id || 0);
 
       if (!branchId) {
-        toast.error("ID gudang tidak ditemukan.");
+        setShippingError("ID gudang tidak ditemukan.");
         setShippingStates(prev => ({ ...prev, [group.warehouse]: 'initial' }));
         return;
       }
@@ -747,7 +762,7 @@ function CheckoutPage() {
       if (tonaseInTons < minTonase || tonaseInTons > maxTonase) {
         const minDisplay = minTonase === 0 ? "0" : minTonase.toFixed(2);
         const maxDisplay = maxTonase === Infinity ? "∞" : maxTonase.toFixed(2);
-        toast.error(
+        setShippingError(
           `Total tonase pesanan (${tonaseInTons.toFixed(2)} ton) di luar jangkauan pengiriman untuk gudang ini (${minDisplay}-${maxDisplay} ton). Silakan kurangi jumlah barang atau hubungi customer service.`
         );
         setShippingStates(prev => ({ ...prev, [group.warehouse]: 'initial' }));
@@ -773,15 +788,33 @@ function CheckoutPage() {
     } catch (error: any) {
       console.error("Failed to calculate shipping:", error);
       const errorMessage = error?.response?.data?.message || error?.message || "Gagal menghitung ongkir. Silakan coba lagi.";
-      toast.error(errorMessage);
+      setShippingError(errorMessage);
       setShippingStates(prev => ({ ...prev, [group.warehouse]: 'initial' }));
     }
   };
+
+  // Automatically calculate shipping ("Hitung Ongkir") for every warehouse
+  // whenever the mode is "dikirim" and any of its inputs change — shipping
+  // address, warehouse coordinates, or order tonase.
+  const shippingSignature = groups
+    .map((g) => `${g.warehouse}|${g.lat},${g.long}|${g.tonase}`)
+    .join(";");
+  const shippingLocationSignature = customerLocation.selectedLocation
+    ? `${customerLocation.selectedLocation.address}|${customerLocation.selectedLocation.lat},${customerLocation.selectedLocation.long}`
+    : "";
+
+  useEffect(() => {
+    if (checkout.mode !== "dikirim" || !customerLocation.selectedLocation) return;
+    groups.forEach((g) => handleCalculateShipping(g));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkout.mode, shippingSignature, shippingLocationSignature]);
 
   const handleChangeShipping = (warehouse: string) => {
     setShippingStates(prev => ({ ...prev, [warehouse]: 'initial' }));
     checkout.setDeliveryRuleId(warehouse, 0);
     checkout.setCalculatedShippingFee(warehouse, 0);
+    const group = groups.find((g) => g.warehouse === warehouse);
+    if (group) handleCalculateShipping(group);
   };
 
   const handleViewMap = (group: CartWarehouseGroup) => {
@@ -926,7 +959,7 @@ function CheckoutPage() {
                 etaLabel={shippingStates[g.warehouse] === 'calculated' ? `${shippingDistances[g.warehouse]?.toFixed(1)} km` : ""}
                 onViewMap={() => handleViewMap(g)}
                 shippingState={shippingStates[g.warehouse] || 'initial'}
-                onCalculateShipping={() => handleCalculateShipping(g)}
+                shippingError={shippingErrors[g.warehouse]}
                 onChangeShipping={() => handleChangeShipping(g.warehouse)}
                 hideShipping={checkout.mode === "diambil"}
                 calculatedDiscount={checkout.calculatedDiscounts[g.warehouse]}
@@ -1014,7 +1047,7 @@ function CheckoutPage() {
               </div>
               <button
                 onClick={submit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || (checkout.mode === "dikirim" && groups.some((g) => !checkout.deliveryRuleIds[g.warehouse]))}
                 className="mt-5 w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? (
@@ -1026,6 +1059,11 @@ function CheckoutPage() {
                   "Ajukan Pesanan"
                 )}
               </button>
+              {checkout.mode === "dikirim" && groups.some((g) => !checkout.deliveryRuleIds[g.warehouse]) && !isSubmitting ? (
+                <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Menghitung ongkir...
+                </p>
+              ) : null}
               <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
                 <Lock className="h-3.5 w-3.5" /> Data aman dan terenkripsi
               </p>
