@@ -29,7 +29,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { FEATURED_PRODUCTS } from "@/data/catalog";
 import { getCurrentUserFromStorage } from "@/lib/auth";
-import { fetchCategories, getChildCategories } from "@/lib/api/product-category";
+import { fetchCategories, getParentCategories } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import { fetchBlogs } from "@/lib/api/blog";
 import { fetchBanners, type Banner } from "@/lib/api/banner";
@@ -129,8 +129,8 @@ function HomePage() {
           fetchBanners({ per_page: 99, page: 1, is_website: 1, active: true }),
         ]);
 
-        const childCategories = getChildCategories(categoriesResponse.data);
-        setCategories(childCategories);
+        const parentCategories = getParentCategories(categoriesResponse.data);
+        setCategories(parentCategories);
 
         setBlogs(blogsResponse.data || []);
         setBanners(bannersResponse.data || []);

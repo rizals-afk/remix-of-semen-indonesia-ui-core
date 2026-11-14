@@ -68,6 +68,13 @@ export function buildCategoryTree(categories: ProductCategory[]): CategoryNode[]
 }
 
 /**
+ * Get only parent categories (categories without parent_id)
+ */
+export function getParentCategories(categories: ProductCategory[]): ProductCategory[] {
+  return categories.filter(cat => cat.parent_id === null);
+}
+
+/**
  * Get only child categories (categories with parent_id)
  */
 export function getChildCategories(categories: ProductCategory[]): ProductCategory[] {
