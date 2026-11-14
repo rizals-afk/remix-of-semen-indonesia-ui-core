@@ -29,7 +29,7 @@ function BlogDetailPage() {
   useEffect(() => {
     const loadRelatedBlogs = async () => {
       try {
-        const response = await fetchBlogs({ per_page: 4, page: 1 });
+        const response = await fetchBlogs({ per_page: 4, page: 1, is_active: true });
         console.log("Related blogs API response:", response);
         setRelatedBlogs(response.data);
       } catch (error) {

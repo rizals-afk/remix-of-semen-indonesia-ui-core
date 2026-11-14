@@ -36,6 +36,7 @@ function BlogIndexPage() {
           per_page: PAGE_SIZE,
           search: q || undefined,
           tag: tag || undefined,
+          is_active: true,
         });
         setBlogs(response.data);
         setTotalPages(Math.max(1, Math.ceil(response.total / PAGE_SIZE)));

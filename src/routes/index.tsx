@@ -125,7 +125,7 @@ function HomePage() {
       try {
         const [categoriesResponse, blogsResponse, bannersResponse] = await Promise.all([
           fetchCategories({ per_page: 999, page: 1 }),
-          fetchBlogs({ page: 1, per_page: 3 }),
+          fetchBlogs({ page: 1, per_page: 3, is_active: true }),
           fetchBanners({ per_page: 99, page: 1, is_website: 1, active: true }),
         ]);
 
