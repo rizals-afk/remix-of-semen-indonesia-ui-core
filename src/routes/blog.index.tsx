@@ -17,7 +17,7 @@ export const Route = createFileRoute("/blog/")({
   component: BlogIndexPage,
 });
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 9;
 
 function BlogIndexPage() {
   const { q = "", tag, page = 1 } = Route.useSearch();
@@ -136,7 +136,7 @@ function BlogIndexPage() {
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
+            Array.from({ length: 9 }).map((_, i) => (
               <div key={i} className="aspect-[16/10] rounded-2xl border border-border bg-muted animate-pulse" />
             ))
           ) : blogs.length > 0 ? (
