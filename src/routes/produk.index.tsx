@@ -162,23 +162,38 @@ function ProductListingPage() {
     setSelectedBrand(brand_id);
   }, [brand_id]);
 
-  // Expand parent category when category is selected
+  // Expand category (and its parent) when category is selected
   useEffect(() => {
     if (category) {
-      // Find and expand parent category
-      const findAndExpandParent = (nodes: CategoryNode[]): boolean => {
+      // Expand the selected node itself if it has children
+      const expandSelf = (nodes: CategoryNode[]): boolean => {
         for (const node of nodes) {
-          if (node.children.some(child => child.id === category)) {
+          if (node.id === category && node.children.length > 0) {
             setExpandedCategories(prev => new Set([...prev, node.id]));
             return true;
           }
-          if (findAndExpandParent(node.children)) {
+          if (expandSelf(node.children)) {
             return true;
           }
         }
         return false;
       };
-      findAndExpandParent(categories);
+      if (!expandSelf(categories)) {
+        // Otherwise expand the parent that contains the selected child
+        const findAndExpandParent = (nodes: CategoryNode[]): boolean => {
+          for (const node of nodes) {
+            if (node.children.some(child => child.id === category)) {
+              setExpandedCategories(prev => new Set([...prev, node.id]));
+              return true;
+            }
+            if (findAndExpandParent(node.children)) {
+              return true;
+            }
+          }
+          return false;
+        };
+        findAndExpandParent(categories);
+      }
     } else {
       // URL has no category, collapse all
       setExpandedCategories(new Set());

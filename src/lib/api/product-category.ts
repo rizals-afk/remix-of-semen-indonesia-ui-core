@@ -42,28 +42,28 @@ export interface CategoryNode {
 
 export function buildCategoryTree(categories: ProductCategory[]): CategoryNode[] {
   const categoryMap = new Map<string, CategoryNode>();
-  
-  // Initialize all categories as nodes
+
+  // Initialize all categories as nodes (ids normalized to string)
   categories.forEach(cat => {
-    categoryMap.set(cat.id, { ...cat, children: [] });
+    categoryMap.set(String(cat.id), { ...cat, id: String(cat.id), children: [] });
   });
-  
+
   // Build tree structure
   const tree: CategoryNode[] = [];
   categories.forEach(cat => {
-    const node = categoryMap.get(cat.id)!;
-    if (cat.parent_id === null) {
+    const node = categoryMap.get(String(cat.id))!;
+    if (cat.parent_id === null || cat.parent_id === undefined) {
       // Root category
       tree.push(node);
     } else {
       // Child category
-      const parent = categoryMap.get(cat.parent_id);
+      const parent = categoryMap.get(String(cat.parent_id));
       if (parent) {
         parent.children.push(node);
       }
     }
   });
-  
+
   return tree;
 }
 
