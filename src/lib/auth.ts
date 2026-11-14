@@ -168,7 +168,11 @@ export interface UploadResponse {
   url: string;
 }
 
-export async function uploadFile(file: File): Promise<UploadResponse> {
+export async function uploadFile(file: File, allowedMimePrefixes: string[] = []): Promise<UploadResponse> {
+  if (allowedMimePrefixes.length > 0 && !allowedMimePrefixes.some((prefix) => file.type.startsWith(prefix))) {
+    throw new Error(`File type "${file.type || "unknown"}" is not allowed`);
+  }
+
   const formData = new FormData();
   formData.append("file", file);
 

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { QuantityStepper } from "@/components/common/QuantityStepper";
 import { createReturn, type CreateReturnRequest, type ReturnPhoto } from "@/lib/api/trx";
+import { uploadFile } from "@/lib/auth";
 import { toast } from "sonner";
 
 export interface ReturnProduct {
@@ -47,6 +48,8 @@ interface ReturnRequestDialogProps {
   onSubmit?: () => void | Promise<void>;
 }
 
+const MAX_UPLOADS = 5;
+
 const REASONS = [
   "Barang rusak",
   "Barang tidak sesuai pesanan",
@@ -74,6 +77,7 @@ export function ReturnRequestDialog({
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ url: string; description: string; type: 'image' | 'video' }>>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleQtyChange = (index: number, newQty: number) => {
     setSelectedProducts(prev => prev.map((p, i) => i === index ? { ...p, qty: newQty } : p));
@@ -83,16 +87,26 @@ export function ReturnRequestDialog({
     setSelectedProducts(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleFileUpload = async (fileType: 'image' | 'video') => {
+  const handleFileUpload = (fileType: 'image' | 'video') => {
+    if (uploadedFiles.length >= MAX_UPLOADS) {
+      toast.error(`Maksimal ${MAX_UPLOADS} foto/video`);
+      return;
+    }
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = fileType === 'image' ? 'image/*' : 'video/*';
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        // For now, use a placeholder URL. In production, you'd upload to a server
-        const url = URL.createObjectURL(file);
+      if (!file) return;
+      setIsUploading(true);
+      try {
+        const { url } = await uploadFile(file, [fileType === 'image' ? 'image/' : 'video/']);
         setUploadedFiles(prev => [...prev, { url, description: '', type: fileType }]);
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error('Gagal mengunggah file');
+      } finally {
+        setIsUploading(false);
       }
     };
     input.click();
@@ -117,6 +131,14 @@ export function ReturnRequestDialog({
     }
     if (!address?.address) {
       toast.error("Alamat pengiriman diperlukan");
+      return;
+    }
+    if (uploadedFiles.length === 0) {
+      toast.error("Unggah minimal 1 foto atau video");
+      return;
+    }
+    if (uploadedFiles.length > MAX_UPLOADS) {
+      toast.error(`Maksimal ${MAX_UPLOADS} foto/video`);
       return;
     }
 
@@ -260,13 +282,16 @@ export function ReturnRequestDialog({
             </div>
           </div>
 
-          <p className="mt-5 text-sm font-bold text-foreground">Tambahkan Foto dan Video</p>
+          <p className="mt-5 text-sm font-bold text-foreground">
+            Tambahkan Foto dan Video <span className="text-destructive">*</span>
+            <span className="ml-2 text-xs font-normal text-muted-foreground">(wajib minimal 1, maksimal {MAX_UPLOADS})</span>
+          </p>
           <div className="mt-2 flex gap-4">
-            <button type="button" onClick={() => handleFileUpload('image')} className="grid h-20 w-20 place-items-center gap-1 rounded-md bg-muted text-muted-foreground hover:bg-muted/80">
+            <button type="button" onClick={() => handleFileUpload('image')} disabled={isUploading || uploadedFiles.length >= MAX_UPLOADS} className="grid h-20 w-20 place-items-center gap-1 rounded-md bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
               <Camera className="h-6 w-6" />
               <span className="text-xs font-semibold text-accent">Foto</span>
             </button>
-            <button type="button" onClick={() => handleFileUpload('video')} className="grid h-20 w-20 place-items-center gap-1 rounded-md bg-muted text-muted-foreground hover:bg-muted/80">
+            <button type="button" onClick={() => handleFileUpload('video')} disabled={isUploading || uploadedFiles.length >= MAX_UPLOADS} className="grid h-20 w-20 place-items-center gap-1 rounded-md bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50">
               <Video className="h-6 w-6" />
               <span className="text-xs font-semibold text-accent">Video</span>
             </button>
