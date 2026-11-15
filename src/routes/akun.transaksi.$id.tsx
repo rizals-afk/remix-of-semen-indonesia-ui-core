@@ -214,11 +214,6 @@ function OrderDetailPage() {
             <p className="text-muted-foreground">Estimasi Tiba</p>
             <p className="mt-0.5 font-bold text-foreground">Sedang dalam perjalanan</p>
           </div>
-        ) : currentTrx.status === "retur" && (currentTrx.retur_trx?.code || currentTrx.retur_trx_id) ? (
-          <div className="text-right text-sm">
-            <p className="text-muted-foreground">Nomor Retur</p>
-            <p className="mt-0.5 font-mono font-bold text-foreground">{currentTrx.retur_trx?.code || currentTrx.retur_trx_id}</p>
-          </div>
         ) : safeBanner.invoice ? (
           <div className="text-right text-sm">
             <p className="text-muted-foreground">No. Pesanan</p>
@@ -307,6 +302,32 @@ function OrderDetailPage() {
           selesai: currentTrx.date_done ? formatTimestamp(currentTrx.date_done) : undefined,
         }}
       />
+
+      {currentTrx.trx_type === "retur" && currentTrx.source_document_order_id != null && (
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-sm text-muted-foreground">Nomor Order</p>
+          <Link
+            to="/akun/transaksi/$id"
+            params={{ id: currentTrx.source_document_order_id.toString() }}
+            className="mt-1 inline-block font-mono font-bold text-foreground hover:underline"
+          >
+            {currentTrx.source_trx?.code || currentTrx.source_document_order_id}
+          </Link>
+        </section>
+      )}
+
+      {currentTrx.retur_trx_id != null && (
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-sm text-muted-foreground">Nomor Retur</p>
+          <Link
+            to="/akun/transaksi/$id"
+            params={{ id: currentTrx.retur_trx_id.toString() }}
+            className="mt-1 inline-block font-mono font-bold text-foreground hover:underline"
+          >
+            {currentTrx.retur_trx?.code || currentTrx.retur_trx_id}
+          </Link>
+        </section>
+      )}
 
       {/* Alasan Pengembalian - only for retur type */}
       {currentTrx.trx_type === "retur" && (currentTrx.retur_reason || currentTrx.retur_additional_reason) && (
@@ -769,6 +790,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
 
   const whatsapp = "https://wa.me/6281133331800";
   const canCancel = trx.status === "pending" || trx.status === "approve" || trx.status === "process";
+  const isRefundReturn = trx.trx_type === "retur" && trx.retur_type === "dana";
 
   // Find lines that need review (trx_review is null)
   const linesNeedingReview = trx.lines?.filter(line => line.trx_review === null) || [];
@@ -823,7 +845,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
         <>
           {cancelDialog}
           {outline("Hubungi Penjual", whatsapp)}
-          {(!trx.payments || trx.payments.length === 0) && primary(
+          {(!trx.payments || trx.payments.length === 0) && !isRefundReturn && primary(
             isProcessingPayment ? "Memproses Pembayaran..." : isSavingPayment ? "Menyimpan pembayaran..." : "Bayar Sekarang",
             undefined,
             handlePayment,

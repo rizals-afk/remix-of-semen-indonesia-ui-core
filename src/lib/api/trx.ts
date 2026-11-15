@@ -104,6 +104,8 @@ export interface Trx {
   retur_type?: "barang" | "dana";
   retur_trx_id?: number | null;
   retur_trx?: { id: number; code: string } | null;
+  source_document_order_id?: number | null;
+  source_trx?: { id: number; code: string } | null;
   lines: TrxLine[];
   voucher_lines?: VoucherLine[];
   payments?: Array<{
@@ -138,6 +140,9 @@ export interface FetchTrxParams {
   per_page?: number;
   search?: string;
   status?: string;
+  trx_type?: string;
+  retur_type?: string;
+  exclude_retur_type?: string;
   sort_by?: string;
   sort_order?: string;
 }
@@ -235,7 +240,7 @@ export interface TrxResponse {
 }
 
 export async function fetchTrx(params: FetchTrxParams = {}): Promise<TrxListResponse> {
-  const { page = 1, per_page = 10, search = "", status = "", sort_by = "created_at", sort_order = "desc" } = params;
+  const { page = 1, per_page = 10, search = "", status = "", trx_type, retur_type, exclude_retur_type, sort_by = "created_at", sort_order = "desc" } = params;
   const queryParams = new URLSearchParams({
     page: page.toString(),
     per_page: per_page.toString(),
@@ -249,6 +254,18 @@ export async function fetchTrx(params: FetchTrxParams = {}): Promise<TrxListResp
 
   if (status) {
     queryParams.append("status", status);
+  }
+
+  if (trx_type) {
+    queryParams.append("trx_type", trx_type);
+  }
+
+  if (retur_type) {
+    queryParams.append("retur_type", retur_type);
+  }
+
+  if (exclude_retur_type) {
+    queryParams.append("exclude_retur_type", exclude_retur_type);
   }
 
   return apiFetch<TrxListResponse>(`/trx?${queryParams.toString()}`);

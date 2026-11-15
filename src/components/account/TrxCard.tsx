@@ -69,9 +69,28 @@ export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) =
           {trx.branch?.name && (
             <p className="mt-1 text-xs text-muted-foreground">Gudang: {trx.branch.name}</p>
           )}
-          {trx.status === "retur" && (trx.retur_trx?.code || trx.retur_trx_id) && (
+          {trx.retur_trx_id != null && (
             <p className="mt-1 text-xs text-muted-foreground">
-              Nomor Retur: <span className="font-semibold text-foreground">{trx.retur_trx?.code || trx.retur_trx_id}</span>
+              Nomor Retur:{" "}
+              <Link
+                to="/akun/transaksi/$id"
+                params={{ id: trx.retur_trx_id.toString() }}
+                className="font-semibold text-foreground hover:underline"
+              >
+                {trx.retur_trx?.code || trx.retur_trx_id}
+              </Link>
+            </p>
+          )}
+          {trx.trx_type === "retur" && trx.source_document_order_id != null && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Nomor Order:{" "}
+              <Link
+                to="/akun/transaksi/$id"
+                params={{ id: trx.source_document_order_id.toString() }}
+                className="font-semibold text-foreground hover:underline"
+              >
+                {trx.source_trx?.code || trx.source_document_order_id}
+              </Link>
             </p>
           )}
         </div>
