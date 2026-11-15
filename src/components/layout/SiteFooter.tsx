@@ -31,11 +31,11 @@ export function SiteFooter() {
           <ul className="space-y-2 pt-2 text-muted-foreground">
             <li className="flex gap-2">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-              <span>
+              <a href="https://maps.app.goo.gl/aTFDQFqD3WndanjD7" className="hover:text-primary">
                 Jl. Dr. Wahidin Sudirohusodo No.728A,
                 <br />
                 Dahanrejo, Kec. Kebomas, Kabupaten Gresik, Jawa Timur 61122
-              </span>
+              </a>
             </li>
             <li className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-accent" />
