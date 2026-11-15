@@ -81,7 +81,8 @@ function ProfilePage() {
 
   const userData = user || { name: "", email: "", phone: null, company: null, birth_date: null, birth_place: null, is_nik: true };
 
-  const identityLocked = Boolean(user?.nik_ktp || user?.npwp_1);
+  const nikLocked = Boolean(user?.nik_ktp);
+  const npwpLocked = Boolean(user?.npwp_1 || user?.npwp_2);
   const companyLocked = Boolean(user?.company);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,11 +251,10 @@ function ProfilePage() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => !identityLocked && setIdentity("NIK")}
-                disabled={identityLocked}
+                onClick={() => setIdentity("NIK")}
                 aria-pressed={identity === "NIK"}
                 className={
-                  "grid h-6 w-6 place-items-center rounded border-2 disabled:cursor-not-allowed disabled:opacity-50 " +
+                  "grid h-6 w-6 place-items-center rounded border-2 " +
                   (identity === "NIK"
                     ? "border-accent bg-accent text-accent-foreground"
                     : "border-border bg-background")
@@ -267,11 +267,10 @@ function ProfilePage() {
               </div>
               <button
                 type="button"
-                onClick={() => !identityLocked && setIdentity("NPWP")}
-                disabled={identityLocked}
+                onClick={() => setIdentity("NPWP")}
                 aria-pressed={identity === "NPWP"}
                 className={
-                  "ml-3 grid h-6 w-6 place-items-center rounded border-2 disabled:cursor-not-allowed disabled:opacity-50 " +
+                  "ml-3 grid h-6 w-6 place-items-center rounded border-2 " +
                   (identity === "NPWP"
                     ? "border-accent bg-accent text-accent-foreground"
                     : "border-border bg-background")
@@ -298,7 +297,7 @@ function ProfilePage() {
                 maxLength={16}
                 className="h-11"
                 placeholder="357830000000000"
-                disabled={identityLocked}
+                disabled={nikLocked}
               />
             </FormRow>
           ) : (
@@ -308,7 +307,7 @@ function ProfilePage() {
                   value={npwp1}
                   onChange={(e) => setNpwp1(e.target.value)}
                   className="h-11"
-                  disabled={identityLocked}
+                  disabled={npwpLocked}
                 />
               </FormRow>
               <FormRow label="Nama NPWP">
@@ -316,13 +315,13 @@ function ProfilePage() {
                   value={npwp2}
                   onChange={(e) => setNpwp2(e.target.value)}
                   className="h-11"
-                  disabled={identityLocked}
+                  disabled={npwpLocked}
                 />
               </FormRow>
             </>
           )}
 
-          {(identityLocked || companyLocked) && (
+          {(nikLocked || npwpLocked || companyLocked) && (
             <p className="text-xs text-amber-600 dark:text-amber-400">
               Perusahaan, NIK, NPWP, dan Nama NPWP hanya dapat diisi satu kali.
               Setelah tersimpan, data ini tidak dapat diubah.
