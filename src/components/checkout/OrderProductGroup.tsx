@@ -1,4 +1,4 @@
-import { Warehouse as WarehouseIcon, Truck, MapPin, Loader2 } from "lucide-react";
+import { Warehouse as WarehouseIcon, Truck, MapPin, Loader2, RefreshCw } from "lucide-react";
 import { formatRupiah } from "@/lib/format";
 import type { CartWarehouseGroup } from "@/store/cart";
 import { QuantityStepper } from "@/components/common/QuantityStepper";
@@ -193,9 +193,11 @@ export function OrderProductGroup({
                         <button
                           type="button"
                           onClick={onChangeShipping}
-                          className="text-xs font-semibold text-primary hover:underline"
+                          aria-label="Hitung ulang ongkir"
+                          title="Hitung ulang ongkir"
+                          className="inline-flex h-6 w-6 items-center justify-center rounded-md text-primary hover:bg-primary/10"
                         >
-                          Ubah
+                          <RefreshCw className="h-4 w-4" />
                         </button>
                       )}
                     </div>

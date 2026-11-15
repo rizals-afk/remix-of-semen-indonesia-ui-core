@@ -63,6 +63,12 @@ function CheckoutPage() {
   const { user, setUser } = useUser();
   const cart = useCart();
   const checkout = useCheckout();
+  const {
+    calculatedShippingFees,
+    deliveryRuleIds,
+    clearCalculatedShippingFee,
+    clearDeliveryRuleId,
+  } = checkout;
   const customerLocation = useCustomerLocation();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -207,6 +213,17 @@ function CheckoutPage() {
       return unchanged ? prev : restoredStates;
     });
   }, [groups, checkout.deliveryRuleIds, checkout.calculatedShippingFees]);
+
+  useEffect(() => {
+    if (groups.length === 0) return;
+    const validWarehouses = new Set(groups.map((g) => g.warehouse));
+    Object.keys(calculatedShippingFees).forEach((warehouse) => {
+      if (!validWarehouses.has(warehouse)) clearCalculatedShippingFee(warehouse);
+    });
+    Object.keys(deliveryRuleIds).forEach((warehouse) => {
+      if (!validWarehouses.has(warehouse)) clearDeliveryRuleId(warehouse);
+    });
+  }, [groups, calculatedShippingFees, deliveryRuleIds, clearCalculatedShippingFee, clearDeliveryRuleId]);
 
   // Trigger shipping recalculation when address changes
   useEffect(() => {
@@ -420,7 +437,7 @@ function CheckoutPage() {
   const totalTonase = groups.reduce((s, g) => s + g.tonase, 0);
   // Pre-verification shipping estimate: per-group fee, only when "dikirim" and not COD.
   const showShipping = checkout.mode === "dikirim";
-  const subtotalShipping = showShipping ? Object.values(checkout.calculatedShippingFees).reduce((sum, fee) => sum + fee, 0) : 0;
+  const subtotalShipping = showShipping ? groups.reduce((sum, group) => sum + (checkout.calculatedShippingFees[group.warehouse] || 0), 0) : 0;
 
   // Calculate total discount from calculated discounts only (not from voucher discount values)
   const totalCalculatedDiscount = Object.values(checkout.calculatedDiscounts).reduce(
@@ -734,6 +751,10 @@ function CheckoutPage() {
   };
 
   const handleCalculateShipping = async (group: CartWarehouseGroup) => {
+    checkout.clearCalculatedShippingFee(group.warehouse);
+    checkout.clearDeliveryRuleId(group.warehouse);
+    setShippingStates((prev) => ({ ...prev, [group.warehouse]: 'initial' }));
+
     const setShippingError = (message?: string) => {
       setShippingErrors((prev) => {
         if (!message) {
