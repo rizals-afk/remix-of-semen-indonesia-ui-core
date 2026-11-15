@@ -168,13 +168,13 @@ function HomePage() {
       {bannersLoading ? (
         <section className="relative isolate">
           <div className="relative w-full overflow-hidden">
-            <div className="h-[360px] w-full bg-muted animate-pulse md:h-[520px] lg:h-[600px]" />
+            <div className="aspect-[2.5/1] w-full bg-muted animate-pulse" />
           </div>
         </section>
       ) : banners.length > 0 ? (
         <section className="relative isolate">
           {banners.length === 1 ? (
-            <div className="relative h-[360px] w-full overflow-hidden md:h-[520px] lg:h-[600px]">
+            <div className="relative aspect-[2.5/1] w-full overflow-hidden">
               <img
                 src={banners[0].photo}
                 alt={banners[0].title}
@@ -186,7 +186,7 @@ function HomePage() {
               <div className="absolute inset-0 flex items-center">
                 <div className="container mx-auto max-w-7xl px-6 md:px-12">
                   <div className="max-w-xl space-y-5 text-white">
-                    <h1 className="text-4xl font-bold leading-tight md:text-6xl">
+                    <h1 className="text-2xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
                       {banners[0].title}
                     </h1>
                     <Link
@@ -210,7 +210,7 @@ function HomePage() {
               <CarouselContent>
                 {banners.map((banner) => (
                   <CarouselItem key={banner.id}>
-                    <div className="relative h-[360px] w-full overflow-hidden md:h-[520px] lg:h-[600px]">
+                    <div className="relative aspect-[2.5/1] w-full overflow-hidden">
                       <img
                         src={banner.photo}
                         alt={banner.title}
@@ -222,7 +222,7 @@ function HomePage() {
                       <div className="absolute inset-0 flex items-center">
                         <div className="container mx-auto max-w-7xl px-6 md:px-12">
                           <div className="max-w-xl space-y-5 text-white">
-                            <h1 className="text-4xl font-bold leading-tight md:text-6xl">
+                            <h1 className="text-2xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
                               {banner.title}
                             </h1>
                             <Link
