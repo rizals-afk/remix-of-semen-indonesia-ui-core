@@ -69,6 +69,11 @@ export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) =
           {trx.branch?.name && (
             <p className="mt-1 text-xs text-muted-foreground">Gudang: {trx.branch.name}</p>
           )}
+          {trx.status === "retur" && (trx.retur_trx?.code || trx.retur_trx_id) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Nomor Retur: <span className="font-semibold text-foreground">{trx.retur_trx?.code || trx.retur_trx_id}</span>
+            </p>
+          )}
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLORS[trx.status]}`}>
           {STATUS_LABELS[trx.status]}

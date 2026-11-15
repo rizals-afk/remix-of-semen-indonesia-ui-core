@@ -214,6 +214,11 @@ function OrderDetailPage() {
             <p className="text-muted-foreground">Estimasi Tiba</p>
             <p className="mt-0.5 font-bold text-foreground">Sedang dalam perjalanan</p>
           </div>
+        ) : currentTrx.status === "retur" && (currentTrx.retur_trx?.code || currentTrx.retur_trx_id) ? (
+          <div className="text-right text-sm">
+            <p className="text-muted-foreground">Nomor Retur</p>
+            <p className="mt-0.5 font-mono font-bold text-foreground">{currentTrx.retur_trx?.code || currentTrx.retur_trx_id}</p>
+          </div>
         ) : safeBanner.invoice ? (
           <div className="text-right text-sm">
             <p className="text-muted-foreground">No. Pesanan</p>

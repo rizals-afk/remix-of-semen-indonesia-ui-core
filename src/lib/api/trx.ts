@@ -102,6 +102,8 @@ export interface Trx {
   retur_reason?: string;
   retur_additional_reason?: string;
   retur_type?: "barang" | "dana";
+  retur_trx_id?: number | null;
+  retur_trx?: { id: number; code: string } | null;
   lines: TrxLine[];
   voucher_lines?: VoucherLine[];
   payments?: Array<{
