@@ -40,7 +40,7 @@ interface CheckoutState {
   warehouse: Warehouse;
   setWarehouse: (w: Warehouse) => void;
   vouchers: Voucher[];
-  setVouchers: (v: Voucher[]) => void;
+  setVouchers: (v: Voucher[] | ((prev: Voucher[]) => Voucher[])) => void;
   addVoucher: (v: Voucher) => void;
   removeVoucher: (voucherId: string) => void;
   /** Backward compatibility: single voucher (first in array) */
@@ -227,7 +227,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     setCalculatedDiscountsState({});
   }, []);
 
-  const setVouchers = useCallback((v: Voucher[]) => {
+  const setVouchers = useCallback((v: Voucher[] | ((prev: Voucher[]) => Voucher[])) => {
     setVouchersState(v);
   }, []);
 

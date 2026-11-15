@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CartProvider } from "@/store/cart";
-import { CheckoutProvider } from "@/store/checkout";
+import { CheckoutProvider, useCheckout } from "@/store/checkout";
 import { WarehouseProvider } from "@/store/warehouse";
 import { CustomerLocationProvider } from "@/store/customer-location";
 import { UserProvider } from "@/store/user";
@@ -11,10 +11,11 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useTrackVisit } from "@/hooks/useTrackVisit";
 
 import appCss from "../styles.css?url";
@@ -121,6 +122,23 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function CheckoutRouteWatcher() {
+  const { setVouchers, clearCalculatedDiscounts } = useCheckout();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const wasInCheckoutRef = useRef(false);
+
+  useEffect(() => {
+    const inCheckout = pathname === "/checkout" || pathname.startsWith("/checkout/");
+    if (wasInCheckoutRef.current && !inCheckout) {
+      setVouchers([]);
+      clearCalculatedDiscounts();
+    }
+    wasInCheckoutRef.current = inCheckout;
+  }, [pathname, setVouchers, clearCalculatedDiscounts]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useTrackVisit();
@@ -133,6 +151,7 @@ function RootComponent() {
             <CustomerLocationProvider>
               <CartProvider>
                 <CheckoutProvider>
+                  <CheckoutRouteWatcher />
                   {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
                   <Outlet />
                   <Toaster richColors position="top-center" />

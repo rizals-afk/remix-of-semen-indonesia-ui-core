@@ -156,15 +156,24 @@ function CheckoutPage() {
               minSpend: parseFloat(v.min_purchase || "0"),
               expiresAt: v.valid_end || "",
               type: "discount" as const,
-              backendType: v.type as "voucher" | "promo",
+              backendType: v.type as "voucher" | "promo" | "flashsale",
               isClaimed: v.is_claim,
               isClaimable: !v.is_claim,
               validEnd: v.valid_end,
               apiVoucher: v,
             }));
 
-            // Set vouchers in checkout store
-            checkout.setVouchers(checkoutVouchers);
+            // Merge auto-applied flash sale vouchers with the latest selections so
+            // returning from the voucher picker does not drop voucher/promo choices.
+            checkout.setVouchers((prev) => {
+              const merged = [...prev];
+              checkoutVouchers.forEach((v) => {
+                if (!merged.some((existing) => existing.id === v.id)) {
+                  merged.push(v);
+                }
+              });
+              return merged.slice(0, MAX_VOUCHERS);
+            });
             hasAutoAppliedVouchersRef.current = true;
             console.log("[Checkout] Auto-applied vouchers:", checkoutVouchers);
           }
@@ -303,7 +312,7 @@ function CheckoutPage() {
                 appliedVoucherIds.push(voucherDetail.voucher_id);
                 voucherDetail.line_discounts.forEach((lineDiscount) => {
                   const key = `${lineDiscount.product_id}_${lineDiscount.product_variant_id}`;
-                  lineDiscountsMap[key] = lineDiscount.discount;
+                  lineDiscountsMap[key] = (lineDiscountsMap[key] ?? 0) + lineDiscount.discount;
                 });
               }
             });

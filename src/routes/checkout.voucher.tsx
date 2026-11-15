@@ -75,7 +75,7 @@ function VoucherPickerPage() {
       expiresAt: expiresAt,
       type: type,
       // Store the backend type (voucher/promo) separately
-      backendType: apiVoucher.type as "voucher" | "promo",
+      backendType: apiVoucher.type as "voucher" | "promo" | "flashsale",
       isClaimable: apiVoucher.is_claim,
       isClaimed: apiVoucher.claimed,
       validEnd: apiVoucher.valid_end,
