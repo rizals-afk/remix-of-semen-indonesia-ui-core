@@ -78,7 +78,7 @@ function FlashSalePage() {
                 <Percent className="h-4 w-4 text-accent" /> Promo spesial bulan ini
               </div>
               <h1 className="max-w-xl text-3xl font-bold leading-tight text-primary md:text-4xl">
-                Promo Spesial Bahan Material
+                Flash Sale Bahan Material
               </h1>
               <p className="mt-3 max-w-2xl text-base text-primary md:text-lg">
                 Dapatkan potongan harga hingga 40% untuk berbagai jenis semen dan kebutuhan material lainnya. Hanya berlaku bulan ini!

@@ -73,7 +73,7 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const TABS = ["Terlaris", "Promo Spesial", "Baru Masuk"] as const;
+const TABS = ["Terlaris", "Flash Sale", "Baru Masuk"] as const;
 
 function HomePage() {
   const user = getCurrentUserFromStorage();
@@ -99,7 +99,7 @@ function HomePage() {
         // Baru Masuk
         sortParams = { sort_by: "created_at", sort_order: "desc" };
       }
-      // Promo Spesial (tabIndex === 1) uses is_flashsale parameter
+      // Flash Sale (tabIndex === 1) uses is_flashsale parameter
 
       const productsResponse = await fetchProducts({
         page: 1,

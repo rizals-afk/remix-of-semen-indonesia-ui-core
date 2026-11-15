@@ -10,7 +10,7 @@ interface UnderlineTabsProps<T extends string> {
 
 /**
  * Horizontal tab bar with an underline indicator under the active tab.
- * Matches the "Terlaris / Promo Spesial / Baru Masuk" and
+ * Matches the "Terlaris / Flash Sale / Baru Masuk" and
  * "Spesifikasi / Deskripsi / Ulasan" tabs in the uploaded screens.
  */
 export function UnderlineTabs<T extends string>({
