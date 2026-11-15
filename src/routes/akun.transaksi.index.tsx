@@ -26,7 +26,7 @@ type Tab = (typeof TABS)[number];
 
 const TAB_TO_STATUS: Record<Tab, string> = {
   "Menunggu Verifikasi": "pending",
-  "Menunggu Refund Admin": "pending",
+  "Menunggu Refund Admin": "approve",
   "Menunggu Pembayaran": "approve",
   Diproses: "process",
   Dikirim: "delivery",
@@ -37,7 +37,7 @@ const TAB_TO_STATUS: Record<Tab, string> = {
 };
 
 const TAB_TO_PARAMS: Partial<Record<Tab, Pick<FetchTrxParams, "trx_type" | "retur_type" | "exclude_retur_type">>> = {
-  "Menunggu Verifikasi": { exclude_retur_type: "dana" },
+  "Menunggu Pembayaran": { exclude_retur_type: "dana" },
   "Menunggu Refund Admin": { trx_type: "retur", retur_type: "dana" },
 };
 
