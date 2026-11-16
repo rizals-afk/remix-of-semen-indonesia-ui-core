@@ -83,7 +83,7 @@ export function TrxCard({ trx, onCancel }: { trx: Trx; onCancel?: (id: number) =
           )}
           {trx.trx_type === "retur" && trx.source_document_order_id != null && (
             <p className="mt-1 text-xs text-muted-foreground">
-              Nomor Order:{" "}
+              No. Order:{" "}
               <Link
                 to="/akun/transaksi/$id"
                 params={{ id: trx.source_document_order_id.toString() }}

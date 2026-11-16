@@ -222,6 +222,23 @@ function OrderDetailPage() {
         ) : null}
       </section>
 
+      {currentTrx.retur_trx_id != null && (
+        <section className="rounded-2xl border border-accent/30 bg-accent/10 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-foreground">Nomor Retur</p>
+              <Link
+                to="/akun/transaksi/$id"
+                params={{ id: currentTrx.retur_trx_id.toString() }}
+                className="mt-1 inline-block font-mono text-lg font-extrabold text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80 hover:decoration-primary"
+              >
+                {currentTrx.retur_trx?.code || currentTrx.retur_trx_id}
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {currentTrx.status === "delivery" ? (
         <section className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary-soft p-4">
           <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
@@ -302,32 +319,6 @@ function OrderDetailPage() {
           selesai: currentTrx.date_done ? formatTimestamp(currentTrx.date_done) : undefined,
         }}
       />
-
-      {currentTrx.trx_type === "retur" && currentTrx.source_document_order_id != null && (
-        <section className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-sm text-muted-foreground">Nomor Order</p>
-          <Link
-            to="/akun/transaksi/$id"
-            params={{ id: currentTrx.source_document_order_id.toString() }}
-            className="mt-1 inline-block font-mono font-bold text-foreground hover:underline"
-          >
-            {currentTrx.source_trx?.code || currentTrx.source_document_order_id}
-          </Link>
-        </section>
-      )}
-
-      {currentTrx.retur_trx_id != null && (
-        <section className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-sm text-muted-foreground">Nomor Retur</p>
-          <Link
-            to="/akun/transaksi/$id"
-            params={{ id: currentTrx.retur_trx_id.toString() }}
-            className="mt-1 inline-block font-mono font-bold text-foreground hover:underline"
-          >
-            {currentTrx.retur_trx?.code || currentTrx.retur_trx_id}
-          </Link>
-        </section>
-      )}
 
       {/* Alasan Pengembalian - only for retur type */}
       {currentTrx.trx_type === "retur" && (currentTrx.retur_reason || currentTrx.retur_additional_reason) && (
@@ -416,8 +407,27 @@ function OrderDetailPage() {
         <section className="rounded-2xl border border-border bg-card p-5">
           <h3 className="text-base font-bold text-foreground">Rincian Pengembalian Dana</h3>
           <dl className="mt-4 space-y-3 text-sm">
+            <Row label="No. Retur" value={currentTrx.code} />
+            <SourceOrderRow trx={currentTrx} />
             <Row label="Metode Pengembalian Dana" value="Transfer" />
             <Row label="Jumlah Pengembalian Dana" value={formatRupiah(typeof currentTrx.total === 'string' ? parseFloat(currentTrx.total) : currentTrx.total)} />
+          </dl>
+        </section>
+      )}
+
+      {/* Rincian Pengembalian Barang - only for retur type with retur_type=barang */}
+      {currentTrx.trx_type === "retur" && currentTrx.retur_type === "barang" && (
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <h3 className="text-base font-bold text-foreground">Rincian Pengembalian Barang</h3>
+          <dl className="mt-4 space-y-3 text-sm">
+            <Row label="No. Retur" value={currentTrx.code} />
+            <SourceOrderRow trx={currentTrx} />
+            {currentTrx.shipping_method && (
+              <Row label="Metode Pengiriman" value={currentTrx.shipping_method} />
+            )}
+            {currentTrx.est_date_delivery && (
+              <Row label="Estimasi Tiba" value={formatDate(currentTrx.est_date_delivery)} />
+            )}
           </dl>
         </section>
       )}
@@ -959,6 +969,24 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
   return (
     <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
       {content}
+    </div>
+  );
+}
+
+function SourceOrderRow({ trx }: { trx: Trx }) {
+  if (trx.source_document_order_id == null) return null;
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <dt className="text-muted-foreground">No. Order</dt>
+      <dd className="font-semibold">
+        <Link
+          to="/akun/transaksi/$id"
+          params={{ id: trx.source_document_order_id.toString() }}
+          className="font-mono text-primary underline decoration-primary/40 underline-offset-2 hover:text-primary/80 hover:decoration-primary"
+        >
+          {trx.source_trx?.code || trx.source_document_order_id}
+        </Link>
+      </dd>
     </div>
   );
 }
