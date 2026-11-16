@@ -23,6 +23,7 @@ function getStoredToken(): string | null {
 export async function apiFetch<T = unknown>(
   path: string,
   init: RequestInit = {},
+  options: { skipAuthRedirect?: boolean } = {},
 ): Promise<T> {
   const headers = new Headers(init.headers);
   if (!headers.has("Content-Type") && init.body) {
@@ -83,7 +84,7 @@ export async function apiFetch<T = unknown>(
     message = message || `Request failed with status ${res.status}`;
 
     // Handle Unauthenticated error - clear cache and redirect to login page
-    if (message === "Unauthenticated." || res.status === 401) {
+    if (!options.skipAuthRedirect && (message === "Unauthenticated." || res.status === 401)) {
       if (typeof window !== "undefined") {
         // Clear all cache
         window.localStorage.removeItem(TOKEN_STORAGE_KEY);

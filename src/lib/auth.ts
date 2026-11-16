@@ -219,10 +219,14 @@ export interface ChangePasswordPayload {
 }
 
 export async function changePassword(payload: ChangePasswordPayload): Promise<void> {
-  await apiFetch<void>("/user/change_password", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  await apiFetch<void>(
+    "/user/change_password",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+    { skipAuthRedirect: true },
+  );
 }
 
 export function loginWithGoogle() {
