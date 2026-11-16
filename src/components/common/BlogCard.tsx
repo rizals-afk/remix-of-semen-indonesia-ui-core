@@ -1,5 +1,6 @@
 import { ArrowRight, Calendar } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { excerptFromHtml } from "@/lib/utils";
 
 export interface BlogPost {
   id: string;
@@ -28,7 +29,7 @@ export function BlogCard({ post }: { post: BlogPost | Blog }) {
   const isApiBlog = 'banner_photo' in post;
   const image = isApiBlog ? post.banner_photo || 'https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70' : post.image;
   const date = isApiBlog ? new Date(post.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : post.date;
-  const excerpt = isApiBlog ? (post.content || '').substring(0, 150) + '...' : post.excerpt;
+  const excerpt = isApiBlog ? excerptFromHtml(post.content || '') : post.excerpt;
   const linkParams = isApiBlog ? { id: post.id } : { slug: post.slug };
   const linkTo = isApiBlog ? "/blog/$id" : "/blog/$slug";
 
