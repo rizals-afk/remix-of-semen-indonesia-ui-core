@@ -1,9 +1,10 @@
 import { Building2, MapPin, Search, X, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Warehouse as ApiWarehouse } from "@/lib/api/warehouse";
 import { fetchWarehouses } from "@/lib/api/warehouse";
 import { WarehouseMap } from "./WarehouseMap";
-import { getUserLocation } from "@/lib/location";
+import { getUserLocation, calculateDistanceKm, formatDistanceKm, type UserLocation } from "@/lib/location";
+import { useCustomerLocation } from "@/store/customer-location";
 
 // Re-export the API type for compatibility
 export type Warehouse = ApiWarehouse;
@@ -31,6 +32,25 @@ export function WarehouseSelectorModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [highlightedWarehouseId, setHighlightedWarehouseId] = useState<string | null>(null);
+  const { selectedLocation } = useCustomerLocation();
+  const [browserCoords, setBrowserCoords] = useState<UserLocation | null>(null);
+
+  // Fall back to browser geolocation only when no customer location is selected
+  useEffect(() => {
+    if (!open) return;
+    if (selectedLocation?.lat != null && selectedLocation?.long != null) return;
+    getUserLocation().then(setBrowserCoords);
+  }, [open, selectedLocation]);
+
+  // Distance origin: selected customer location first, then browser geolocation
+  const userCoords = useMemo<UserLocation | null>(() => {
+    if (selectedLocation?.lat != null && selectedLocation?.long != null) {
+      const lat = Number(selectedLocation.lat);
+      const long = Number(selectedLocation.long);
+      if (Number.isFinite(lat) && Number.isFinite(long)) return { lat, long };
+    }
+    return browserCoords;
+  }, [selectedLocation, browserCoords]);
 
   // Fetch warehouses on mount (only if not provided externally)
   useEffect(() => {
@@ -47,13 +67,7 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const userLocation = await getUserLocation();
-        const params: any = { per_page: 999, page: 1, is_active: true };
-        if (userLocation) {
-          params.lat = userLocation.lat;
-          params.long = userLocation.long;
-        }
-        const response = await fetchWarehouses(params);
+        const response = await fetchWarehouses({ per_page: 999, page: 1, is_active: true });
         setWarehouses(response.data);
         setFilteredWarehouses(response.data);
       } catch (err) {
@@ -85,22 +99,16 @@ export function WarehouseSelectorModal({
 
     const timer = setTimeout(async () => {
       if (!open) return;
-      
+
       setLoading(true);
       setError(null);
       try {
-        const userLocation = await getUserLocation();
-        const params: any = { 
-          search: searchQuery, 
-          per_page: 999, 
+        const response = await fetchWarehouses({
+          search: searchQuery,
+          per_page: 999,
           page: 1,
-          is_active: true
-        };
-        if (userLocation) {
-          params.lat = userLocation.lat;
-          params.long = userLocation.long;
-        }
-        const response = await fetchWarehouses(params);
+          is_active: true,
+        });
         setFilteredWarehouses(response.data);
       } catch (err) {
         setError("Gagal memuat data gudang. Silakan coba lagi.");
@@ -131,13 +139,7 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const userLocation = await getUserLocation();
-        const params: any = { per_page: 999, page: 1, search: searchQuery, is_active: true };
-        if (userLocation) {
-          params.lat = userLocation.lat;
-          params.long = userLocation.long;
-        }
-        const response = await fetchWarehouses(params);
+        const response = await fetchWarehouses({ per_page: 999, page: 1, search: searchQuery, is_active: true });
         setWarehouses(response.data);
         setFilteredWarehouses(response.data);
       } catch (err) {
@@ -152,9 +154,19 @@ export function WarehouseSelectorModal({
 
   // Filter warehouses with valid coordinates
   const warehousesWithCoords = filteredWarehouses.filter(
-    (w) => w.lat !== undefined && w.lat !== null && 
+    (w) => w.lat !== undefined && w.lat !== null &&
            w.long !== undefined && w.long !== null
   );
+
+  // Sort by straight-line distance from the user when location is known
+  const sortedWarehouses = useMemo(() => {
+    const distanceOf = (w: Warehouse): number => {
+      if (!userCoords || w.lat == null || w.long == null) return Infinity;
+      const d = calculateDistanceKm(userCoords.lat, userCoords.long, Number(w.lat), Number(w.long));
+      return Number.isFinite(d) ? d : Infinity;
+    };
+    return [...filteredWarehouses].sort((a, b) => distanceOf(a) - distanceOf(b));
+  }, [filteredWarehouses, userCoords]);
 
   const handleMapWarehouseSelect = (warehouse: Warehouse) => {
     setHighlightedWarehouseId(warehouse.id);
@@ -255,7 +267,7 @@ export function WarehouseSelectorModal({
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredWarehouses.map((warehouse) => (
+                {sortedWarehouses.map((warehouse) => (
                   <WarehouseListItem
                     key={warehouse.id}
                     warehouse={warehouse}
@@ -263,6 +275,7 @@ export function WarehouseSelectorModal({
                     isHighlighted={highlightedWarehouseId === warehouse.id}
                     onSelect={() => handleWarehouseClick(warehouse)}
                     onHighlight={() => setHighlightedWarehouseId(warehouse.id)}
+                    userCoords={userCoords}
                   />
                 ))}
               </div>
@@ -280,9 +293,14 @@ interface WarehouseListItemProps {
   isHighlighted: boolean;
   onSelect: () => void;
   onHighlight: () => void;
+  userCoords: UserLocation | null;
 }
 
-function WarehouseListItem({ warehouse, isSelected, isHighlighted, onSelect, onHighlight }: WarehouseListItemProps) {
+function WarehouseListItem({ warehouse, isSelected, isHighlighted, onSelect, onHighlight, userCoords }: WarehouseListItemProps) {
+  const distanceKm =
+    userCoords && warehouse.lat != null && warehouse.long != null
+      ? calculateDistanceKm(userCoords.lat, userCoords.long, Number(warehouse.lat), Number(warehouse.long))
+      : null;
   return (
     <button
       onClick={onSelect}
@@ -304,6 +322,9 @@ function WarehouseListItem({ warehouse, isSelected, isHighlighted, onSelect, onH
         <div className="flex-1 min-w-0">
           <h4 className="text-sm font-semibold text-foreground mb-1">{warehouse.name}</h4>
           <p className="text-xs text-muted-foreground truncate">{warehouse.address}</p>
+          {distanceKm != null && Number.isFinite(distanceKm) && (
+            <p className="mt-1 text-xs font-medium text-muted-foreground">{formatDistanceKm(distanceKm)}</p>
+          )}
         </div>
         {isSelected && (
           <div className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary">

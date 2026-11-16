@@ -5,6 +5,23 @@ export interface UserLocation {
   long: number;
 }
 
+/** Great-circle (haversine) distance in kilometers between two lat/long points. */
+export function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const earthRadius = 6371;
+  const latDiff = ((lat2 - lat1) * Math.PI) / 180;
+  const lonDiff = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(latDiff / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(lonDiff / 2) ** 2;
+  return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/** Format a km distance for display, e.g. "850 m" or "12,5 km". */
+export function formatDistanceKm(km: number): string {
+  if (km < 1) return `${Math.round(km * 1000).toLocaleString("id-ID")} m`;
+  return `${km.toLocaleString("id-ID", { maximumFractionDigits: 1 })} km`;
+}
+
 const CUSTOMER_LOCATION_STORAGE_KEY = "bm_selected_customer_location";
 
 /**
