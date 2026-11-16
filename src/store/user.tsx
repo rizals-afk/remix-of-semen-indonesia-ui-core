@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { getUser, saveSession, getToken } from "@/lib/auth";
 
 export interface User {
@@ -19,6 +20,16 @@ const UserContext = createContext<UserContextValue | null>(null);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<User | null>(null);
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
+  const queryClient = useQueryClient();
+  const wasAuthenticated = useRef(false);
+
+  // Clear the React Query cache when the user logs out
+  useEffect(() => {
+    if (wasAuthenticated.current && !user) {
+      queryClient.clear();
+    }
+    wasAuthenticated.current = !!user;
+  }, [user, queryClient]);
 
   // Load user from localStorage on mount
   useEffect(() => {

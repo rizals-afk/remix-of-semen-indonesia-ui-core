@@ -1,4 +1,4 @@
-import { apiFetch, TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from "./api";
+import { apiFetch, TOKEN_STORAGE_KEY, USER_STORAGE_KEY, WAREHOUSE_STORAGE_KEY, AUTH_LOGOUT_EVENT } from "./api";
 
 export interface LoginPayload {
   email: string;
@@ -130,6 +130,9 @@ export function clearAllCache(): void {
   window.localStorage.removeItem("bm_selected_customer_location");
   window.localStorage.removeItem("bm_buy_now_item");
   window.localStorage.removeItem("bm_user");
+  window.localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
+  window.sessionStorage.removeItem("userVoucherChange");
+  window.dispatchEvent(new Event(AUTH_LOGOUT_EVENT));
 }
 
 export async function logout(): Promise<void> {

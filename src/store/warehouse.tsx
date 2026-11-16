@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { Warehouse } from "@/lib/api/warehouse";
 import { fetchWarehouses } from "@/lib/api/warehouse";
 import { getUserLocation } from "@/lib/location";
+import { AUTH_LOGOUT_EVENT, WAREHOUSE_STORAGE_KEY } from "@/lib/api";
 
 interface WarehouseContextValue {
   selectedWarehouse: Warehouse | null;
@@ -10,7 +11,7 @@ interface WarehouseContextValue {
 }
 
 const WarehouseContext = createContext<WarehouseContextValue | null>(null);
-const STORAGE_KEY = "bm_selected_warehouse";
+const STORAGE_KEY = WAREHOUSE_STORAGE_KEY;
 
 export function WarehouseProvider({ children }: { children: ReactNode }) {
   const [selectedWarehouse, setSelectedWarehouseState] = useState<Warehouse | null>(null);
@@ -53,6 +54,14 @@ export function WarehouseProvider({ children }: { children: ReactNode }) {
 
     loadDefaultWarehouse();
   }, [hasLoadedFromStorage, selectedWarehouse]);
+
+  // Clear in-memory selection when the user logs out
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleLogout = () => setSelectedWarehouseState(null);
+    window.addEventListener(AUTH_LOGOUT_EVENT, handleLogout);
+    return () => window.removeEventListener(AUTH_LOGOUT_EVENT, handleLogout);
+  }, []);
 
   // Persist selected warehouse to localStorage
   useEffect(() => {

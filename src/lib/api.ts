@@ -4,6 +4,8 @@ export const API_BASE_URL =
 
 export const TOKEN_STORAGE_KEY = "bm_auth_token";
 export const USER_STORAGE_KEY = "bm_auth_user";
+export const WAREHOUSE_STORAGE_KEY = "bm_selected_warehouse";
+export const AUTH_LOGOUT_EVENT = "bm:auth-logout";
 
 export class ApiError extends Error {
   status: number;
@@ -93,6 +95,9 @@ export async function apiFetch<T = unknown>(
         window.localStorage.removeItem("bm_selected_customer_location");
         window.localStorage.removeItem("bm_buy_now_item");
         window.localStorage.removeItem("bm_user");
+        window.localStorage.removeItem(WAREHOUSE_STORAGE_KEY);
+        window.sessionStorage.removeItem("userVoucherChange");
+        window.dispatchEvent(new Event(AUTH_LOGOUT_EVENT));
         // Redirect to login page
         window.location.href = "/masuk";
       }
