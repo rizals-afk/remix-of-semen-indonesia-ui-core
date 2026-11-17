@@ -179,7 +179,7 @@ function BlogDetailPage() {
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_320px]">
           {/* Article Content */}
           <div className="space-y-5 text-sm leading-7 text-foreground">
-            <div className="prose prose-sm max-w-none text-foreground md:prose-base">
+            <div className="prose prose-sm max-w-none text-foreground md:prose-base [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_a]:hover:text-blue-800">
               <div dangerouslySetInnerHTML={{ __html: blog.content }} />
             </div>
           </div>
