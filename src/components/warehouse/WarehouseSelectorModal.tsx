@@ -1,5 +1,5 @@
 import { Building2, MapPin, Search, X, RefreshCw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Warehouse as ApiWarehouse } from "@/lib/api/warehouse";
 import { fetchWarehouses } from "@/lib/api/warehouse";
 import { WarehouseMap } from "./WarehouseMap";
@@ -52,10 +52,20 @@ export function WarehouseSelectorModal({
     return browserCoords;
   }, [selectedLocation, browserCoords]);
 
+  // Resolve coordinates for API requests: selected customer location, then browser geolocation
+  const resolveUserCoords = useCallback(async (): Promise<UserLocation | null> => {
+    if (selectedLocation?.lat != null && selectedLocation?.long != null) {
+      const lat = Number(selectedLocation.lat);
+      const long = Number(selectedLocation.long);
+      if (Number.isFinite(lat) && Number.isFinite(long)) return { lat, long };
+    }
+    return getUserLocation();
+  }, [selectedLocation]);
+
   // Fetch warehouses on mount (only if not provided externally)
   useEffect(() => {
     if (!open) return;
-    
+
     // If external warehouses are provided, use them
     if (externalWarehouses) {
       setWarehouses(externalWarehouses);
@@ -67,7 +77,13 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchWarehouses({ per_page: 999, page: 1, is_active: true });
+        const coords = await resolveUserCoords();
+        const response = await fetchWarehouses({
+          per_page: 999,
+          page: 1,
+          is_active: true,
+          ...(coords ? { lat: coords.lat, long: coords.long } : {}),
+        });
         setWarehouses(response.data);
         setFilteredWarehouses(response.data);
       } catch (err) {
@@ -79,14 +95,14 @@ export function WarehouseSelectorModal({
     };
 
     loadWarehouses();
-  }, [open, externalWarehouses]);
+  }, [open, externalWarehouses, resolveUserCoords]);
 
   // Debounced search (only if not using external warehouses)
   useEffect(() => {
     // If external warehouses are provided, filter locally
     if (externalWarehouses) {
       if (searchQuery) {
-        const filtered = externalWarehouses.filter(w => 
+        const filtered = externalWarehouses.filter(w =>
           w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           w.address?.toLowerCase().includes(searchQuery.toLowerCase())
         );
@@ -103,11 +119,13 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
+        const coords = await resolveUserCoords();
         const response = await fetchWarehouses({
           search: searchQuery,
           per_page: 999,
           page: 1,
           is_active: true,
+          ...(coords ? { lat: coords.lat, long: coords.long } : {}),
         });
         setFilteredWarehouses(response.data);
       } catch (err) {
@@ -119,7 +137,7 @@ export function WarehouseSelectorModal({
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, open, externalWarehouses]);
+  }, [searchQuery, open, externalWarehouses, resolveUserCoords]);
 
   const handleSelectWarehouse = (warehouse: Warehouse) => {
     onSelectWarehouse(warehouse);
@@ -139,7 +157,14 @@ export function WarehouseSelectorModal({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchWarehouses({ per_page: 999, page: 1, search: searchQuery, is_active: true });
+        const coords = await resolveUserCoords();
+        const response = await fetchWarehouses({
+          per_page: 999,
+          page: 1,
+          search: searchQuery,
+          is_active: true,
+          ...(coords ? { lat: coords.lat, long: coords.long } : {}),
+        });
         setWarehouses(response.data);
         setFilteredWarehouses(response.data);
       } catch (err) {
