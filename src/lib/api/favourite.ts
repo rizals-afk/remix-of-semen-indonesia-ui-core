@@ -1,6 +1,8 @@
 import { apiFetch } from "../api";
 import type { Product, ProductVariant } from "./product";
 
+export const FAVOURITE_TOGGLED_EVENT = "bm:favourite-toggled";
+
 export interface FavouriteResponse {
   id: number;
   product_id: number;

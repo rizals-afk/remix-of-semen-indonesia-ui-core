@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Bell, Building2, Heart, MapPin, MessageSquare, ShoppingCart, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
@@ -10,6 +10,9 @@ import { useUser } from "@/store/user";
 import { useNotification } from "@/store/notification";
 import { WarehouseSelectorModal } from "@/components/warehouse/WarehouseSelectorModal";
 import { CustomerLocationSelectorModal } from "@/components/account/CustomerLocationSelectorModal";
+import { fetchFavourites, FAVOURITE_TOGGLED_EVENT } from "@/lib/api/favourite";
+
+const FAVOURITE_COUNT_KEY = "bm_favourite_count";
 
 /**
  * Site header used on every page.
@@ -39,6 +42,47 @@ export function SiteHeader() {
     }
   }, [user, refreshUnreadCount]);
 
+  // Favourite count badge - persisted to avoid flash on page loads, refetched on navigation
+  const { pathname } = useLocation();
+  const [favouriteCount, setFavouriteCount] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const raw = window.localStorage.getItem(FAVOURITE_COUNT_KEY);
+    const parsed = raw ? parseInt(raw, 10) : 0;
+    return Number.isFinite(parsed) ? parsed : 0;
+  });
+  useEffect(() => {
+    if (!user) {
+      setFavouriteCount(0);
+      return;
+    }
+    let cancelled = false;
+    fetchFavourites({ per_page: 1 })
+      .then((res) => {
+        if (cancelled) return;
+        setFavouriteCount(res.total);
+        window.localStorage.setItem(FAVOURITE_COUNT_KEY, String(res.total));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user, pathname]);
+
+  // Optimistically adjust the badge when a favourite is toggled elsewhere
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const favourited = (e as CustomEvent<{ favourited?: boolean }>).detail?.favourited;
+      if (typeof favourited !== "boolean") return;
+      setFavouriteCount((prev) => {
+        const next = Math.max(0, prev + (favourited ? 1 : -1));
+        window.localStorage.setItem(FAVOURITE_COUNT_KEY, String(next));
+        return next;
+      });
+    };
+    window.addEventListener(FAVOURITE_TOGGLED_EVENT, handler);
+    return () => window.removeEventListener(FAVOURITE_TOGGLED_EVENT, handler);
+  }, []);
+
   const handleLocationClick = () => {
     if (!user) {
       navigate({ to: "/masuk" });
@@ -61,7 +105,7 @@ export function SiteHeader() {
               <IconButton label="Notifikasi" to="/akun/notifikasi" badge={unreadCount > 0 ? unreadCount : undefined}>
                 <Bell className="h-5 w-5" />
               </IconButton>
-              <IconButton label="Produk Favorit" to="/favorite">
+              <IconButton label="Produk Favorit" to="/favorite" badge={favouriteCount > 0 ? favouriteCount : undefined}>
                 <Heart className="h-5 w-5" />
               </IconButton>
               <IconButton label="Keranjang" to="/keranjang" badge={cartBadge}>

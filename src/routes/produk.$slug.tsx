@@ -22,7 +22,7 @@ import { fetchProductById, getProductPrice, getProductImages, getProductStock, t
 import { fetchProducts } from "@/lib/api/product";
 import type { Product } from "@/lib/api/product";
 import { formatRupiah } from "@/lib/format";
-import { toggleFavourite } from "@/lib/api/favourite";
+import { toggleFavourite, FAVOURITE_TOGGLED_EVENT } from "@/lib/api/favourite";
 import { getToken } from "@/lib/auth";
 import { getUserLocation, type UserLocation } from "@/lib/location";
 import { fetchTrxReviews } from "@/lib/api/review";
@@ -387,13 +387,17 @@ function ProductDetailPage() {
 
     if (!product) return;
 
+    const nextFavourited = !isFavourited;
+    setIsFavourited(nextFavourited);
+    window.dispatchEvent(new CustomEvent(FAVOURITE_TOGGLED_EVENT, { detail: { favourited: nextFavourited } }));
     setIsTogglingFavourite(true);
     try {
       await toggleFavourite(product.id);
-      setIsFavourited(!isFavourited);
-      toast.success(isFavourited ? "Produk dihapus dari favorit." : "Produk ditambahkan ke favorit.");
+      toast.success(nextFavourited ? "Produk ditambahkan ke favorit." : "Produk dihapus dari favorit.");
     } catch (error) {
       console.error("Failed to toggle favourite:", error);
+      setIsFavourited(!nextFavourited);
+      window.dispatchEvent(new CustomEvent(FAVOURITE_TOGGLED_EVENT, { detail: { favourited: !nextFavourited } }));
       toast.error("Gagal mengubah status favorit. Silakan coba lagi.");
     } finally {
       setIsTogglingFavourite(false);
