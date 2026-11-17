@@ -153,7 +153,7 @@ function HomePage() {
 
     pluginIntervalRef.current = setInterval(() => {
       api.scrollNext();
-    }, 5000);
+    }, 8000);
 
     return () => {
       if (pluginIntervalRef.current) {
