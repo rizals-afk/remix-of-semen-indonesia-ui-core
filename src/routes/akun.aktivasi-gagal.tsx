@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Clock, Mail, X } from "lucide-react";
+import { Clock, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 
 export const Route = createFileRoute("/akun/aktivasi-gagal")({
@@ -51,22 +51,8 @@ function AccountActivationFailedPage() {
           </div>
 
           <Link
-            to="/daftar"
-            className="mt-8 inline-flex w-full max-w-md items-center justify-center gap-2 rounded-xl bg-rose-500 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-rose-500/30 transition hover:bg-rose-600"
-          >
-            <Mail className="h-5 w-5" />
-            Kirim Ulang Link Aktivasi
-          </Link>
-
-          <div className="my-5 flex w-full max-w-md items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            <span>atau</span>
-            <span className="h-px flex-1 bg-border" />
-          </div>
-
-          <Link
             to="/masuk"
-            className="inline-flex w-full max-w-md items-center justify-center rounded-xl border-2 border-rose-500 bg-background px-6 py-4 text-base font-semibold text-rose-500 transition hover:bg-rose-50"
+            className="inline-flex w-full max-w-md items-center justify-center mt-8 rounded-xl border-2 border-rose-500 bg-background px-6 py-4 text-base font-semibold text-rose-500 transition hover:bg-rose-50"
           >
             Kembali ke Halaman Login
           </Link>
