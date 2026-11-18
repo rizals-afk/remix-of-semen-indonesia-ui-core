@@ -86,6 +86,7 @@ export interface Trx {
   branch?: { id: number; name: string; lat?: number; long?: number; address?: string };
   customer_id?: number;
   payment_id?: number;
+  is_pay_store?: boolean;
   customer_location?: CustomerLocation;
   customer_location_name?: string;
   customer_location_phone?: string;

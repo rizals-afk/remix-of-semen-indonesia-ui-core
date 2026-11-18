@@ -855,7 +855,7 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
         <>
           {cancelDialog}
           {outline("Hubungi Penjual", whatsapp)}
-          {(!trx.payments || trx.payments.length === 0) && !isRefundReturn && primary(
+          {(!trx.payments || trx.payments.length === 0) && !isRefundReturn && !trx.is_pay_store && primary(
             isProcessingPayment ? "Memproses Pembayaran..." : isSavingPayment ? "Menyimpan pembayaran..." : "Bayar Sekarang",
             undefined,
             handlePayment,
