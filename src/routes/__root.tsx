@@ -19,6 +19,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useTrackVisit } from "@/hooks/useTrackVisit";
 
 import appCss from "../styles.css?url";
+import faviconUrl from "../assets/brand/favicon.png";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -102,6 +103,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        href: faviconUrl,
       },
     ],
   }),
