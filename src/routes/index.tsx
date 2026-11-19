@@ -174,7 +174,7 @@ function HomePage() {
       ) : banners.length > 0 ? (
         <section className="relative isolate">
           {banners.length === 1 ? (
-            <div className="relative aspect-[2.5/1] w-full overflow-hidden">
+            <Link to="/produk" className="relative block aspect-[2.5/1] w-full overflow-hidden">
               <img
                 src={banners[0].photo}
                 alt={banners[0].title}
@@ -182,23 +182,7 @@ function HomePage() {
                 height={768}
                 className="absolute left-1/2 top-1/2 h-full w-auto max-w-none -translate-x-1/2 -translate-y-1/2"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
-              <div className="absolute inset-0 flex items-center">
-                <div className="container mx-auto max-w-7xl px-6 md:px-12">
-                  <div className="max-w-xl space-y-5 text-white">
-                    <h1 className="text-2xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
-                      {banners[0].title}
-                    </h1>
-                    <Link
-                      to="/produk"
-                      className="inline-block rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:text-base"
-                    >
-                      Learn More
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </Link>
           ) : (
             <Carousel
               className="relative w-full"
@@ -210,7 +194,7 @@ function HomePage() {
               <CarouselContent>
                 {banners.map((banner) => (
                   <CarouselItem key={banner.id}>
-                    <div className="relative aspect-[2.5/1] w-full overflow-hidden">
+                    <Link to="/produk" className="relative block aspect-[2.5/1] w-full overflow-hidden">
                       <img
                         src={banner.photo}
                         alt={banner.title}
@@ -218,23 +202,7 @@ function HomePage() {
                         height={768}
                         className="absolute left-1/2 top-1/2 h-full w-auto max-w-none -translate-x-1/2 -translate-y-1/2"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="container mx-auto max-w-7xl px-6 md:px-12">
-                          <div className="max-w-xl space-y-5 text-white">
-                            <h1 className="text-2xl font-bold leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
-                              {banner.title}
-                            </h1>
-                            <Link
-                              to="/produk"
-                              className="inline-block rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:text-base"
-                            >
-                              Learn More
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    </Link>
                   </CarouselItem>
                 ))}
               </CarouselContent>
