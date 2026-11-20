@@ -179,7 +179,24 @@ function BlogDetailPage() {
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_320px]">
           {/* Article Content */}
           <div className="space-y-5 text-sm leading-7 text-foreground">
-            <div className="prose prose-sm max-w-none text-foreground md:prose-base [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_a]:hover:text-blue-800">
+            <div className="prose prose-sm max-w-none text-foreground md:prose-base
+              [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_a]:hover:text-blue-800
+              [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:space-y-2 [&_ul_li]:ml-2
+              [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:space-y-2 [&_ol_li]:ml-2
+              [&_blockquote]:border-l-4 [&_blockquote]:border-primary [&_blockquote]:pl-4 [&_blockquote]:py-2 [&_blockquote]:my-4 [&_blockquote]:bg-primary-soft/30 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
+              [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:text-foreground
+              [&_h3]:text-lg [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-3 [&_h3]:text-foreground
+              [&_h4]:text-base [&_h4]:font-bold [&_h4]:mt-4 [&_h4]:mb-2 [&_h4]:text-foreground
+              [&_p]:mb-4
+              [&_strong]:font-bold [&_strong]:text-foreground
+              [&_em]:italic
+              [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_code]:font-mono
+              [&_pre]:bg-muted [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:overflow-x-auto
+              [&_table]:w-full [&_table]:border-collapse [&_table]:my-4
+              [&_th]:border [&_th]:border-border [&_th]:px-4 [&_th]:py-2 [&_th]:bg-muted [&_th]:text-left [&_th]:font-bold
+              [&_td]:border [&_td]:border-border [&_td]:px-4 [&_td]:py-2
+              [&_img]:rounded-lg [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto
+            ">
               <div dangerouslySetInnerHTML={{ __html: blog.content }} />
             </div>
           </div>
