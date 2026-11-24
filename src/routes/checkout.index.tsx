@@ -520,11 +520,14 @@ function CheckoutPage() {
       // Pre-flight voucher validation per transaction group: drop vouchers the
       // backend considers invalid (expired, no quota, unclaimed, wrong branch,
       // not applicable) before creating transactions, since the backend rejects them.
-      let activeVouchers = checkout.vouchers;
       const voucherIds = checkout.vouchers.map((v) => parseInt(v.id));
+      // Per-group valid voucher IDs — each trx only receives the vouchers
+      // the backend marked valid for its own branch/lines.
+      const validIdsByGroup = new Map<string, Set<number>>();
       if (voucherIds.length > 0) {
         const invalidIds = new Set<number>();
         const invalidReasons = new Map<number, string>();
+        const validIdsUnion = new Set<number>();
         const isShipping = checkout.mode === "dikirim";
 
         for (const [key, items] of warehouseDivisionGroups) {
@@ -565,6 +568,8 @@ function CheckoutPage() {
               lines: validationLines,
             });
 
+            validation.valid_voucher_ids.forEach((id) => validIdsUnion.add(id));
+            validIdsByGroup.set(key, new Set(validation.valid_voucher_ids));
             validation.invalid_voucher_ids.forEach((id) => invalidIds.add(id));
             validation.invalid_vouchers.forEach((iv) => {
               if (!invalidReasons.has(iv.voucher_id)) {
@@ -572,25 +577,32 @@ function CheckoutPage() {
               }
             });
           } catch (validationError) {
-            // If validation itself fails for one group, continue with the
-            // original flow — the transaction endpoint will still enforce rules.
+            // If validation itself fails for one group, fail open — send all
+            // selected vouchers for that trx and let the backend enforce rules.
             console.error(`[Checkout] Voucher validation failed for ${key}:`, validationError);
+            voucherIds.forEach((id) => validIdsUnion.add(id));
+            validIdsByGroup.set(key, new Set(voucherIds));
           }
         }
 
-        if (invalidIds.size > 0) {
-          const stillValid = checkout.vouchers.filter((v) => !invalidIds.has(parseInt(v.id)));
+        // A voucher stays applied as long as it's valid for at least one trx;
+        // it's only removed when invalid for every group.
+        const stillValid = checkout.vouchers.filter((v) => validIdsUnion.has(parseInt(v.id)));
 
-          if (stillValid.length !== checkout.vouchers.length) {
-            activeVouchers = stillValid;
-            checkout.setVouchers(stillValid);
-            checkout.clearCalculatedDiscounts();
+        if (stillValid.length !== checkout.vouchers.length) {
+          checkout.setVouchers(stillValid);
+          checkout.clearCalculatedDiscounts();
 
-            invalidReasons.forEach((reason) => {
-              toast.error(reason);
-            });
-            toast.info("Beberapa voucher tidak valid dan telah dihapus. Pesanan tetap dilanjutkan dengan voucher yang valid.");
-          }
+          invalidReasons.forEach((reason) => {
+            toast.error(reason);
+          });
+          toast.info("Beberapa voucher tidak valid dan telah dihapus. Pesanan tetap dilanjutkan dengan voucher yang valid.");
+        } else if (invalidIds.size > 0) {
+          // Vouchers remain applied but are skipped on trx groups where invalid.
+          invalidReasons.forEach((reason) => {
+            toast.info(reason);
+          });
+          toast.info("Beberapa voucher tidak berlaku untuk semua cabang dan hanya diterapkan pada pesanan yang memenuhi syarat.");
         }
       }
 
@@ -671,8 +683,13 @@ function CheckoutPage() {
           customer_location_postal_code: selectedLocation.postal_code || "",
           customer_location_lat: selectedLocation.lat || 0,
           customer_location_long: selectedLocation.long || 0,
-          // Combine all selected voucher and promo IDs
-          voucher_ids: activeVouchers.length > 0 ? activeVouchers.map((v) => parseInt(v.id)) : undefined,
+          // Only send vouchers the backend validated as applicable for this trx
+          voucher_ids: (() => {
+            const groupValidIds = validIdsByGroup.get(key);
+            if (!groupValidIds) return undefined;
+            const ids = Array.from(groupValidIds);
+            return ids.length > 0 ? ids : undefined;
+          })(),
           lines: lines,
         };
       });
