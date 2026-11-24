@@ -271,6 +271,53 @@ function CheckoutPage() {
       setIsCalculatingDiscount(true);
 
       try {
+        // Validate vouchers per warehouse branch so each calculate call only
+        // sends the vouchers applicable to that branch — a voucher invalid
+        // for one branch must not fail or skew another branch's discount.
+        const validIdsByWarehouse = new Map<string, number[]>();
+        await Promise.all(
+          groups.map(async (group) => {
+            const firstItemBranchId = group.selectedItems[0]?.branch_id;
+            const branchId = checkout.buyNowItem
+              ? parseInt(checkout.buyNowItem.branchId)
+              : (typeof firstItemBranchId === 'number' ? firstItemBranchId : 0);
+
+            if (!branchId) {
+              validIdsByWarehouse.set(group.warehouse, voucherIds);
+              return;
+            }
+
+            try {
+              const validation = await validateVouchers({
+                voucher_ids: voucherIds,
+                branch_id: branchId,
+                customer_id: userId,
+                shipping_cost: checkout.mode === "dikirim"
+                  ? (checkout.calculatedShippingFees[group.warehouse] || 0)
+                  : 0,
+                lines: group.selectedItems.map((item) => ({
+                  product_id: checkout.buyNowItem
+                    ? parseInt(checkout.buyNowItem.productId)
+                    : (item.product_id || 0),
+                  product_variant_id: checkout.buyNowItem
+                    ? parseInt(checkout.buyNowItem.variantId)
+                    : (item.variant_id || 0),
+                  price: item.price,
+                  qty: item.qty,
+                  branch_id: checkout.buyNowItem
+                    ? parseInt(checkout.buyNowItem.branchId)
+                    : (item.branch_id || undefined),
+                })),
+              });
+              validIdsByWarehouse.set(group.warehouse, validation.valid_voucher_ids);
+            } catch (validationError) {
+              // Fail open — send all vouchers and let calculate enforce rules.
+              console.error(`[Checkout] Voucher validation failed for ${group.warehouse}:`, validationError);
+              validIdsByWarehouse.set(group.warehouse, voucherIds);
+            }
+          })
+        );
+
         // Calculate for each warehouse group
         const calculations = await Promise.all(
           groups.map(async (group) => {
@@ -303,7 +350,10 @@ function CheckoutPage() {
               shipping_phone: selectedLocation.phone,
               shipping_method: checkout.mode === "dikirim" ? "FRC" : "LOC",
               notes: checkout.notes[group.warehouse] || "",
-              voucher_ids: voucherIds,
+              voucher_ids: (() => {
+                const ids = validIdsByWarehouse.get(group.warehouse) ?? voucherIds;
+                return ids.length > 0 ? ids : undefined;
+              })(),
               lines: group.selectedItems.map((item) => ({
                 product_id: checkout.buyNowItem
                   ? parseInt(checkout.buyNowItem.productId)
@@ -318,28 +368,36 @@ function CheckoutPage() {
               })),
             };
 
-            const response = await calculateTrx(request);
+            try {
+              const response = await calculateTrx(request);
 
-            // Map line discounts to key format: "productId_variantId"
-            const lineDiscountsMap: Record<string, number> = {};
-            const appliedVoucherIds: number[] = [];
-            response.voucher_details.forEach((voucherDetail) => {
-              // Only include vouchers that actually have a discount applied
-              if (voucherDetail.discount > 0 || voucherDetail.line_discounts.length > 0) {
-                appliedVoucherIds.push(voucherDetail.voucher_id);
-                voucherDetail.line_discounts.forEach((lineDiscount) => {
-                  const key = `${lineDiscount.product_id}_${lineDiscount.product_variant_id}`;
-                  lineDiscountsMap[key] = (lineDiscountsMap[key] ?? 0) + lineDiscount.discount;
-                });
-              }
-            });
+              // Map line discounts to key format: "productId_variantId"
+              const lineDiscountsMap: Record<string, number> = {};
+              const appliedVoucherIds: number[] = [];
+              response.voucher_details.forEach((voucherDetail) => {
+                // Only include vouchers that actually have a discount applied
+                if (voucherDetail.discount > 0 || voucherDetail.line_discounts.length > 0) {
+                  appliedVoucherIds.push(voucherDetail.voucher_id);
+                  voucherDetail.line_discounts.forEach((lineDiscount) => {
+                    const key = `${lineDiscount.product_id}_${lineDiscount.product_variant_id}`;
+                    lineDiscountsMap[key] = (lineDiscountsMap[key] ?? 0) + lineDiscount.discount;
+                  });
+                }
+              });
 
-            return {
-              warehouse: group.warehouse,
-              totalDiscount: response.total_discount,
-              lineDiscounts: lineDiscountsMap,
-              appliedVoucherIds: appliedVoucherIds,
-            };
+              return {
+                warehouse: group.warehouse,
+                totalDiscount: response.total_discount,
+                lineDiscounts: lineDiscountsMap,
+                appliedVoucherIds: appliedVoucherIds,
+              };
+            } catch (calcError) {
+              // A voucher invalid for this branch can fail the whole calculate
+              // call — skip this warehouse's discount instead of rejecting
+              // Promise.all and wiping the voucher list.
+              console.error(`[Checkout] Discount calculation failed for ${group.warehouse}:`, calcError);
+              return null;
+            }
           })
         );
 
@@ -363,9 +421,14 @@ function CheckoutPage() {
 
         console.log("[Checkout] Applied voucher IDs from backend:", Array.from(allAppliedVoucherIds));
 
-        // Filter vouchers to keep only those that were actually applied
+        // Filter vouchers to keep only those that were actually applied.
+        // Skip filtering entirely if every warehouse calculation failed —
+        // an empty appliedVoucherIds would wrongly wipe all vouchers.
+        const hasSuccessfulCalculation = calculations.some((calc) => calc !== null);
         const originalVoucherCount = checkout.vouchers.length;
-        const appliedVouchers = checkout.vouchers.filter((v) => allAppliedVoucherIds.has(parseInt(v.id)));
+        const appliedVouchers = hasSuccessfulCalculation
+          ? checkout.vouchers.filter((v) => allAppliedVoucherIds.has(parseInt(v.id)))
+          : checkout.vouchers;
 
         // Check if this is a user-initiated voucher change
         const isUserVoucherChange = typeof window !== 'undefined' && window.sessionStorage.getItem('userVoucherChange') === 'true';
@@ -408,8 +471,8 @@ function CheckoutPage() {
         if (errorMessage) {
           // Check if error is related to voucher validation
           if (errorMessage.toLowerCase().includes("voucher") || errorMessage.toLowerCase().includes("not valid") || errorMessage.toLowerCase().includes("tidak valid")) {
-            // Clear the vouchers if it's invalid
-            checkout.setVouchers([]);
+            // Keep the vouchers — per-branch validity is enforced at submit;
+            // clearing them here would drop vouchers valid on other branches.
             checkout.clearCalculatedDiscounts();
             toast.error(errorMessage);
           } else {
