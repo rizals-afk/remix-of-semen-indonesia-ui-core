@@ -273,54 +273,98 @@ function VoucherPickerPage() {
       toast.error(`Maksimal ${MAX_VOUCHERS} voucher/promo/flashsale per transaksi. Beberapa pilihan tidak diterapkan.`);
     }
 
-    // Validate selected vouchers against the backend before applying —
-    // drop invalid ones (expired, no quota, wrong branch, etc.) and keep
-    // only the valid ones.
+    // Validate selected vouchers per branch — each warehouse becomes its own
+    // transaction at checkout, so a voucher only needs to be valid for one
+    // branch to stay applied. Vouchers invalid for every branch are dropped.
     let vouchersToApply = finalVouchers;
     if (finalVouchers.length > 0) {
-      try {
-        const validationLines = checkout.buyNowItem
-          ? [{
-              product_id: parseInt(checkout.buyNowItem.productId),
-              product_variant_id: parseInt(checkout.buyNowItem.variantId),
-              price: checkout.buyNowItem.price,
-              qty: checkout.buyNowItem.qty,
-              branch_id: parseInt(checkout.buyNowItem.branchId),
-            }]
-          : cart.selectedGroups.flatMap((group) =>
-              group.selectedItems.map((item) => ({
-                product_id: item.product_id || 0,
-                product_variant_id: item.variant_id || 0,
-                price: item.price,
-                qty: item.qty,
-                branch_id: item.branch_id || undefined,
-              }))
-            );
+      const voucherIdList = finalVouchers.map((v) => parseInt(v.id));
 
-        const shippingCost = checkout.mode === "dikirim"
-          ? Object.values(checkout.calculatedShippingFees).reduce((sum, fee) => sum + (fee || 0), 0)
-          : 0;
+      // Build validation groups keyed by branch_id
+      const branchGroups = new Map<string, {
+        branchId?: number;
+        lines: Array<{ product_id: number; product_variant_id: number; price: number; qty: number; branch_id?: number }>;
+        shippingCost: number;
+      }>();
 
-        const validation = await validateVouchers({
-          voucher_ids: finalVouchers.map((v) => parseInt(v.id)),
-          customer_id: user?.id as number | undefined,
-          shipping_cost: shippingCost,
-          lines: validationLines,
+      if (checkout.buyNowItem) {
+        branchGroups.set("buyNow", {
+          branchId: parseInt(checkout.buyNowItem.branchId),
+          lines: [{
+            product_id: parseInt(checkout.buyNowItem.productId),
+            product_variant_id: parseInt(checkout.buyNowItem.variantId),
+            price: checkout.buyNowItem.price,
+            qty: checkout.buyNowItem.qty,
+            branch_id: parseInt(checkout.buyNowItem.branchId),
+          }],
+          shippingCost: checkout.mode === "dikirim"
+            ? (checkout.calculatedShippingFees[checkout.buyNowItem.warehouse] || 0)
+            : 0,
         });
-
-        if (validation.invalid_voucher_ids.length > 0) {
-          const invalidIds = new Set(validation.invalid_voucher_ids);
-          vouchersToApply = finalVouchers.filter((v) => !invalidIds.has(parseInt(v.id)));
-
-          validation.invalid_vouchers.forEach((iv) => {
-            toast.error(iv.voucher_code ? `${iv.voucher_code}: ${iv.reason}` : iv.reason);
+      } else {
+        cart.selectedGroups.forEach((group) => {
+          group.selectedItems.forEach((item) => {
+            const branchKey = String(item.branch_id || group.warehouse);
+            if (!branchGroups.has(branchKey)) {
+              branchGroups.set(branchKey, {
+                branchId: item.branch_id || undefined,
+                lines: [],
+                shippingCost: checkout.mode === "dikirim"
+                  ? (checkout.calculatedShippingFees[group.warehouse] || 0)
+                  : 0,
+              });
+            }
+            branchGroups.get(branchKey)!.lines.push({
+              product_id: item.product_id || 0,
+              product_variant_id: item.variant_id || 0,
+              price: item.price,
+              qty: item.qty,
+              branch_id: item.branch_id || undefined,
+            });
           });
-          toast.info("Beberapa voucher tidak valid dan tidak diterapkan.");
+        });
+      }
+
+      const validIdsUnion = new Set<number>();
+      const invalidReasons = new Map<number, string>();
+
+      for (const group of branchGroups.values()) {
+        try {
+          const validation = await validateVouchers({
+            voucher_ids: voucherIdList,
+            branch_id: group.branchId,
+            customer_id: user?.id as number | undefined,
+            shipping_cost: group.shippingCost,
+            lines: group.lines,
+          });
+
+          validation.valid_voucher_ids.forEach((id) => validIdsUnion.add(id));
+          validation.invalid_vouchers.forEach((iv) => {
+            if (!invalidReasons.has(iv.voucher_id)) {
+              invalidReasons.set(iv.voucher_id, iv.voucher_code ? `${iv.voucher_code}: ${iv.reason}` : iv.reason);
+            }
+          });
+        } catch (validationError) {
+          // If validation fails for a branch, fail open — keep all vouchers.
+          console.error("[Voucher] Validation failed:", validationError);
+          voucherIdList.forEach((id) => validIdsUnion.add(id));
         }
-      } catch (validationError) {
-        // If validation fails, proceed with the selected vouchers —
-        // the checkout submit flow validates again before creating the trx.
-        console.error("[Voucher] Validation failed:", validationError);
+      }
+
+      const stillValid = finalVouchers.filter((v) => validIdsUnion.has(parseInt(v.id)));
+      if (stillValid.length !== finalVouchers.length) {
+        vouchersToApply = stillValid;
+        invalidReasons.forEach((reason) => {
+          toast.error(reason);
+        });
+        toast.info("Beberapa voucher tidak valid di semua cabang dan tidak diterapkan.");
+      } else if (invalidReasons.size > 0) {
+        // Some vouchers aren't valid for every branch — they stay applied and
+        // will only be sent to the trxs where they're eligible.
+        invalidReasons.forEach((reason) => {
+          toast.info(reason);
+        });
+        toast.info("Beberapa voucher tidak berlaku untuk semua cabang dan hanya diterapkan pada pesanan yang memenuhi syarat.");
       }
     }
 
