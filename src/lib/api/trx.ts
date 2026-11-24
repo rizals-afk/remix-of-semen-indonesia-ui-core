@@ -434,6 +434,7 @@ export interface ValidateVouchersRequest {
   voucher_ids: number[];
   branch_id?: number;
   customer_id?: number;
+  shipping_cost?: number;
   lines?: Array<{
     product_id: number;
     product_variant_id: number;

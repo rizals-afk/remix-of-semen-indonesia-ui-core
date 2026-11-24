@@ -7,6 +7,8 @@ import { VOUCHERS } from "@/data/shopping";
 import { useCart } from "@/store/cart";
 import { useCheckout } from "@/store/checkout";
 import { fetchVouchers, type Voucher as ApiVoucher } from "@/lib/api/voucher";
+import { validateVouchers } from "@/lib/api/trx";
+import { useUser } from "@/store/user";
 import { toast } from "sonner";
 import { Loader2, X, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -20,6 +22,7 @@ const MAX_VOUCHERS = 3;
 function VoucherPickerPage() {
   const cart = useCart();
   const checkout = useCheckout();
+  const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as { type?: "voucher" | "promo" } | undefined;
@@ -234,7 +237,7 @@ function VoucherPickerPage() {
     }
   };
 
-  const confirm = () => {
+  const confirm = async () => {
     const allItems = [...vouchers, ...promos];
     const pickerIds = new Set(allItems.map((v) => v.id));
 
@@ -270,9 +273,60 @@ function VoucherPickerPage() {
       toast.error(`Maksimal ${MAX_VOUCHERS} voucher/promo/flashsale per transaksi. Beberapa pilihan tidak diterapkan.`);
     }
 
+    // Validate selected vouchers against the backend before applying —
+    // drop invalid ones (expired, no quota, wrong branch, etc.) and keep
+    // only the valid ones.
+    let vouchersToApply = finalVouchers;
+    if (finalVouchers.length > 0) {
+      try {
+        const validationLines = checkout.buyNowItem
+          ? [{
+              product_id: parseInt(checkout.buyNowItem.productId),
+              product_variant_id: parseInt(checkout.buyNowItem.variantId),
+              price: checkout.buyNowItem.price,
+              qty: checkout.buyNowItem.qty,
+              branch_id: parseInt(checkout.buyNowItem.branchId),
+            }]
+          : cart.selectedGroups.flatMap((group) =>
+              group.selectedItems.map((item) => ({
+                product_id: item.product_id || 0,
+                product_variant_id: item.variant_id || 0,
+                price: item.price,
+                qty: item.qty,
+                branch_id: item.branch_id || undefined,
+              }))
+            );
+
+        const shippingCost = checkout.mode === "dikirim"
+          ? Object.values(checkout.calculatedShippingFees).reduce((sum, fee) => sum + (fee || 0), 0)
+          : 0;
+
+        const validation = await validateVouchers({
+          voucher_ids: finalVouchers.map((v) => parseInt(v.id)),
+          customer_id: user?.id as number | undefined,
+          shipping_cost: shippingCost,
+          lines: validationLines,
+        });
+
+        if (validation.invalid_voucher_ids.length > 0) {
+          const invalidIds = new Set(validation.invalid_voucher_ids);
+          vouchersToApply = finalVouchers.filter((v) => !invalidIds.has(parseInt(v.id)));
+
+          validation.invalid_vouchers.forEach((iv) => {
+            toast.error(iv.voucher_code ? `${iv.voucher_code}: ${iv.reason}` : iv.reason);
+          });
+          toast.info("Beberapa voucher tidak valid dan tidak diterapkan.");
+        }
+      } catch (validationError) {
+        // If validation fails, proceed with the selected vouchers —
+        // the checkout submit flow validates again before creating the trx.
+        console.error("[Voucher] Validation failed:", validationError);
+      }
+    }
+
     // Clear calculated discounts before setting new vouchers so they get recalculated
     checkout.clearCalculatedDiscounts();
-    checkout.setVouchers(finalVouchers);
+    checkout.setVouchers(vouchersToApply);
 
     // Set flag to indicate this is a user-initiated voucher change
     if (typeof window !== 'undefined') {

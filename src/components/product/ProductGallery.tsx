@@ -3,12 +3,10 @@ import { useState } from "react";
 interface ProductGalleryProps {
   images: string[];
   alt: string;
-  /** Optional ribbon badge text shown over the main image (e.g. "40Kg & 50Kg"). */
-  ribbon?: string;
 }
 
 /** Main image + thumbnail strip used on the product detail page. */
-export function ProductGallery({ images, alt, ribbon }: ProductGalleryProps) {
+export function ProductGallery({ images, alt }: ProductGalleryProps) {
   const [active, setActive] = useState(0);
   const main = images[active] ?? images[0];
   return (
@@ -19,12 +17,9 @@ export function ProductGallery({ images, alt, ribbon }: ProductGalleryProps) {
           alt={alt}
           className="h-full w-full object-contain p-6"
         />
-        {ribbon ? (
-          <div className="absolute bottom-0 left-0 right-0 flex h-14 items-center justify-between bg-gradient-to-r from-accent via-accent to-primary px-5 text-sm font-bold text-white">
-            <span className="uppercase tracking-wide">{alt}</span>
-            <span className="rounded-md bg-white/15 px-2.5 py-1 text-xs">{ribbon}</span>
-          </div>
-        ) : null}
+        <div className="absolute bottom-0 left-0 right-0 flex h-14 items-center bg-gradient-to-r from-accent via-accent to-primary px-5 text-sm font-bold text-white">
+          <span className="uppercase tracking-wide">{alt}</span>
+        </div>
       </div>
       {images.length > 1 ? (
         <div className="flex gap-2">

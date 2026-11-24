@@ -504,6 +504,7 @@ function CheckoutPage() {
       // Pre-flight voucher validation: drop vouchers the backend considers
       // invalid (expired, no quota, unclaimed, wrong branch, not applicable)
       // before creating transactions, since the backend rejects them.
+      let activeVouchers = checkout.vouchers;
       const voucherIds = checkout.vouchers.map((v) => parseInt(v.id));
       if (voucherIds.length > 0) {
         const validationLines = groups.flatMap((group) =>
@@ -526,21 +527,24 @@ function CheckoutPage() {
           const validation = await validateVouchers({
             voucher_ids: voucherIds,
             customer_id: user?.id as number | undefined,
+            shipping_cost: subtotalShipping,
             lines: validationLines,
           });
 
-          if (!validation.can_checkout && validation.invalid_vouchers.length > 0) {
-            const validIds = new Set(validation.valid_voucher_ids);
-            const stillValid = checkout.vouchers.filter((v) => validIds.has(parseInt(v.id)));
+          if (validation.invalid_voucher_ids.length > 0) {
+            const invalidIds = new Set(validation.invalid_voucher_ids);
+            const stillValid = checkout.vouchers.filter((v) => !invalidIds.has(parseInt(v.id)));
 
-            checkout.setVouchers(stillValid);
-            checkout.clearCalculatedDiscounts();
+            if (stillValid.length !== checkout.vouchers.length) {
+              activeVouchers = stillValid;
+              checkout.setVouchers(stillValid);
+              checkout.clearCalculatedDiscounts();
 
-            validation.invalid_vouchers.forEach((iv) => {
-              toast.error(iv.voucher_code ? `${iv.voucher_code}: ${iv.reason}` : iv.reason);
-            });
-            toast.info("Beberapa voucher tidak valid dan telah dihapus. Silakan periksa kembali pesanan Anda.");
-            return;
+              validation.invalid_vouchers.forEach((iv) => {
+                toast.error(iv.voucher_code ? `${iv.voucher_code}: ${iv.reason}` : iv.reason);
+              });
+              toast.info("Beberapa voucher tidak valid dan telah dihapus. Pesanan tetap dilanjutkan dengan voucher yang valid.");
+            }
           }
         } catch (validationError) {
           // If validation itself fails, continue with the original flow —
@@ -642,7 +646,7 @@ function CheckoutPage() {
           customer_location_lat: selectedLocation.lat || 0,
           customer_location_long: selectedLocation.long || 0,
           // Combine all selected voucher and promo IDs
-          voucher_ids: checkout.vouchers.length > 0 ? checkout.vouchers.map((v) => parseInt(v.id)) : undefined,
+          voucher_ids: activeVouchers.length > 0 ? activeVouchers.map((v) => parseInt(v.id)) : undefined,
           lines: lines,
         };
       });

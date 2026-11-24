@@ -85,8 +85,8 @@ function ProductDetailPage() {
   // Generate WhatsApp URL with product and warehouse info
   const whatsappUrl = product && selectedWarehouse
     ? `https://wa.me/6281133331800?text=${encodeURIComponent(
-        `Saya ingin menanyakan ${product.name}${selectedVariantId ? ` (${product.variants.find(v => v.id === selectedVariantId)?.variant_name || ''})` : ''} pada gudang ${selectedWarehouse.name}`
-      )}`
+      `Saya ingin menanyakan ${product.name}${selectedVariantId ? ` (${product.variants.find(v => v.id === selectedVariantId)?.variant_name || ''})` : ''} pada gudang ${selectedWarehouse.name}`
+    )}`
     : undefined;
 
   // Fetch product on mount
@@ -498,7 +498,6 @@ function ProductDetailPage() {
                 <ProductGallery
                   images={images}
                   alt={product.name}
-                  ribbon={product.variants?.map((v) => v.name).join(" & ")}
                 />
               </div>
               <div className="space-y-4">
@@ -571,7 +570,7 @@ function ProductDetailPage() {
                           </p>
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={() => setWarehouseModalOpen(true)}
                         className="text-sm font-semibold text-primary hover:underline"
                       >
@@ -610,15 +609,15 @@ function ProductDetailPage() {
               <p className="text-2xl font-bold text-accent">{formatRupiah(subTotal)}</p>
             </div>
             <div className="mt-5 space-y-2">
-              <button 
-                onClick={buyNow} 
+              <button
+                onClick={buyNow}
                 disabled={!hasPrice || isAddingToCart}
                 className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
               >
                 Beli Sekarang
               </button>
-              <button 
-                onClick={addToCart} 
+              <button
+                onClick={addToCart}
                 disabled={!hasPrice || isAddingToCart}
                 className="w-full rounded-md border border-primary py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background flex items-center justify-center gap-2"
               >
@@ -701,7 +700,7 @@ function ProductDetailPage() {
           </div>
         </section>
       </div>
-      
+
       {/* Warehouse Selector Modal */}
       <WarehouseSelectorModal
         open={warehouseModalOpen}
