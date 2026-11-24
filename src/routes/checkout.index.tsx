@@ -501,14 +501,48 @@ function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // Pre-flight voucher validation: drop vouchers the backend considers
-      // invalid (expired, no quota, unclaimed, wrong branch, not applicable)
-      // before creating transactions, since the backend rejects them.
+      // Group items by warehouse + division — each group becomes its own
+      // transaction, so voucher validation runs once per group.
+      const warehouseDivisionGroups = new Map<string, typeof groups[0]['selectedItems']>();
+
+      groups.forEach((group) => {
+        group.selectedItems.forEach((item) => {
+          const division = checkout.buyNowItem?.division || item.division || "UNKNOWN";
+          const key = `${group.warehouse}|${division}`;
+
+          if (!warehouseDivisionGroups.has(key)) {
+            warehouseDivisionGroups.set(key, []);
+          }
+          warehouseDivisionGroups.get(key)!.push(item);
+        });
+      });
+
+      // Pre-flight voucher validation per transaction group: drop vouchers the
+      // backend considers invalid (expired, no quota, unclaimed, wrong branch,
+      // not applicable) before creating transactions, since the backend rejects them.
       let activeVouchers = checkout.vouchers;
       const voucherIds = checkout.vouchers.map((v) => parseInt(v.id));
       if (voucherIds.length > 0) {
-        const validationLines = groups.flatMap((group) =>
-          group.selectedItems.map((item) => ({
+        const invalidIds = new Set<number>();
+        const invalidReasons = new Map<number, string>();
+        const isShipping = checkout.mode === "dikirim";
+
+        for (const [key, items] of warehouseDivisionGroups) {
+          const [warehouse] = key.split('|');
+
+          const branchId = checkout.buyNowItem
+            ? parseInt(checkout.buyNowItem.branchId)
+            : (items[0].branch_id || undefined);
+
+          // Shipping is allocated to the first division group per warehouse,
+          // mirroring the bulkItems logic below.
+          const warehouseKeys = Array.from(warehouseDivisionGroups.keys()).filter((k) => k.startsWith(`${warehouse}|`));
+          const isFirstDivision = warehouseKeys.indexOf(key) === 0;
+          const shippingCost = isShipping && isFirstDivision
+            ? (checkout.calculatedShippingFees[warehouse] || 0)
+            : 0;
+
+          const validationLines = items.map((item) => ({
             product_id: checkout.buyNowItem
               ? parseInt(checkout.buyNowItem.productId)
               : (item.product_id || 0),
@@ -520,53 +554,45 @@ function CheckoutPage() {
             branch_id: checkout.buyNowItem
               ? parseInt(checkout.buyNowItem.branchId)
               : (item.branch_id || undefined),
-          }))
-        );
+          }));
 
-        try {
-          const validation = await validateVouchers({
-            voucher_ids: voucherIds,
-            customer_id: user?.id as number | undefined,
-            shipping_cost: subtotalShipping,
-            lines: validationLines,
-          });
+          try {
+            const validation = await validateVouchers({
+              voucher_ids: voucherIds,
+              branch_id: branchId,
+              customer_id: user?.id as number | undefined,
+              shipping_cost: shippingCost,
+              lines: validationLines,
+            });
 
-          if (validation.invalid_voucher_ids.length > 0) {
-            const invalidIds = new Set(validation.invalid_voucher_ids);
-            const stillValid = checkout.vouchers.filter((v) => !invalidIds.has(parseInt(v.id)));
-
-            if (stillValid.length !== checkout.vouchers.length) {
-              activeVouchers = stillValid;
-              checkout.setVouchers(stillValid);
-              checkout.clearCalculatedDiscounts();
-
-              validation.invalid_vouchers.forEach((iv) => {
-                toast.error(iv.voucher_code ? `${iv.voucher_code}: ${iv.reason}` : iv.reason);
-              });
-              toast.info("Beberapa voucher tidak valid dan telah dihapus. Pesanan tetap dilanjutkan dengan voucher yang valid.");
-            }
+            validation.invalid_voucher_ids.forEach((id) => invalidIds.add(id));
+            validation.invalid_vouchers.forEach((iv) => {
+              if (!invalidReasons.has(iv.voucher_id)) {
+                invalidReasons.set(iv.voucher_id, iv.voucher_code ? `${iv.voucher_code}: ${iv.reason}` : iv.reason);
+              }
+            });
+          } catch (validationError) {
+            // If validation itself fails for one group, continue with the
+            // original flow — the transaction endpoint will still enforce rules.
+            console.error(`[Checkout] Voucher validation failed for ${key}:`, validationError);
           }
-        } catch (validationError) {
-          // If validation itself fails, continue with the original flow —
-          // the transaction endpoint will still enforce voucher rules.
-          console.error("[Checkout] Voucher validation failed:", validationError);
+        }
+
+        if (invalidIds.size > 0) {
+          const stillValid = checkout.vouchers.filter((v) => !invalidIds.has(parseInt(v.id)));
+
+          if (stillValid.length !== checkout.vouchers.length) {
+            activeVouchers = stillValid;
+            checkout.setVouchers(stillValid);
+            checkout.clearCalculatedDiscounts();
+
+            invalidReasons.forEach((reason) => {
+              toast.error(reason);
+            });
+            toast.info("Beberapa voucher tidak valid dan telah dihapus. Pesanan tetap dilanjutkan dengan voucher yang valid.");
+          }
         }
       }
-
-      // Group items by warehouse + division
-      const warehouseDivisionGroups = new Map<string, typeof groups[0]['selectedItems']>();
-      
-      groups.forEach((group) => {
-        group.selectedItems.forEach((item) => {
-          const division = checkout.buyNowItem?.division || item.division || "UNKNOWN";
-          const key = `${group.warehouse}|${division}`;
-          
-          if (!warehouseDivisionGroups.has(key)) {
-            warehouseDivisionGroups.set(key, []);
-          }
-          warehouseDivisionGroups.get(key)!.push(item);
-        });
-      });
 
       // Calculate original totals for validation (pre-discount for comparison with backend request)
       const originalSubtotal = groups.reduce((sum, group) => sum + group.selectedItems.reduce((s, item) => s + (item.price * item.qty), 0), 0);
