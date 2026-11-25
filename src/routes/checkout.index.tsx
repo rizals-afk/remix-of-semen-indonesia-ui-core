@@ -376,10 +376,16 @@ function CheckoutPage() {
               // Map line discounts to key format: "productId_variantId"
               const lineDiscountsMap: Record<string, number> = {};
               const appliedVoucherIds: number[] = [];
+              const voucherDetails: Array<{ voucher_id: number; voucher_code: string; discount: number }> = [];
               response.voucher_details.forEach((voucherDetail) => {
                 // Only include vouchers that actually have a discount applied
                 if (voucherDetail.discount > 0 || voucherDetail.line_discounts.length > 0) {
                   appliedVoucherIds.push(voucherDetail.voucher_id);
+                  voucherDetails.push({
+                    voucher_id: voucherDetail.voucher_id,
+                    voucher_code: voucherDetail.voucher_code,
+                    discount: voucherDetail.discount,
+                  });
                   voucherDetail.line_discounts.forEach((lineDiscount) => {
                     const key = `${lineDiscount.product_id}_${lineDiscount.product_variant_id}`;
                     lineDiscountsMap[key] = (lineDiscountsMap[key] ?? 0) + lineDiscount.discount;
@@ -392,6 +398,7 @@ function CheckoutPage() {
                 totalDiscount: response.total_discount,
                 lineDiscounts: lineDiscountsMap,
                 appliedVoucherIds: appliedVoucherIds,
+                voucherDetails: voucherDetails,
               };
             } catch (calcError) {
               // A voucher invalid for this branch can fail the whole calculate
@@ -409,6 +416,7 @@ function CheckoutPage() {
             checkout.setCalculatedDiscount(calc.warehouse, {
               totalDiscount: calc.totalDiscount,
               lineDiscounts: calc.lineDiscounts,
+              voucherDetails: calc.voucherDetails,
             });
           }
         });

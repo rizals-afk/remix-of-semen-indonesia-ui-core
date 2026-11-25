@@ -102,8 +102,13 @@ interface CheckoutState {
   calculatedDiscounts: Record<string, {
     totalDiscount: number;
     lineDiscounts: Record<string, number>; // key: "productId_variantId", value: total discount for the line
+    voucherDetails?: Array<{
+      voucher_id: number;
+      voucher_code: string;
+      discount: number;
+    }>;
   }>;
-  setCalculatedDiscount: (warehouse: string, data: { totalDiscount: number; lineDiscounts: Record<string, number> }) => void;
+  setCalculatedDiscount: (warehouse: string, data: { totalDiscount: number; lineDiscounts: Record<string, number>; voucherDetails?: Array<{ voucher_id: number; voucher_code: string; discount: number }> }) => void;
   clearCalculatedDiscounts: () => void;
 }
 
@@ -135,7 +140,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [orderTotals, setOrderTotalsState] = useState<{ subtotal: number; shipping: number; discount: number; total: number } | null>(null);
   const [buyNowItem, setBuyNowItemState] = useState<BuyNowItem | null>(null);
   const [selectedCartIds, setSelectedCartIdsState] = useState<string[]>([]);
-  const [calculatedDiscounts, setCalculatedDiscountsState] = useState<Record<string, { totalDiscount: number; lineDiscounts: Record<string, number> }>>({});
+  const [calculatedDiscounts, setCalculatedDiscountsState] = useState<Record<string, { totalDiscount: number; lineDiscounts: Record<string, number>; voucherDetails?: Array<{ voucher_id: number; voucher_code: string; discount: number }> }>>({});
 
   // Load buyNowItem from localStorage on mount
   useEffect(() => {

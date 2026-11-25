@@ -31,6 +31,11 @@ interface OrderProductGroupProps {
   calculatedDiscount?: {
     totalDiscount: number;
     lineDiscounts: Record<string, number>;
+    voucherDetails?: Array<{
+      voucher_id: number;
+      voucher_code: string;
+      discount: number;
+    }>;
   };
 }
 
@@ -227,6 +232,23 @@ export function OrderProductGroup({
           </p>
         </div>
       </div>
+
+      {/* Voucher details */}
+      {calculatedDiscount?.voucherDetails && calculatedDiscount.voucherDetails.length > 0 && (
+        <div className="border-t border-border/70 bg-primary-soft/30 px-5 py-4 sm:px-6">
+          <p className="text-sm font-semibold text-foreground mb-3">Voucher Diterapkan:</p>
+          <div className="space-y-2">
+            {calculatedDiscount.voucherDetails.map((voucher) => (
+              <div key={voucher.voucher_id} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-foreground">{voucher.voucher_code}</span>
+                </div>
+                <span className="font-semibold text-success">- {formatRupiah(voucher.discount)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
