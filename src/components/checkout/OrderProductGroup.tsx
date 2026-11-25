@@ -186,8 +186,10 @@ export function OrderProductGroup({
                       <p className="text-xs text-muted-foreground">Estimasi {etaLabel}</p>
                     </div>
                     <div className="text-right">
-                      {shippingFee && shippingFee > 0 ? (
-                        <p className="text-sm font-bold text-foreground">{formatRupiah(shippingFee)}</p>
+                      {shippingFee != null ? (
+                        <p className="text-sm font-bold text-foreground">
+                          {shippingFee > 0 ? formatRupiah(shippingFee) : "Gratis"}
+                        </p>
                       ) : null}
                       {onChangeShipping && (
                         <button

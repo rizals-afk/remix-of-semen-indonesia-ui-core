@@ -198,7 +198,9 @@ function CheckoutPage() {
   useEffect(() => {
     const restoredStates: Record<string, 'initial' | 'loading' | 'calculated'> = {};
     groups.forEach((group) => {
-      if (checkout.deliveryRuleIds[group.warehouse] && checkout.calculatedShippingFees[group.warehouse] > 0) {
+      // A delivery rule ID means shipping was calculated — the fee itself
+      // can legitimately be 0 (free delivery), so don't require > 0.
+      if (checkout.deliveryRuleIds[group.warehouse]) {
         restoredStates[group.warehouse] = 'calculated';
       }
     });
@@ -934,7 +936,7 @@ function CheckoutPage() {
       const deliveryPrice = parseFloat(response.delivery_rule.delivery_price);
 
       checkout.setCalculatedShippingFee(group.warehouse, deliveryPrice);
-      setShippingDistances(prev => ({ ...prev, [group.warehouse]: response.distance }));
+      setShippingDistances(prev => ({ ...prev, [group.warehouse]: response.distance * 2 }));
       checkout.setDeliveryRuleId(group.warehouse, response.delivery_rule.id);
       setShippingStates(prev => ({ ...prev, [group.warehouse]: 'calculated' }));
     } catch (error: any) {

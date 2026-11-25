@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { z } from "zod";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { Pagination } from "@/components/common/Pagination";
@@ -70,8 +70,12 @@ function ProductListingPage() {
   const [warehouseModalOpen, setWarehouseModalOpen] = useState(false);
   const [priceMin, setPriceMin] = useState(min_price || 0);
   const [priceMax, setPriceMax] = useState(max_price || 0);
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(category);
-  const [selectedBrand, setSelectedBrand] = useState<string | undefined>(brand_id);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    category ? category.split(",").filter(Boolean) : []
+  );
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(
+    brand_id ? brand_id.split(",").filter(Boolean) : []
+  );
 
   // Fetch categories on mount
   useEffect(() => {
@@ -124,12 +128,12 @@ function ProductListingPage() {
           per_page: PAGE_SIZE,
           product_category_id: category,
           branch_id: urlBranchId || selectedWarehouse?.id,
+          brand_id: brand_id,
           search: q || undefined,
           sort_by: sort_by as any,
           sort_order: sort_order as any,
           min_price: min_price,
           max_price: max_price,
-          brand_id: brand_id,
         });
 
         console.log("Product List - API response:", response);
@@ -154,101 +158,123 @@ function ProductListingPage() {
 
   // Sync URL category to local state when URL changes
   useEffect(() => {
-    setSelectedCategory(category);
+    setSelectedCategories(category ? category.split(",").filter(Boolean) : []);
   }, [category]);
 
   // Sync URL brand to local state when URL changes
   useEffect(() => {
-    setSelectedBrand(brand_id);
+    setSelectedBrands(brand_id ? brand_id.split(",").filter(Boolean) : []);
   }, [brand_id]);
 
-  // Expand category (and its parent) when category is selected
+  // Expand categories (and their parents) when categories are selected
   useEffect(() => {
-    if (category) {
-      // Expand the selected node itself if it has children
-      const expandSelf = (nodes: CategoryNode[]): boolean => {
-        for (const node of nodes) {
-          if (node.id === category && node.children.length > 0) {
-            setExpandedCategories(prev => new Set([...prev, node.id]));
-            return true;
-          }
-          if (expandSelf(node.children)) {
-            return true;
-          }
-        }
-        return false;
-      };
-      if (!expandSelf(categories)) {
-        // Otherwise expand the parent that contains the selected child
-        const findAndExpandParent = (nodes: CategoryNode[]): boolean => {
+    const selectedCategoryIds = category ? category.split(",").filter(Boolean) : [];
+    if (selectedCategoryIds.length > 0) {
+      selectedCategoryIds.forEach((catId) => {
+        // Expand the selected node itself if it has children
+        const expandSelf = (nodes: CategoryNode[]): boolean => {
           for (const node of nodes) {
-            if (node.children.some(child => child.id === category)) {
+            if (node.id === catId && node.children.length > 0) {
               setExpandedCategories(prev => new Set([...prev, node.id]));
               return true;
             }
-            if (findAndExpandParent(node.children)) {
+            if (expandSelf(node.children)) {
               return true;
             }
           }
           return false;
         };
-        findAndExpandParent(categories);
-      }
+        if (!expandSelf(categories)) {
+          // Otherwise expand the parent that contains the selected child
+          const findAndExpandParent = (nodes: CategoryNode[]): boolean => {
+            for (const node of nodes) {
+              if (node.children.some(child => child.id === catId)) {
+                setExpandedCategories(prev => new Set([...prev, node.id]));
+                return true;
+              }
+              if (findAndExpandParent(node.children)) {
+                return true;
+              }
+            }
+            return false;
+          };
+          findAndExpandParent(categories);
+        }
+      });
     } else {
-      // URL has no category, collapse all
+      // No categories selected, collapse all
       setExpandedCategories(new Set());
     }
   }, [category, categories]);
 
-  // Sync category selection changes to local state only
-  const handleToggleCategory = (id: string) => {
-    const isCurrentlySelected = String(selectedCategory) === String(id);
-    const newCategory = isCurrentlySelected ? undefined : String(id);
-    setSelectedCategory(newCategory);
-  };
+  // Apply filter changes to the URL immediately (debounced for price inputs)
+  const priceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync brand selection changes to local state only
-  const handleToggleBrand = (id: string) => {
-    const isCurrentlySelected = String(selectedBrand) === String(id);
-    const newBrand = isCurrentlySelected ? undefined : String(id);
-    setSelectedBrand(newBrand);
-  };
-
-  // Apply all filters (category, brand, and price) to URL
-  const handleApplyFilters = () => {
+  const applySearchUpdate = (updates: {
+    category?: string;
+    brand_id?: string;
+    min_price?: number;
+    max_price?: number;
+  }) => {
     navigate({
       search: (prev: z.infer<typeof searchSchema>) => {
-        const newSearch = { ...prev };
-        if (selectedCategory) {
-          newSearch.category = selectedCategory;
-        } else {
-          delete newSearch.category;
-        }
-        if (selectedBrand) {
-          newSearch.brand_id = selectedBrand;
-        } else {
-          delete newSearch.brand_id;
-        }
-        if (priceMin > 0) {
-          newSearch.min_price = priceMin;
-        } else {
-          delete newSearch.min_price;
-        }
-        if (priceMax > 0) {
-          newSearch.max_price = priceMax;
-        } else {
-          delete newSearch.max_price;
-        }
-        newSearch.page = 1;
+        const newSearch = { ...prev, page: 1 };
+        (Object.keys(updates) as (keyof typeof updates)[]).forEach((key) => {
+          const value = updates[key];
+          if (value === undefined || value === "") {
+            delete newSearch[key];
+          } else {
+            // @ts-expect-error union of optional search params
+            newSearch[key] = value;
+          }
+        });
         return newSearch;
       },
     });
   };
 
+  const schedulePriceApply = () => {
+    if (priceDebounceRef.current) clearTimeout(priceDebounceRef.current);
+    priceDebounceRef.current = setTimeout(() => {
+      applySearchUpdate({
+        min_price: priceMin > 0 ? priceMin : undefined,
+        max_price: priceMax > 0 ? priceMax : undefined,
+      });
+    }, 600);
+  };
+
+  // Category/brand toggles apply instantly; price applies after debounce
+  const handleToggleCategory = (id: string) => {
+    const next = selectedCategories.includes(id)
+      ? selectedCategories.filter((c) => c !== id)
+      : [...selectedCategories, id];
+    setSelectedCategories(next);
+    applySearchUpdate({ category: next.length > 0 ? next.join(",") : undefined });
+  };
+
+  const handleToggleBrand = (id: string) => {
+    const next = selectedBrands.includes(id)
+      ? selectedBrands.filter((b) => b !== id)
+      : [...selectedBrands, id];
+    setSelectedBrands(next);
+    applySearchUpdate({ brand_id: next.length > 0 ? next.join(",") : undefined });
+  };
+
+  const handlePriceMinChange = (n: number) => {
+    setPriceMin(n);
+    schedulePriceApply();
+  };
+
+  const handlePriceMaxChange = (n: number) => {
+    setPriceMax(n);
+    schedulePriceApply();
+  };
+
   // Reset all filters
   const handleResetFilters = () => {
-    setSelectedCategory(undefined);
-    setSelectedBrand(undefined);
+    if (priceDebounceRef.current) clearTimeout(priceDebounceRef.current);
+    setSelectedCategories([]);
+    setSelectedBrands([]);
     setPriceMin(0);
     setPriceMax(0);
     navigate({
@@ -285,18 +311,17 @@ function ProductListingPage() {
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
           <FilterSidebar
             categories={categories}
-            selected={selectedCategory ? [String(selectedCategory)] : []}
+            selected={selectedCategories}
             onToggleCategory={handleToggleCategory}
             priceMin={priceMin}
             priceMax={priceMax}
-            onPriceMinChange={setPriceMin}
-            onPriceMaxChange={setPriceMax}
-            onApply={handleApplyFilters}
+            onPriceMinChange={handlePriceMinChange}
+            onPriceMaxChange={handlePriceMaxChange}
             onReset={handleResetFilters}
             expandedCategories={expandedCategories}
             onToggleExpand={handleToggleExpand}
             brands={brands}
-            selectedBrands={selectedBrand ? [String(selectedBrand)] : []}
+            selectedBrands={selectedBrands}
             onToggleBrand={handleToggleBrand}
           />
 
