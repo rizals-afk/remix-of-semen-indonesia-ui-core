@@ -18,6 +18,7 @@ interface FilterSidebarProps {
   priceMax: number;
   onPriceMinChange: (n: number) => void;
   onPriceMaxChange: (n: number) => void;
+  onApply: () => void;
   onReset: () => void;
   expandedCategories?: Set<string>;
   onToggleExpand?: (id: string) => void;
@@ -35,6 +36,7 @@ export function FilterSidebar({
   priceMax,
   onPriceMinChange,
   onPriceMaxChange,
+  onApply,
   onReset,
   expandedCategories = new Set<string>(),
   onToggleExpand = () => {},
@@ -106,13 +108,22 @@ export function FilterSidebar({
         <div className="mt-3 space-y-3">
           <PriceField label="Min" value={priceMin} onChange={onPriceMinChange} />
           <PriceField label="Max" value={priceMax} onChange={onPriceMaxChange} />
-          <button
-            type="button"
-            onClick={onReset}
-            className="w-full rounded-md border border-border py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
-          >
-            Reset
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onReset}
+              className="flex-1 rounded-md border border-border py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              onClick={onApply}
+              className="flex-1 rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Terapkan
+            </button>
+          </div>
         </div>
       </div>
     </aside>

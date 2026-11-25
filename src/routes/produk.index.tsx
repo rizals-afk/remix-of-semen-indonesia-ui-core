@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { z } from "zod";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { Pagination } from "@/components/common/Pagination";
@@ -207,9 +207,7 @@ function ProductListingPage() {
     }
   }, [category, categories]);
 
-  // Apply filter changes to the URL immediately (debounced for price inputs)
-  const priceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  // Apply filter changes to the URL
   const applySearchUpdate = (updates: {
     category?: string;
     brand_id?: string;
@@ -233,17 +231,7 @@ function ProductListingPage() {
     });
   };
 
-  const schedulePriceApply = () => {
-    if (priceDebounceRef.current) clearTimeout(priceDebounceRef.current);
-    priceDebounceRef.current = setTimeout(() => {
-      applySearchUpdate({
-        min_price: priceMin > 0 ? priceMin : undefined,
-        max_price: priceMax > 0 ? priceMax : undefined,
-      });
-    }, 600);
-  };
-
-  // Category/brand toggles apply instantly; price applies after debounce
+  // Category/brand toggles apply instantly; price waits for Terapkan
   const handleToggleCategory = (id: string) => {
     const next = selectedCategories.includes(id)
       ? selectedCategories.filter((c) => c !== id)
@@ -260,19 +248,16 @@ function ProductListingPage() {
     applySearchUpdate({ brand_id: next.length > 0 ? next.join(",") : undefined });
   };
 
-  const handlePriceMinChange = (n: number) => {
-    setPriceMin(n);
-    schedulePriceApply();
-  };
-
-  const handlePriceMaxChange = (n: number) => {
-    setPriceMax(n);
-    schedulePriceApply();
+  // Terapkan applies the current price range (category/brand already apply on toggle)
+  const handleApplyFilters = () => {
+    applySearchUpdate({
+      min_price: priceMin > 0 ? priceMin : undefined,
+      max_price: priceMax > 0 ? priceMax : undefined,
+    });
   };
 
   // Reset all filters
   const handleResetFilters = () => {
-    if (priceDebounceRef.current) clearTimeout(priceDebounceRef.current);
     setSelectedCategories([]);
     setSelectedBrands([]);
     setPriceMin(0);
@@ -315,8 +300,9 @@ function ProductListingPage() {
             onToggleCategory={handleToggleCategory}
             priceMin={priceMin}
             priceMax={priceMax}
-            onPriceMinChange={handlePriceMinChange}
-            onPriceMaxChange={handlePriceMaxChange}
+            onPriceMinChange={setPriceMin}
+            onPriceMaxChange={setPriceMax}
+            onApply={handleApplyFilters}
             onReset={handleResetFilters}
             expandedCategories={expandedCategories}
             onToggleExpand={handleToggleExpand}
