@@ -219,14 +219,31 @@ function PriceField({
   value: number;
   onChange: (n: number) => void;
 }) {
+  // Format number with thousand separator for display
+  const formatNumber = (num: number): string => {
+    if (!num) return "";
+    return num.toLocaleString("id-ID");
+  };
+
+  // Parse input back to number, removing non-numeric characters
+  const parseNumber = (str: string): number => {
+    const cleaned = str.replace(/\D/g, "");
+    return cleaned ? parseInt(cleaned, 10) : 0;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseNumber(e.target.value);
+    onChange(newValue);
+  };
+
   return (
     <label className="block rounded-md border border-border px-3 py-2">
       <span className="block text-xs text-muted-foreground">{label}</span>
       <input
-        type="number"
+        type="text"
         inputMode="numeric"
-        value={value || ""}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
+        value={formatNumber(value)}
+        onChange={handleChange}
         placeholder="0"
         className="w-full bg-transparent text-sm font-medium text-foreground focus:outline-none"
       />
