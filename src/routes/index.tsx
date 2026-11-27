@@ -29,7 +29,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { FEATURED_PRODUCTS } from "@/data/catalog";
 import { getCurrentUserFromStorage } from "@/lib/auth";
-import { fetchCategories, getParentCategories } from "@/lib/api/product-category";
+import { fetchCategories } from "@/lib/api/product-category";
 import { fetchProducts, transformProductToCard } from "@/lib/api/product";
 import { fetchBlogs } from "@/lib/api/blog";
 import { fetchBanners, type Banner } from "@/lib/api/banner";
@@ -84,12 +84,17 @@ function HomePage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [bannersLoading, setBannersLoading] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [blogsLoading, setBlogsLoading] = useState(true);
   const [api, setApi] = useState<CarouselApi>();
   const pluginIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const initialLoadRef = useRef(false);
+  const prevWarehouseRef = useRef(selectedWarehouse);
 
   const loadProducts = async (tabIndex: number) => {
-    setLoading(true);
+    setProductsLoading(true);
     try {
       let sortParams = {};
       if (tabIndex === 0) {
@@ -116,32 +121,63 @@ function HomePage() {
     } catch (error) {
       console.error("Failed to load products:", error);
     } finally {
-      setLoading(false);
+      setProductsLoading(false);
     }
   };
 
   useEffect(() => {
     const loadData = async () => {
-      try {
-        const [categoriesResponse, blogsResponse, bannersResponse] = await Promise.all([
-          fetchCategories({ per_page: 999, page: 1 }),
-          fetchBlogs({ page: 1, per_page: 3, is_active: true }),
-          fetchBanners({ per_page: 99, page: 1, is_website: 1, active: true }),
-        ]);
+      const prevId = prevWarehouseRef.current?.id;
+      const currentId = selectedWarehouse?.id;
 
-        const parentCategories = getParentCategories(categoriesResponse.data);
-        setCategories(parentCategories);
+      // Skip if warehouse hasn't actually changed (compare by ID)
+      if (prevId === currentId) {
+        return;
+      }
 
-        setBlogs(blogsResponse.data || []);
-        setBanners(bannersResponse.data || []);
+      // First load (null → warehouse): load all data progressively
+      if (!initialLoadRef.current && selectedWarehouse) {
+        // Load banners first (critical for hero section)
+        try {
+          const bannersResponse = await fetchBanners({ per_page: 99, page: 1, is_website: 1, active: true });
+          setBanners(bannersResponse.data || []);
+        } catch (error) {
+          console.error("Failed to load banners:", error);
+        } finally {
+          setBannersLoading(false);
+        }
+
+        // Load categories in parallel with other data
+        try {
+          const categoriesResponse = await fetchCategories({ per_page: 999, page: 1, is_parent: true });
+          setCategories(categoriesResponse.data);
+        } catch (error) {
+          console.error("Failed to load categories:", error);
+        } finally {
+          setCategoriesLoading(false);
+        }
+
+        // Load blogs
+        try {
+          const blogsResponse = await fetchBlogs({ page: 1, per_page: 3, is_active: true });
+          setBlogs(blogsResponse.data || []);
+        } catch (error) {
+          console.error("Failed to load blogs:", error);
+        } finally {
+          setBlogsLoading(false);
+        }
 
         // Load products for the default tab (Terlaris)
         await loadProducts(0);
-      } catch (error) {
-        console.error("Failed to load data:", error);
-      } finally {
-        setBannersLoading(false);
+        initialLoadRef.current = true;
+        setLoading(false);
       }
+      // Warehouse change: only reload products
+      else if (initialLoadRef.current && selectedWarehouse) {
+        await loadProducts(activeTab);
+      }
+
+      prevWarehouseRef.current = selectedWarehouse;
     };
 
     loadData();
@@ -216,7 +252,7 @@ function HomePage() {
       {/* KATEGORI PRODUK */}
       <section className="container mx-auto max-w-7xl px-4 py-12">
         <SectionTitle>Kategori Produk</SectionTitle>
-        {loading ? (
+        {categoriesLoading ? (
           <div className="mt-8 grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
               <div key={i} className="aspect-square rounded-xl border border-border bg-muted animate-pulse" />
@@ -286,7 +322,7 @@ function HomePage() {
           ))}
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {loading ? (
+          {productsLoading ? (
             [1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="aspect-[4/3] rounded-xl border border-border bg-muted animate-pulse" />
             ))
@@ -295,11 +331,7 @@ function HomePage() {
               // Check for voucher directly in product (from flashsale API) or in voucher_apply_lines
               const flashsaleVoucher = (p as any).voucher?.type === 'flashsale' ? (p as any).voucher :
                 (p as any).voucher_apply_lines?.find((v: any) => v.voucher.type === 'flashsale')?.voucher;
-              console.log("Home - Product:", p.id, "flashsaleVoucher:", flashsaleVoucher);
-              console.log("Home - product.voucher:", (p as any).voucher);
-              console.log("Home - voucher_apply_lines:", (p as any).voucher_apply_lines);
               const voucherId = activeTab === 1 && flashsaleVoucher ? flashsaleVoucher.id : undefined;
-              console.log("Home - Passing voucher_id to ProductCard:", voucherId);
               const searchParams = voucherId ? { voucher_id: voucherId } : undefined;
               return (
                 <ProductCard
@@ -379,7 +411,7 @@ function HomePage() {
           </Link>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {loading ? (
+          {blogsLoading ? (
             [1, 2, 3].map((i) => (
               <div key={i} className="aspect-[16/10] rounded-xl border border-border bg-muted animate-pulse" />
             ))

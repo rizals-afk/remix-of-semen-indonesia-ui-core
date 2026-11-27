@@ -225,10 +225,6 @@ export function getProductPrice(
 
   if (!variant) return null;
 
-  console.log("getProductPrice - variant:", variant);
-  console.log("getProductPrice - variant.pricelists:", variant.pricelists);
-  console.log("getProductPrice - branchId:", branchId);
-
   // Normalize pricelists to array (API returns either array or object)
   const pricelists: ProductPricelist[] = Array.isArray(variant.pricelists)
     ? variant.pricelists
@@ -236,14 +232,10 @@ export function getProductPrice(
       ? Object.values(variant.pricelists) as ProductPricelist[]
       : [];
 
-  console.log("getProductPrice - normalized pricelists:", pricelists);
-
   // Find pricelist by branch_id
   const pricelist = branchId
     ? pricelists.find((p) => String(p.branch_id) === String(branchId))
     : pricelists[0];
-
-  console.log("getProductPrice - found pricelist:", pricelist);
 
   if (!pricelist) return null;
 
@@ -369,18 +361,13 @@ export function getProductImage(product: Product): string {
   const PLACEHOLDER =
     "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=400&q=70";
 
-  console.log("Product Media:", product.media);
-
   if (product?.media?.length) {
     const image = product.media.find((media) => !!media.url);
 
     if (image?.url) {
-      console.log("Using image:", image.url);
       return image.url;
     }
   }
-
-  console.log("Using placeholder");
 
   return PLACEHOLDER;
 }

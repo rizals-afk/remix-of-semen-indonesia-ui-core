@@ -17,14 +17,19 @@ export interface CategoryListResponse {
 export interface FetchCategoriesParams {
   per_page?: number;
   page?: number;
+  is_parent?: boolean;
 }
 
 export async function fetchCategories(params: FetchCategoriesParams = {}): Promise<CategoryListResponse> {
-  const { per_page = 999, page = 1 } = params;
+  const { per_page = 999, page = 1, is_parent } = params;
   const queryParams = new URLSearchParams({
     per_page: per_page.toString(),
     page: page.toString(),
   });
+
+  if (is_parent !== undefined) {
+    queryParams.append('is_parent', is_parent.toString());
+  }
 
   return apiFetch<CategoryListResponse>(`/product-categories?${queryParams.toString()}`);
 }

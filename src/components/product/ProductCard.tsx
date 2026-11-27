@@ -33,8 +33,6 @@ interface ProductCardProps {
 export function ProductCard({ product, compact = false, search }: ProductCardProps) {
   const { id, name, price, originalPrice, discountPercent, discountedPrice, image, warehouse, rating } = product;
 
-  console.log("ProductCard - Product ID:", id, "Search params:", search);
-
   // Check if a voucher is actually applied
   const hasVoucher = search?.voucher_id || discountPercent;
 
