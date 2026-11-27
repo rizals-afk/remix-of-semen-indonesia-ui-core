@@ -20,6 +20,7 @@ import { useTrackVisit } from "@/hooks/useTrackVisit";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import faviconUrl from "../assets/favicon.ico?url";
 
 function NotFoundComponent() {
   return (
@@ -102,6 +103,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        type: "image/x-icon",
+        href: faviconUrl,
       },
     ],
   }),
