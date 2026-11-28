@@ -624,16 +624,22 @@ function DetailActions({ trx, onRefresh }: { trx: Trx; onRefresh: () => Promise<
     setIsProcessingPayment(true);
     paymentCreatedRef.current = false; // Reset payment created flag
     try {
-      // Load Midtrans Snap SDK
-      console.log("Loading Midtrans Snap SDK...");
-      await loadMidtransSnap();
-      console.log("Midtrans Snap SDK loaded");
-
-      // Generate Snap token
+      // Generate Snap token first — its redirect_url reveals which
+      // Midtrans environment (production vs sandbox) the backend used.
       console.log("Generating Snap token for trx_id:", trx.id);
       const response = await generateSnapToken(trx.id);
       console.log("Snap token generated:", response.token);
       console.log("Snap token response expiry_time:", response.expiry_time);
+
+      const midtransEnv =
+        response.redirect_url?.includes("app.sandbox.midtrans.com")
+          ? "sandbox"
+          : "production";
+
+      // Load the matching Midtrans Snap SDK
+      console.log(`Loading Midtrans Snap SDK (${midtransEnv})...`);
+      await loadMidtransSnap(midtransEnv);
+      console.log("Midtrans Snap SDK loaded");
 
       // Store expiry_time from token response for use in callbacks
       const expiryTime = response.expiry_time;

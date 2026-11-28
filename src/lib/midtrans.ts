@@ -1,7 +1,11 @@
+import { config } from "./config";
+
 let snapLoaded = false;
 let snapLoadPromise: Promise<void> | null = null;
 
-export function loadMidtransSnap(): Promise<void> {
+export type MidtransEnvironment = 'production' | 'sandbox';
+
+export function loadMidtransSnap(environment?: MidtransEnvironment): Promise<void> {
   if (snapLoaded) {
     return Promise.resolve();
   }
@@ -10,6 +14,8 @@ export function loadMidtransSnap(): Promise<void> {
     return snapLoadPromise;
   }
 
+  const env = environment ?? (import.meta.env.PROD ? 'production' : 'sandbox');
+
   snapLoadPromise = new Promise((resolve, reject) => {
     if (typeof window === 'undefined') {
       reject(new Error('Midtrans Snap can only be loaded in the browser'));
@@ -17,9 +23,7 @@ export function loadMidtransSnap(): Promise<void> {
     }
 
     const script = document.createElement('script');
-    // Use official Midtrans CDN URL
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-    script.setAttribute('data-client-key', 'SB-Mid-client-'); // Client key will be set by the backend
+    script.src = config.midtrans.snapUrl[env];
     script.onload = () => {
       console.log('Midtrans Snap SDK loaded successfully');
       snapLoaded = true;
